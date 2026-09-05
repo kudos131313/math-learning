@@ -81,44 +81,6 @@
 .legend-card .blk-t{ width: 62px; height: 16px; }
 .legend-card .blk-o{ width: 18px; height: 18px; }
 
-/* 拖曳互動手感樣式 (Interact.js Drag & Drop) */
-.draggable-block{
-  cursor: grab;
-  touch-action: none;
-  user-select: none;
-  transition: transform 0.15s ease, filter 0.15s ease;
-  will-change: transform;
-}
-.draggable-block:hover{
-  transform: translateY(-2px) scale(1.08);
-  filter: brightness(1.08) drop-shadow(0 4px 8px rgba(0,0,0,0.22));
-}
-.draggable-block.is-dragging{
-  cursor: grabbing !important;
-  opacity: 0.92;
-  z-index: 9999 !important;
-  transform: scale(1.22) rotate(4deg) !important;
-  filter: drop-shadow(0 10px 20px rgba(0,0,0,0.32)) !important;
-  pointer-events: none;
-}
-
-/* 拖曳放置目標區 (Dropzone) 提示 */
-.dropzone-target{
-  transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
-  position: relative;
-}
-.dropzone-target.drop-possible{
-  outline: 2.5px dashed var(--accent, #f59e0b);
-  outline-offset: 4px;
-  background: rgba(245, 158, 11, 0.08) !important;
-}
-.dropzone-target.drop-hover{
-  outline: 3px solid var(--brand, #3b82f6);
-  outline-offset: 5px;
-  background: rgba(59, 130, 246, 0.16) !important;
-  transform: scale(1.02);
-}
-
 /* 5 個一組積木群組容器 (5-Grouping Layout) */
 .blk-group-5{
   display: inline-flex;
@@ -146,17 +108,59 @@ html[data-theme="dark"] .blk-group-5{
 }
 
 
-/* 進位提示強化：攀升脈衝圓圈 */
-/* ========== 進位提示強化：攀升脈衝圓圈 ========== */
+/* 進位提示強化：攀升脈衝圓圈（多色三層波紋） */
 .carry-burst{
   position: fixed;
   border-radius: 50%;
   border: 3px solid #2b6ef2;
   pointer-events: none;
   z-index: 9997;
-  animation: carryBurstAnim .55s ease-out forwards;
+  transform-origin: center;
+  animation: carryBurstAnim .65s cubic-bezier(.2,.8,.4,1) forwards;
 }
 @keyframes carryBurstAnim{
-  0%  { transform: translate(-50%,-50%) scale(.3); opacity: 1; }
-  100%{ transform: translate(-50%,-50%) scale(2.4); opacity: 0; }
+  0%  { transform: translate(-50%,-50%) scale(.2); opacity: 1; }
+  60% { opacity: .7; }
+  100%{ transform: translate(-50%,-50%) scale(3.2); opacity: 0; }
+}
+
+/* 落地閃光：積木抵達目標欄的光暈爆破 */
+.land-burst{
+  position: fixed;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 9998;
+  transform: translate(-50%, -50%) scale(0);
+  animation: landBurstAnim .45s ease-out forwards;
+}
+@keyframes landBurstAnim{
+  0%  { transform: translate(-50%,-50%) scale(0);   opacity: 1; }
+  50% { transform: translate(-50%,-50%) scale(2.8); opacity: .7; }
+  100%{ transform: translate(-50%,-50%) scale(4.5); opacity: 0; }
+}
+
+/* 粒子噴射：四方向小圓點 */
+.carry-particle{
+  position: fixed;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #f59e0b;
+  pointer-events: none;
+  z-index: 9998;
+  transform: translate(-50%, -50%);
+}
+
+/* 欄位震動：來源欄在進位時短暫搖動 */
+.col-shake{
+  animation: colShakeAnim .32s ease;
+}
+@keyframes colShakeAnim{
+  0%   { transform: translateX(0); }
+  20%  { transform: translateX(-4px) rotate(-1.5deg); }
+  50%  { transform: translateX(3px) rotate(1deg); }
+  80%  { transform: translateX(-2px); }
+  100% { transform: translateX(0); }
 }

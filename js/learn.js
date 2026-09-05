@@ -120,8 +120,6 @@
     if(els.minusO) els.minusO.disabled = !canDec('o');
     if(els.plusO)  els.plusO.disabled  = !canInc('o');
 
-    // 升級積木支援手勢拖曳
-    updateDraggableBlocks();
   }
 
   function renderMachine(){
@@ -188,20 +186,60 @@
     return false;
   }
 
-  /* ---- 進位脈衝圓圈特效 ---- */
+  /* ---- 進位多層粒子爆炸特效 ---- */
   function spawnBurst(fromEl){
     if(prefersReduced || !fromEl) return;
     var rect = fromEl.getBoundingClientRect();
     var cx = rect.left + rect.width / 2;
     var cy = rect.top + rect.height / 2;
-    var burst = document.createElement('div');
-    burst.className = 'carry-burst';
-    burst.style.left   = cx + 'px';
-    burst.style.top    = cy + 'px';
-    burst.style.width  = rect.width + 'px';
-    burst.style.height = rect.height + 'px';
-    document.body.appendChild(burst);
-    setTimeout(function(){ burst.remove(); }, 600);
+    var baseSize = Math.max(rect.width, rect.height);
+
+    // 三層擴散圓圈（延遲交錯，形成波紋）
+    var delays = [0, 120, 240];
+    var colors = ['#2b6ef2', '#f59e0b', '#14b8a6'];
+    delays.forEach(function(delay, i){
+      setTimeout(function(){
+        var burst = document.createElement('div');
+        burst.className = 'carry-burst';
+        burst.style.left   = cx + 'px';
+        burst.style.top    = cy + 'px';
+        burst.style.width  = baseSize + 'px';
+        burst.style.height = baseSize + 'px';
+        burst.style.borderColor = colors[i];
+        document.body.appendChild(burst);
+        setTimeout(function(){ burst.remove(); }, 700);
+      }, delay);
+    });
+
+    // 四顆小粒子向四方噴射
+    var angles = [0, 90, 180, 270];
+    angles.forEach(function(angle, i){
+      setTimeout(function(){
+        var particle = document.createElement('div');
+        particle.className = 'carry-particle';
+        particle.style.left = cx + 'px';
+        particle.style.top  = cy + 'px';
+        document.body.appendChild(particle);
+        var rad = angle * Math.PI / 180;
+        var dist = 38 + i * 8;
+        var tx = Math.cos(rad) * dist;
+        var ty = Math.sin(rad) * dist;
+        if(typeof window.anime !== 'undefined'){
+          window.anime({
+            targets: particle,
+            translateX: tx,
+            translateY: ty,
+            scale: [1.2, 0],
+            opacity: [1, 0],
+            duration: 500,
+            easing: 'easeOutCubic',
+            complete: function(){ particle.remove(); }
+          });
+        } else {
+          setTimeout(function(){ particle.remove(); }, 520);
+        }
+      }, i * 40);
+    });
   }
 
   function flashColumns(places){
@@ -219,214 +257,95 @@
     if(!fromEl || !toEl){ if(onDone) onDone(); return; }
     var fromRect = fromEl.getBoundingClientRect();
     var toRect = toEl.getBoundingClientRect();
+
+    // 建立飛行積木元素
     var flyer = document.createElement('div');
     var glyphCls = kind === 'th' ? 'blk-th' : kind === 'h' ? 'blk-h' : kind === 't' ? 'blk-t' : 'blk-o';
     flyer.className = 'flyer blk ' + glyphCls;
     if(MathApp.utils && MathApp.utils.getBlockSvg){
       flyer.innerHTML = MathApp.utils.getBlockSvg(kind);
     }
+    flyer.style.position = 'fixed';
+    flyer.style.zIndex   = '9999';
+    flyer.style.pointerEvents = 'none';
     document.body.appendChild(flyer);
-    var startX = fromRect.left + fromRect.width / 2;
-    var startY = fromRect.top + fromRect.height / 2;
-    var endX = toRect.left + toRect.width / 2;
-    var endY = toRect.top + toRect.height / 2;
+
+    var startX = fromRect.left + fromRect.width  / 2;
+    var startY = fromRect.top  + fromRect.height / 2;
+    var endX   = toRect.left   + toRect.width    / 2;
+    var endY   = toRect.top    + toRect.height   / 2;
+
+    // 決定拋物線頂點：進位向上弧、退位向下弧
+    var isCarry = endX < startX; // 進位方向：從右往左（個→十→百）
+    var arcOffset = isCarry ? -80 : 60; // 進位向上拋，退位向下彎
+    var midY = ((startY + endY) / 2) + arcOffset;
 
     if(typeof window.anime !== 'undefined'){
-      flyer.style.position = 'fixed';
-      flyer.style.left = startX + 'px';
-      flyer.style.top = startY + 'px';
-      flyer.style.transform = 'translate(-50%, -50%)';
-      flyer.style.zIndex = '9999';
+      flyer.style.left      = startX + 'px';
+      flyer.style.top       = startY + 'px';
+      flyer.style.transform = 'translate(-50%,-50%) scale(1.6)';
 
-      var midY = Math.min(startY, endY) - 50;
-
+      // 第一段：升空（放大+旋轉出去）
+      // 第二段：落地（縮小+快速衝向目標）
       window.anime({
         targets: flyer,
-        left: endX + 'px',
-        top: [
-          { value: midY + 'px', duration: 280, easing: 'easeOutQuad' },
-          { value: endY + 'px', duration: 320, easing: 'easeInQuad' }
+        keyframes: [
+          { left: ((startX + endX) / 2) + 'px', top: midY + 'px', scale: 2.0, rotate: isCarry ? -18 : 14, duration: 340, easing: 'easeOutCubic' },
+          { left: endX + 'px',   top: endY   + 'px', scale: 0.8,  rotate: isCarry ? 6 : -6,  duration: 280, easing: 'easeInQuart' }
         ],
-        scale: [1.8, 1],
-        rotate: [0, 8],
-        duration: 600,
-        easing: 'easeInOutQuad',
         complete: function(){
-          if(toEl.parentElement){
+          flyer.remove();
+          // 目標欄整體彈跳回饋
+          var colParent = toEl.closest('.col') || toEl.parentElement;
+          if(colParent && typeof window.anime !== 'undefined'){
             window.anime({
-              targets: toEl.parentElement,
-              scale: [1, 1.05, 0.98, 1],
-              duration: 380,
-              easing: 'easeOutElastic(1, .5)'
+              targets: colParent,
+              scale: [1, 1.06, 0.97, 1.02, 1],
+              duration: 480,
+              easing: 'easeOutElastic(1, .6)'
             });
           }
-          flyer.remove();
+          // 落地爆破效果
+          spawnLandBurst(endX, endY, kind);
           if(onDone) onDone();
         }
       });
     } else {
-      // 離線自動降級
-      flyer.style.left = startX + 'px';
-      flyer.style.top = startY + 'px';
-      flyer.style.transform = 'translate(-50%,-50%) scale(1.6)';
-      flyer.style.opacity = '1';
+      // 無 Anime.js 降級處理（CSS transition）
+      flyer.style.left      = startX + 'px';
+      flyer.style.top       = startY + 'px';
+      flyer.style.transform = 'translate(-50%,-50%) scale(1.5)';
+      flyer.style.opacity   = '1';
       requestAnimationFrame(function(){
         requestAnimationFrame(function(){
+          flyer.style.transition = 'left .55s cubic-bezier(.3,.7,.3,1), top .55s cubic-bezier(.3,.7,.3,1), transform .55s ease';
           flyer.style.left = endX + 'px';
-          flyer.style.top = endY + 'px';
+          flyer.style.top  = endY + 'px';
           flyer.style.transform = 'translate(-50%,-50%) scale(.85) rotate(8deg)';
         });
       });
       setTimeout(function(){
         flyer.style.opacity = '0';
-        setTimeout(function(){ flyer.remove(); if(onDone) onDone(); }, 190);
+        setTimeout(function(){ flyer.remove(); if(onDone) onDone(); }, 200);
       }, 560);
     }
   }
 
-  /* ---------------- Interact.js 手動拖曳湊十與拆解教具互動 ---------------- */
-  var interactInitialized = false;
-  function updateDraggableBlocks(){
-    if(typeof window.interact === 'undefined') return;
-
-    // 為個位珠與十位棒加上可拖曳標記
-    if(els.blocksO){
-      var oBlks = els.blocksO.querySelectorAll('.blk');
-      for(var i = 0; i < oBlks.length; i++){
-        oBlks[i].classList.add('draggable-block');
-        oBlks[i].setAttribute('data-drag-type', 'unit');
-      }
-    }
-    if(els.blocksT){
-      var tBlks = els.blocksT.querySelectorAll('.blk');
-      for(var j = 0; j < tBlks.length; j++){
-        tBlks[j].classList.add('draggable-block');
-        tBlks[j].setAttribute('data-drag-type', 'ten');
-      }
-    }
-
-    if(interactInitialized) return;
-    interactInitialized = true;
-
-    // 拖曳積木手勢監聽
-    window.interact('.draggable-block').draggable({
-      inertia: false,
-      autoScroll: false,
-      listeners: {
-        start: function(event){
-          var target = event.target;
-          target.classList.add('is-dragging');
-          target.setAttribute('data-x', '0');
-          target.setAttribute('data-y', '0');
-          MathApp.sfx('click');
-        },
-        move: function(event){
-          var target = event.target;
-          var x = (parseFloat(target.getAttribute('data-x')) || 0) + event.dx;
-          var y = (parseFloat(target.getAttribute('data-y')) || 0) + event.dy;
-          target.style.transform = 'translate(' + x + 'px, ' + y + 'px) scale(1.2)';
-          target.setAttribute('data-x', x);
-          target.setAttribute('data-y', y);
-        },
-        end: function(event){
-          var target = event.target;
-          target.classList.remove('is-dragging');
-          // 若未被 Dropzone 接收，平滑彈回原位
-          if(!target.dataset.dropped){
-            if(typeof window.anime !== 'undefined'){
-              window.anime({
-                targets: target,
-                translateX: 0,
-                translateY: 0,
-                scale: 1,
-                duration: 350,
-                easing: 'easeOutElastic(1, .6)',
-                complete: function(){
-                  target.style.transform = '';
-                  target.removeAttribute('data-x');
-                  target.removeAttribute('data-y');
-                }
-              });
-            } else {
-              target.style.transform = '';
-              target.removeAttribute('data-x');
-              target.removeAttribute('data-y');
-            }
-          }
-          delete target.dataset.dropped;
-        }
-      }
-    });
-
-    // 十位欄位：放置目標區 (接收個位珠 -> 湊十進位)
-    if(colEl.t){
-      colEl.t.classList.add('dropzone-target');
-      window.interact(colEl.t).dropzone({
-        accept: '[data-drag-type="unit"]',
-        overlap: 0.35,
-        ondropactivate: function(event){
-          event.target.classList.add('drop-possible');
-        },
-        ondragenter: function(event){
-          event.target.classList.add('drop-hover');
-        },
-        ondragleave: function(event){
-          event.target.classList.remove('drop-hover');
-        },
-        ondrop: function(event){
-          event.relatedTarget.dataset.dropped = 'true';
-          event.target.classList.remove('drop-hover');
-          event.target.classList.remove('drop-possible');
-
-          // 手動推進個位珠湊十
-          handleButton('o', 1);
-          MathApp.utils.showToast('🎯 手動把個位珠推進十位！滿十就能湊成一條十喔！');
-        },
-        ondropdeactivate: function(event){
-          event.target.classList.remove('drop-possible');
-          event.target.classList.remove('drop-hover');
-        }
-      });
-    }
-
-    // 個位欄位：放置目標區 (接收十位長條 -> 拆解成 10 顆珠子)
-    if(colEl.o){
-      colEl.o.classList.add('dropzone-target');
-      window.interact(colEl.o).dropzone({
-        accept: '[data-drag-type="ten"]',
-        overlap: 0.35,
-        ondropactivate: function(event){
-          event.target.classList.add('drop-possible');
-        },
-        ondragenter: function(event){
-          event.target.classList.add('drop-hover');
-        },
-        ondragleave: function(event){
-          event.target.classList.remove('drop-hover');
-        },
-        ondrop: function(event){
-          event.relatedTarget.dataset.dropped = 'true';
-          event.target.classList.remove('drop-hover');
-          event.target.classList.remove('drop-possible');
-
-          // 手動拆解十位長條
-          if(state.t > 0){
-            state.t--;
-            state.o = Math.min(99, state.o + 10);
-            renderMachine();
-            MathApp.sfx('borrow');
-            MathApp.utils.showToast('✂️ 一條十位棒被你拆開成 10 顆個位珠囉！');
-            MathApp.speak('拆解成功！一條十變成十個一！');
-            if(MathApp.utils.launchConfetti) MathApp.utils.launchConfetti();
-          }
-        },
-        ondropdeactivate: function(event){
-          event.target.classList.remove('drop-possible');
-          event.target.classList.remove('drop-hover');
-        }
-      });
-    }
+  /* 落地閃光：積木抵達目標欄時的短暫光暈 */
+  function spawnLandBurst(cx, cy, kind){
+    if(prefersReduced) return;
+    var colorMap = { th: '#a855f7', h: '#3b82f6', t: '#14b8a6', o: '#f59e0b' };
+    var color = colorMap[kind] || '#2b6ef2';
+    var glow = document.createElement('div');
+    glow.className = 'land-burst';
+    glow.style.left        = cx + 'px';
+    glow.style.top         = cy + 'px';
+    glow.style.background  = color;
+    document.body.appendChild(glow);
+    setTimeout(function(){ glow.remove(); }, 500);
   }
+
+  /* 拖曳功能已移除（自動進/退位模式無需手動拖曳） */
 
   function chainFor(place){
     var thousandEnabled = MathApp.thousand.isEnabled();
@@ -478,14 +397,34 @@
       playSteps(steps, idx + 1, dir, changed, place, onComplete);
       return;
     }
+
+    // 步驟開始：來源欄脈衝 + 多層爆炸特效
+    var fromColEl = colEl[step.from];
     fromBox.classList.add('bundle-pulse');
-    spawnBurst(colEl[step.from]);
+    spawnBurst(fromColEl);
+
+    // 來源欄短暫高亮震動
+    if(fromColEl && !prefersReduced){
+      fromColEl.classList.remove('col-shake');
+      void fromColEl.offsetWidth;
+      fromColEl.classList.add('col-shake');
+    }
+
     setTimeout(function(){
       fromBox.classList.remove('bundle-pulse');
+      if(fromColEl) fromColEl.classList.remove('col-shake');
+
       flyBlock(fromBox, toBox, kind, function(){
+        // 抵達後：目標欄閃光
+        var toColEl = colEl[step.to];
+        if(toColEl && !prefersReduced){
+          toColEl.classList.remove('carry-flash');
+          void toColEl.offsetWidth;
+          toColEl.classList.add('carry-flash');
+        }
         playSteps(steps, idx + 1, dir, changed, place, onComplete);
       });
-    }, 260);
+    }, 300);
   }
 
   function handleButton(place, dir){
