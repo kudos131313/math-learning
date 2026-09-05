@@ -1,0 +1,173 @@
+@charset "UTF-8";
+/* ==========================================================================
+   3. 數字製造機與位值探索舞台 (LEARN & NUMBER MACHINE)
+   ========================================================================== */
+/* ---------- number machine ---------- */
+section.machine{
+  background: var(--card);
+  border: 2px solid var(--ink);
+  border-radius: var(--radius-card);
+  box-shadow: 6px 6px 0 var(--shadow-ink);
+  padding: 28px 22px 30px;
+  margin-bottom: 48px;
+}
+.machine h2{ text-align:center; font-size: clamp(20px,3.4vw,26px); margin: 0 0 4px;}
+.machine .sub{ text-align:center; color: var(--ink-soft); font-size:13.5px; margin-bottom: 22px;}
+
+.display{
+  display:flex;
+  align-items:baseline;
+  justify-content:center;
+  gap: 4px;
+  margin-bottom: 8px;
+  flex-wrap: wrap;
+}
+.display .digit{
+  font-size: clamp(46px, 11vw, 72px);
+  font-weight: 700;
+  line-height: 1;
+  padding: 0 3px;
+  border-radius: 12px;
+  transition: transform .18s ease;
+}
+.display .digit.th{ color: var(--th-color); }
+.display .digit.h{ color: var(--h-color); }
+.display .digit.t{ color: var(--t-color); }
+.display .digit.o{ color: var(--o-color); }
+.display.pop .digit{ transform: translateY(-6px) scale(1.04); }
+
+.expand{
+  text-align:center;
+  color: var(--ink-soft);
+  font-size: 14.5px;
+  margin-bottom: 26px;
+  min-height: 20px;
+}
+.expand b.th{ color: var(--th-color); }
+.expand b.h{ color: var(--h-color); }
+.expand b.t{ color: var(--t-color); }
+.expand b.o{ color: var(--o-color); }
+
+.toast{
+  text-align:center;
+  min-height: 22px;
+  margin: -4px 0 20px;
+  font-size: 13.5px;
+  font-weight: 700;
+  color: #2b6ef2;
+  opacity: 0;
+  transform: translateY(-4px);
+  transition: opacity .22s ease, transform .22s ease;
+}
+.toast.show{ opacity:1; transform: translateY(0); }
+
+.columns{
+  display:grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 14px;
+}
+.col{
+  border-radius: 18px;
+  padding: 14px 10px 16px;
+  text-align:center;
+  border: 2px solid var(--ink);
+}
+.col.carry-flash{ animation: carryFlashAnim .7s ease; }
+@keyframes carryFlashAnim{
+  0%{ box-shadow: 0 0 0 0 rgba(43,110,242,.55); }
+  45%{ box-shadow: 0 0 0 7px rgba(43,110,242,.18); }
+  100%{ box-shadow: 0 0 0 0 rgba(43,110,242,0); }
+}
+.col.th{ background: var(--th-soft); }
+.col.h{ background: var(--h-soft); }
+.col.t{ background: var(--t-soft); }
+.col.o{ background: var(--o-soft); }
+
+.col .label{
+  font-weight: 700;
+  font-size: 15px;
+  margin-bottom: 2px;
+}
+.col.th .label{ color: var(--th-color-dark); }
+.col.h .label{ color: var(--h-color-dark, #a8432f); }
+.col.t .label{ color: var(--t-color-dark); }
+.col.o .label{ color: var(--o-color-dark); }
+
+.col .place-name{ font-size:11.5px; color: var(--ink-soft); margin-bottom:10px; }
+
+.col .count{
+  font-size: 26px;
+  font-weight: 800;
+  margin: 6px 0 10px;
+}
+.col.th .count{ color: var(--th-color); }
+.col.h .count{ color: var(--h-color); }
+.col.t .count{ color: var(--t-color); }
+.col.o .count{ color: var(--o-color); }
+
+.flyer{
+  position: fixed;
+  z-index: 9999;
+  pointer-events: none;
+  box-shadow: 0 3px 10px rgba(0,0,0,.25);
+  transition: left .56s cubic-bezier(.32,.72,.35,1), top .56s cubic-bezier(.32,.72,.35,1), transform .56s ease, opacity .3s ease;
+}
+.bundle-pulse{ animation: bundlePulseAnim .26s ease; }
+@keyframes bundlePulseAnim{
+  0%{ transform: scale(1); }
+  50%{ transform: scale(1.2); }
+  100%{ transform: scale(1); }
+}
+
+.blocks-box{
+  min-height: 74px;
+  display:flex;
+  flex-wrap:wrap;
+  align-items:center;
+  justify-content:center;
+  gap: 5px;
+  margin-bottom: 12px;
+  padding: 4px 2px;
+}
+
+.ctrl{ display:flex; align-items:center; justify-content:center; gap:22px; }
+.ctrl button{
+  width: 56px; height: 56px;
+  border-radius: 14px;
+  border: 2px solid var(--ink);
+  background: var(--surface);
+  font-size: 26px;
+  font-weight: 800;
+  cursor:pointer;
+  box-shadow: 4px 4px 0 var(--shadow-ink);
+  transition: transform .08s ease, box-shadow .08s ease, background .12s ease;
+}
+.ctrl button:hover:not(:disabled){
+  background: var(--surface-dim);
+}
+.ctrl button:active:not(:disabled){
+  transform: translate(3px,3px);
+  box-shadow: 0 0 0 var(--shadow-ink);
+}
+.ctrl button:disabled{ opacity:.35; cursor:not-allowed; }
+.ctrl button:focus-visible{ outline: 3px solid #2b6ef2; outline-offset:2px; }
+
+.machine-foot{
+  display:flex;
+  justify-content:center;
+  margin-top: 22px;
+}
+.ghost-btn{
+  background: var(--surface);
+  border: 2px solid var(--ink);
+  border-radius: 999px;
+  padding: 13px 26px;
+  min-height: 48px;
+  font-size: 15.5px;
+  font-weight: 700;
+  cursor:pointer;
+  box-shadow: 3px 3px 0 var(--shadow-ink);
+  transition: transform .08s ease, box-shadow .08s ease;
+}
+.ghost-btn:active{ transform: translate(2px,2px); box-shadow: 0 0 0 var(--shadow-ink); }
+.ghost-btn:focus-visible{ outline: 3px solid #2b6ef2; outline-offset:2px; }

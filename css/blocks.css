@@ -1,0 +1,120 @@
+@charset "UTF-8";
+/* ==========================================================================
+   2. 擬真 3D 積木樣式與分組結構 (BLOCKS & VISUAL SCAFFOLDING)
+   ========================================================================== */
+/* ---------- legend / bundling strip ---------- */
+.legend{
+  display:grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 14px;
+  margin: 30px 0 8px;
+}
+.legend-card{
+  background: var(--card);
+  border: 2px solid var(--ink);
+  border-radius: 18px;
+  padding: 14px 12px;
+  text-align:center;
+  box-shadow: 4px 4px 0 var(--shadow-ink);
+}
+.legend-card .shape{ margin: 0 auto 8px; }
+.legend-card b{ display:block; font-size:15px; margin-bottom:2px;}
+.legend-card span{ font-size:12.5px; color: var(--ink-soft); }
+
+.bundle-strip{
+  background: var(--card);
+  border: 2px dashed var(--ink);
+  border-radius: 18px;
+  padding: 14px 18px;
+  margin: 18px 0 40px;
+  display:flex;
+  flex-wrap:wrap;
+  gap: 18px;
+  align-items:center;
+  justify-content: center;
+  font-size: 14.5px;
+}
+.bundle-row{ display:flex; align-items:center; gap:8px; flex-wrap:wrap; justify-content:center;}
+.bundle-row .arrow{ font-size:18px; color: var(--ink-soft); }
+
+/* ---------- block glyphs ---------- */
+.blk{ display:inline-block; flex-shrink:0; }
+.blk-th{
+  width: 30px; height: 30px; border-radius: 6px;
+  background: var(--th-color);
+  background-image:
+    linear-gradient(rgba(255,255,255,.4) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,.4) 1px, transparent 1px),
+    linear-gradient(135deg, rgba(0,0,0,.15) 25%, transparent 25%);
+  background-size: 10px 10px, 10px 10px, 10px 10px;
+  border: 1.5px solid rgba(0,0,0,.2);
+  box-shadow: 2px 2px 0 rgba(0,0,0,.15);
+}
+.blk-h{
+  width: 30px; height: 30px; border-radius: 8px;
+  background: var(--h-color);
+  background-image:
+    linear-gradient(rgba(255,255,255,.45) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,.45) 1px, transparent 1px);
+  background-size: 20% 20%;
+  border: 1.5px solid rgba(0,0,0,.15);
+}
+.blk-t{
+  width: 46px; height: 11px; border-radius: 999px;
+  background: var(--t-color);
+  background-image: repeating-linear-gradient(90deg, rgba(255,255,255,.55) 0 1.4px, transparent 1.4px 10%);
+  border: 1.5px solid rgba(0,0,0,.15);
+}
+.blk-o{
+  width: 13px; height: 13px; border-radius: 50%;
+  background: var(--o-color);
+  border: 1.5px solid rgba(0,0,0,.15);
+}
+.legend-card .blk-th{ width:38px; height:38px; border-radius:8px;}
+.legend-card .blk-h{ width:34px; height:34px; border-radius:10px;}
+.legend-card .blk-t{ width:56px; height:13px;}
+.legend-card .blk-o{ width:16px; height:16px;}
+
+
+/* 5 個一組積木群組容器 (5-Grouping Layout) */
+/* 5 個一組積木群組容器 (5-Grouping Layout) */
+.blk-group-5{
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  padding: 4px 6px;
+  background: rgba(51,43,34,.03);
+  border-radius: 10px;
+  border: 1.5px dashed rgba(51,43,34,.16);
+  margin: 2px 4px;
+  flex-wrap: wrap;
+  transition: all .2s ease;
+}
+html[data-theme="dark"] .blk-group-5{
+  background: rgba(255,255,255,.045);
+  border-color: rgba(255,255,255,.16);
+}
+.quiz-blocks .grp .row{
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  justify-content: center;
+  max-width: 280px;
+}
+
+
+/* 進位提示強化：攀升脈衝圓圈 */
+/* ========== 進位提示強化：攀升脈衝圓圈 ========== */
+.carry-burst{
+  position: fixed;
+  border-radius: 50%;
+  border: 3px solid #2b6ef2;
+  pointer-events: none;
+  z-index: 9997;
+  animation: carryBurstAnim .55s ease-out forwards;
+}
+@keyframes carryBurstAnim{
+  0%  { transform: translate(-50%,-50%) scale(.3); opacity: 1; }
+  100%{ transform: translate(-50%,-50%) scale(2.4); opacity: 0; }
+}
