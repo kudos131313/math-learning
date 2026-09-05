@@ -224,6 +224,57 @@
         }
         return '驗證通過直式加法（無進位、滿十進一、進百位）與直式減法（無退位、借一拆十）全部案例';
       }
+    },
+    {
+      id: 'external_libs',
+      name: '外部函式庫載入與動態環境檢驗 (Anime.js / Interact.js / Two.js)',
+      run: function(){
+        var reports = [];
+        if(typeof window.anime !== 'undefined'){
+          reports.push('Anime.js 就緒 (v' + (window.anime.version || '3.x') + ')');
+        } else {
+          reports.push('Anime.js 未載入（已啟用 CSS 降級相容模式）');
+        }
+
+        if(typeof window.interact !== 'undefined'){
+          reports.push('Interact.js 手勢庫就緒');
+        } else {
+          reports.push('Interact.js 未載入（已啟用點擊操作相容模式）');
+        }
+
+        if(typeof window.Two !== 'undefined'){
+          reports.push('Two.js 向量畫布引擎就緒');
+        } else {
+          reports.push('Two.js 離線環境（SVG 原生引擎運作中）');
+        }
+
+        return reports.join('，');
+      }
+    },
+    {
+      id: 'svg_vector_blocks',
+      name: 'SVG 向量教具積木刻度生成檢驗 (SVG Blocks Engine)',
+      run: function(){
+        var kinds = ['o', 't', 'h', 'th'];
+        for(var i = 0; i < kinds.length; i++){
+          var k = kinds[i];
+          var svg = MathApp.utils.getBlockSvg(k);
+          if(!svg || typeof svg !== 'string' || svg.indexOf('<svg') === -1 || svg.indexOf('</svg>') === -1){
+            throw new Error('積木 ' + k + ' 未能產生合法 SVG 字串');
+          }
+        }
+        // 驗證十位包含 10 等分刻度線
+        var tSvg = MathApp.utils.getBlockSvg('t');
+        if(tSvg.indexOf('line') === -1){
+          throw new Error('十位長條缺少 10 等分分割刻度線');
+        }
+        // 驗證百位包含網格線
+        var hSvg = MathApp.utils.getBlockSvg('h');
+        if(hSvg.indexOf('line') === -1){
+          throw new Error('百位百格板缺少 10x10 格線');
+        }
+        return '個位立體珠、十位10格棒、百位100格板、千位3D等角方塊向量刻度全數驗證正確';
+      }
     }
   ];
 

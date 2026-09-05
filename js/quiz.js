@@ -349,9 +349,13 @@
         var goodMsg = MathApp.utils.goodMsgs[MathApp.randInt(0, MathApp.utils.goodMsgs.length - 1)];
         quizEls.feedback.className = 'feedback good';
         quizEls.feedback.innerHTML = goodMsg + '<span class="explain">' + explainStr + '</span>';
-        quizEls.card.classList.remove('shake');
-        quizEls.card.classList.add('pulseGood');
-        setTimeout(function(){ quizEls.card.classList.remove('pulseGood'); }, 400);
+        if(typeof window.anime !== 'undefined'){
+          window.anime({ targets: quizEls.card, scale: [1, 1.025, 1], duration: 420, easing: 'easeOutElastic(1, .6)' });
+        } else {
+          quizEls.card.classList.remove('shake');
+          quizEls.card.classList.add('pulseGood');
+          setTimeout(function(){ quizEls.card.classList.remove('pulseGood'); }, 400);
+        }
         MathApp.sfx('correct');
         MathApp.speak(goodMsg + '。' + explainStr);
         MathApp.utils.launchConfetti();
@@ -360,9 +364,13 @@
         var badMsg = MathApp.utils.badMsgs[MathApp.randInt(0, MathApp.utils.badMsgs.length - 1)];
         quizEls.feedback.className = 'feedback bad';
         quizEls.feedback.innerHTML = badMsg + '<span class="explain">正確答案：' + explainStr + '</span>';
-        quizEls.card.classList.remove('pulseGood');
-        quizEls.card.classList.add('shake');
-        setTimeout(function(){ quizEls.card.classList.remove('shake'); }, 380);
+        if(typeof window.anime !== 'undefined'){
+          window.anime({ targets: quizEls.card, translateX: [-10, 10, -7, 7, -3, 3, 0], duration: 380, easing: 'easeInOutQuad' });
+        } else {
+          quizEls.card.classList.remove('pulseGood');
+          quizEls.card.classList.add('shake');
+          setTimeout(function(){ quizEls.card.classList.remove('shake'); }, 380);
+        }
         MathApp.sfx('wrong');
         MathApp.speak(badMsg + '。正確答案是，' + explainStr);
       }
@@ -387,6 +395,9 @@
         var goodMsg2 = MathApp.utils.goodMsgs[MathApp.randInt(0, MathApp.utils.goodMsgs.length - 1)];
         quizEls.feedback.className = 'feedback good';
         quizEls.feedback.innerHTML = goodMsg2 + '<span class="explain">' + explainStr + '</span>';
+        if(typeof window.anime !== 'undefined'){
+          window.anime({ targets: quizEls.card, scale: [1, 1.025, 1], duration: 420, easing: 'easeOutElastic(1, .6)' });
+        }
         MathApp.sfx('correct');
         MathApp.speak(goodMsg2);
         MathApp.utils.launchConfetti();
@@ -394,6 +405,9 @@
         var badMsg2 = MathApp.utils.badMsgs[MathApp.randInt(0, MathApp.utils.badMsgs.length - 1)];
         quizEls.feedback.className = 'feedback bad';
         quizEls.feedback.innerHTML = badMsg2 + '<span class="explain">正確答案：' + explainStr + '</span>';
+        if(typeof window.anime !== 'undefined'){
+          window.anime({ targets: quizEls.card, translateX: [-10, 10, -7, 7, -3, 3, 0], duration: 380, easing: 'easeInOutQuad' });
+        }
         MathApp.sfx('wrong');
         MathApp.speak(badMsg2);
       }

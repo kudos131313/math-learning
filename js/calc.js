@@ -7,6 +7,7 @@
   "use strict";
 
   var MathApp = window.MathApp = window.MathApp || {};
+  var prefersReduced = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
   var calcState = {
     op: 'add',           // 'add' 或 'sub'
@@ -539,6 +540,9 @@
       calcEls.interactivePrompt.style.display = 'none';
     }
 
+    // 動畫時間軸：使用 Anime.js 進行進位飛躍、借位劃線與答案彈跳
+    animateVerticalStep(d, step);
+
     // 音效
     if(info.sound && soundOn){
       MathApp.sfx(info.sound);
@@ -547,6 +551,122 @@
     // 語音朗讀
     if(shouldSpeak && voiceOn){
       MathApp.speak(info.speak);
+    }
+  }
+
+  /* 直式算則步驟補間動態 (Anime.js) */
+  function animateVerticalStep(d, step){
+    if(prefersReduced || typeof window.anime === 'undefined') return;
+
+    // 1. 加法進位：滿十進一弧線飛躍
+    if(step === 2 && d.op === 'add' && d.needsCarry){
+      var carryBadge = document.querySelector('.vm-carry-badge');
+      var cellO = document.querySelector('.vm-cell-o .vm-num-box');
+      if(carryBadge && cellO){
+        var rBadge = carryBadge.getBoundingClientRect();
+        var rO = cellO.getBoundingClientRect();
+
+        var flyer = document.createElement('div');
+        flyer.className = 'anime-carry-flyer';
+        flyer.textContent = '1';
+        flyer.style.position = 'fixed';
+        flyer.style.left = rO.left + 'px';
+        flyer.style.top = rO.top + 'px';
+        flyer.style.zIndex = '9999';
+        flyer.style.pointerEvents = 'none';
+        document.body.appendChild(flyer);
+
+        carryBadge.style.opacity = '0';
+
+        window.anime({
+          targets: flyer,
+          left: rBadge.left + 'px',
+          top: [
+            { value: (rO.top - 46) + 'px', duration: 320, easing: 'easeOutQuad' },
+            { value: rBadge.top + 'px', duration: 380, easing: 'easeInQuad' }
+          ],
+          scale: [1.8, 1],
+          duration: 700,
+          easing: 'easeInOutQuad',
+          complete: function(){
+            flyer.remove();
+            carryBadge.style.opacity = '1';
+            window.anime({
+              targets: carryBadge,
+              scale: [0.2, 1.35, 1],
+              rotate: [-15, 8, 0],
+              duration: 450,
+              easing: 'easeOutElastic(1, .5)'
+            });
+          }
+        });
+      }
+    }
+
+    // 2. 減法借位：十位動態劃斜線與借十飛入個位
+    if(step === 2 && d.op === 'sub' && d.needsBorrow_o){
+      var slashStroke = document.querySelector('.vm-slash-stroke');
+      if(slashStroke){
+        window.anime({
+          targets: slashStroke,
+          scaleX: [0, 1],
+          duration: 320,
+          easing: 'easeOutExpo'
+        });
+      }
+
+      var borrowTagO = document.querySelector('.vm-cell-o .vm-borrow-tag');
+      var numAT = document.querySelector('.vm-cell-t .vm-num-box');
+      if(borrowTagO && numAT){
+        var rTag = borrowTagO.getBoundingClientRect();
+        var rT = numAT.getBoundingClientRect();
+
+        var flyerB = document.createElement('div');
+        flyerB.className = 'anime-borrow-flyer';
+        flyerB.textContent = '10';
+        flyerB.style.position = 'fixed';
+        flyerB.style.left = rT.left + 'px';
+        flyerB.style.top = rT.top + 'px';
+        flyerB.style.zIndex = '9999';
+        flyerB.style.pointerEvents = 'none';
+        document.body.appendChild(flyerB);
+
+        borrowTagO.style.opacity = '0';
+
+        window.anime({
+          targets: flyerB,
+          left: rTag.left + 'px',
+          top: [
+            { value: (rT.top - 38) + 'px', duration: 280, easing: 'easeOutQuad' },
+            { value: rTag.top + 'px', duration: 380, easing: 'easeInQuad' }
+          ],
+          scale: [1.7, 1],
+          duration: 660,
+          easing: 'easeInOutQuad',
+          complete: function(){
+            flyerB.remove();
+            borrowTagO.style.opacity = '1';
+            window.anime({
+              targets: borrowTagO,
+              scale: [0.2, 1.3, 1],
+              duration: 450,
+              easing: 'easeOutElastic(1, .5)'
+            });
+          }
+        });
+      }
+    }
+
+    // 3. 揭曉答案數字彈出動效
+    var revealedAns = document.querySelectorAll('.vm-cell-ans.revealed');
+    if(revealedAns.length > 0){
+      window.anime({
+        targets: revealedAns,
+        scale: [0.4, 1.15, 1],
+        opacity: [0, 1],
+        duration: 420,
+        easing: 'easeOutBack'
+      });
     }
   }
 

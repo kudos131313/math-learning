@@ -10,6 +10,49 @@
 </head>
 <body>
 
+<!-- 全域 SVG 漸層與濾鏡定義庫（常駐於 DOM 根部，確保跨分頁切換時漸層永不失效） -->
+<svg xmlns="http://www.w3.org/2000/svg" style="position:absolute;width:0;height:0;overflow:hidden;pointer-events:none;" aria-hidden="true">
+  <defs>
+    <!-- 個位小圓珠漸層 -->
+    <radialGradient id="svg-grad-o" cx="32%" cy="30%" r="70%">
+      <stop offset="0%" stop-color="#ffffff" stop-opacity="0.95"/>
+      <stop offset="30%" stop-color="#f59e0b"/>
+      <stop offset="75%" stop-color="#d97706"/>
+      <stop offset="100%" stop-color="#92400e"/>
+    </radialGradient>
+
+    <!-- 十位長條棒漸層 -->
+    <linearGradient id="svg-grad-t" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#5eead4"/>
+      <stop offset="25%" stop-color="#14b8a6"/>
+      <stop offset="85%" stop-color="#0f766e"/>
+      <stop offset="100%" stop-color="#115e59"/>
+    </linearGradient>
+
+    <!-- 百位方板漸層 -->
+    <linearGradient id="svg-grad-h" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#93c5fd"/>
+      <stop offset="20%" stop-color="#3b82f6"/>
+      <stop offset="85%" stop-color="#1d4ed8"/>
+      <stop offset="100%" stop-color="#1e3a8a"/>
+    </linearGradient>
+
+    <!-- 千位大立方體漸層 -->
+    <linearGradient id="svg-grad-th-top" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#e9d5ff"/>
+      <stop offset="100%" stop-color="#c084fc"/>
+    </linearGradient>
+    <linearGradient id="svg-grad-th-left" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#a855f7"/>
+      <stop offset="100%" stop-color="#7e22ce"/>
+    </linearGradient>
+    <linearGradient id="svg-grad-th-right" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#7e22ce"/>
+      <stop offset="100%" stop-color="#581c87"/>
+    </linearGradient>
+  </defs>
+</svg>
+
 <div class="wrap">
 
   <header class="top">
@@ -434,14 +477,19 @@
   </div>
 </div>
 
-<!-- 模組化腳本（方案 A：相容本機雙擊開啟） -->
-<script defer src="js/core.js?v=20260906c"></script>
-<script defer src="js/audio.js?v=20260906c"></script>
-<script defer src="js/utils.js?v=20260906c"></script>
-<script defer src="js/learn.js?v=20260906c"></script>
-<script defer src="js/quiz.js?v=20260906c"></script>
-<script defer src="js/calc.js?v=20260906c"></script>
-<script defer src="js/diagnostics.js?v=20260906c"></script>
-<script defer src="js/app.js?v=20260906c"></script>
+<!-- 外部輔助函式庫（支援 CDN 載入與本機自動降級） -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.2/anime.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/interactjs@1.10.17/dist/interact.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/two.js/0.8.14/two.min.js"></script>
+
+<!-- 模組化應用腳本（相容本機雙擊開啟） -->
+<script defer src="js/core.js?v=20260906d"></script>
+<script defer src="js/audio.js?v=20260906d"></script>
+<script defer src="js/utils.js?v=20260906d"></script>
+<script defer src="js/learn.js?v=20260906d"></script>
+<script defer src="js/quiz.js?v=20260906d"></script>
+<script defer src="js/calc.js?v=20260906d"></script>
+<script defer src="js/diagnostics.js?v=20260906d"></script>
+<script defer src="js/app.js?v=20260906d"></script>
 </body>
 </html>

@@ -104,10 +104,95 @@
     toastTimer = setTimeout(function(){ toastEl.classList.remove('show'); }, 1700);
   }
 
-  /* ---------------- 共用積木圖示渲染 (支援 5 個一組分組鷹架) ---------------- */
+  /* ---------------- SVG 向量教具積木產生器 (高解析、擬真刻度) ---------------- */
+  function getBlockSvg(kind){
+    if(kind === 'o'){
+      return '<svg class="svg-blk svg-blk-o" viewBox="0 0 24 24" aria-hidden="true">' +
+        '<circle cx="12" cy="12" r="9.5" fill="url(#svg-grad-o)" stroke="#78350f" stroke-width="1"/>' +
+        '<ellipse cx="9" cy="8" rx="3.2" ry="1.8" fill="#ffffff" opacity="0.65" transform="rotate(-25 9 8)"/>' +
+      '</svg>';
+    }
+
+    if(kind === 't'){
+      // 10 等分刻度的長條棒
+      var lines = '';
+      for(var i = 1; i <= 9; i++){
+        var x = i * 10;
+        lines += '<line x1="' + x + '" y1="1" x2="' + x + '" y2="21" stroke="#ffffff" stroke-opacity="0.45" stroke-width="1"/>' +
+                 '<line x1="' + (x + 0.8) + '" y1="1" x2="' + (x + 0.8) + '" y2="21" stroke="#000000" stroke-opacity="0.25" stroke-width="0.8"/>';
+      }
+      return '<svg class="svg-blk svg-blk-t" viewBox="0 0 100 22" preserveAspectRatio="none" aria-hidden="true">' +
+        '<rect x="1" y="1" width="98" height="20" rx="3.5" fill="url(#svg-grad-t)" stroke="#134e4a" stroke-width="1.2"/>' +
+        lines +
+        '<rect x="1.5" y="1.5" width="97" height="3" rx="1.5" fill="#ffffff" opacity="0.3"/>' +
+      '</svg>';
+    }
+
+    if(kind === 'h'){
+      // 10x10 = 100 個細格的百格板
+      var gridLines = '';
+      for(var j = 1; j <= 9; j++){
+        var pos = j * 10;
+        // 垂直線
+        gridLines += '<line x1="' + pos + '" y1="2" x2="' + pos + '" y2="98" stroke="#ffffff" stroke-opacity="0.3" stroke-width="0.8"/>' +
+                     '<line x1="' + (pos + 0.6) + '" y1="2" x2="' + (pos + 0.6) + '" y2="98" stroke="#000000" stroke-opacity="0.2" stroke-width="0.6"/>';
+        // 水平線
+        gridLines += '<line x1="2" y1="' + pos + '" x2="98" y2="' + pos + '" stroke="#ffffff" stroke-opacity="0.3" stroke-width="0.8"/>' +
+                     '<line x1="2" y1="' + (pos + 0.6) + '" x2="98" y2="' + (pos + 0.6) + '" stroke="#000000" stroke-opacity="0.2" stroke-width="0.6"/>';
+      }
+      return '<svg class="svg-blk svg-blk-h" viewBox="0 0 100 100" aria-hidden="true">' +
+        '<rect x="2" y="2" width="96" height="96" rx="5" fill="url(#svg-grad-h)" stroke="#1e3a8a" stroke-width="1.5"/>' +
+        gridLines +
+        '<rect x="3" y="3" width="94" height="94" rx="4" fill="none" stroke="#ffffff" stroke-opacity="0.25" stroke-width="1"/>' +
+      '</svg>';
+    }
+
+    if(kind === 'th'){
+      // Isometric 3D 等角軸測大立方體 (呈現 10 片百格板層疊)
+      var leftLayers = '';
+      var rightLayers = '';
+      for(var k = 1; k <= 9; k++){
+        var dy = k * 4.4; // 10 層層疊刻度
+        leftLayers += '<line x1="6" y1="' + (28 + dy) + '" x2="50" y2="' + (50 + dy) + '" stroke="#ffffff" stroke-opacity="0.28" stroke-width="0.7"/>';
+        rightLayers += '<line x1="50" y1="' + (50 + dy) + '" x2="94" y2="' + (28 + dy) + '" stroke="#ffffff" stroke-opacity="0.18" stroke-width="0.7"/>';
+      }
+      // 頂面格線
+      var topLines = '';
+      for(var m = 1; m <= 4; m++){
+        var frac = m * 0.2;
+        // 沿著頂面菱形繪製刻度
+        var x1 = 50 + (94 - 50) * frac, y1 = 6 + (28 - 6) * frac;
+        var x2 = 6 + (50 - 6) * frac,   y2 = 28 + (50 - 28) * frac;
+        topLines += '<line x1="' + x1 + '" y1="' + y1 + '" x2="' + x2 + '" y2="' + y2 + '" stroke="#ffffff" stroke-opacity="0.25" stroke-width="0.6"/>';
+        var x3 = 50 - (50 - 6) * frac,  y3 = 6 + (28 - 6) * frac;
+        var x4 = 94 - (94 - 50) * frac, y4 = 28 + (50 - 28) * frac;
+        topLines += '<line x1="' + x3 + '" y1="' + y3 + '" x2="' + x4 + '" y2="' + y4 + '" stroke="#ffffff" stroke-opacity="0.25" stroke-width="0.6"/>';
+      }
+
+      return '<svg class="svg-blk svg-blk-th" viewBox="0 0 100 100" aria-hidden="true">' +
+        // 頂面
+        '<polygon points="50,6 94,28 50,50 6,28" fill="url(#svg-grad-th-top)" stroke="#581c87" stroke-width="1.2"/>' +
+        topLines +
+        // 左立面
+        '<polygon points="6,28 50,50 50,94 6,72" fill="url(#svg-grad-th-left)" stroke="#581c87" stroke-width="1.2"/>' +
+        leftLayers +
+        // 右立面
+        '<polygon points="50,50 94,28 94,72 50,94" fill="url(#svg-grad-th-right)" stroke="#3b0764" stroke-width="1.2"/>' +
+        rightLayers +
+        // 高光稜線
+        '<line x1="50" y1="50" x2="50" y2="94" stroke="#ffffff" stroke-opacity="0.35" stroke-width="1.2"/>' +
+        '<line x1="6" y1="28" x2="50" y2="50" stroke="#ffffff" stroke-opacity="0.35" stroke-width="1"/>' +
+        '<line x1="50" y1="50" x2="94" y2="28" stroke="#ffffff" stroke-opacity="0.2" stroke-width="1"/>' +
+      '</svg>';
+    }
+
+    return '';
+  }
+
+  /* ---------------- 共用積木圖示渲染 (支援 5 個一組分組鷹架與 SVG 向量) ---------------- */
   function blockGlyph(kind){
     var cls = kind === 'th' ? 'blk-th' : kind === 'h' ? 'blk-h' : kind === 't' ? 'blk-t' : 'blk-o';
-    return '<span class="blk ' + cls + '"></span>';
+    return '<span class="blk ' + cls + '" data-kind="' + kind + '">' + getBlockSvg(kind) + '</span>';
   }
 
   function renderGroupedBlocksHtml(kind, count){
@@ -129,6 +214,29 @@
     container.innerHTML = renderGroupedBlocksHtml(kind, count);
   }
 
+  /* 將靜態 HTML 內未注入 SVG 的 .blk 進行自動升級 */
+  function upgradeDomBlocks(){
+    var emptyBlks = document.querySelectorAll('.blk:empty');
+    for(var i = 0; i < emptyBlks.length; i++){
+      var el = emptyBlks[i];
+      var k = el.classList.contains('blk-th') ? 'th' :
+              el.classList.contains('blk-h')  ? 'h'  :
+              el.classList.contains('blk-t')  ? 't'  :
+              el.classList.contains('blk-o')  ? 'o'  : null;
+      if(k){
+        el.setAttribute('data-kind', k);
+        el.innerHTML = getBlockSvg(k);
+      }
+    }
+  }
+
+  // DOM 載入後自動升級既有靜態積木
+  if(document.readyState === 'loading'){
+    document.addEventListener('DOMContentLoaded', upgradeDomBlocks);
+  } else {
+    upgradeDomBlocks();
+  }
+
   MathApp.utils = {
     randInt: randInt,
     formatTime: formatTime,
@@ -137,9 +245,11 @@
     showToast: showToast,
     goodMsgs: goodMsgs,
     badMsgs: badMsgs,
+    getBlockSvg: getBlockSvg,
     blockGlyph: blockGlyph,
     renderGroupedBlocksHtml: renderGroupedBlocksHtml,
-    renderBlocks: renderBlocks
+    renderBlocks: renderBlocks,
+    upgradeDomBlocks: upgradeDomBlocks
   };
 
   // 掛載常用函式至 MathApp 捷徑

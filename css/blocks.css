@@ -37,46 +37,88 @@
 .bundle-row{ display:flex; align-items:center; gap:8px; flex-wrap:wrap; justify-content:center;}
 .bundle-row .arrow{ font-size:18px; color: var(--ink-soft); }
 
-/* ---------- block glyphs ---------- */
-.blk{ display:inline-block; flex-shrink:0; }
+/* ---------- block glyphs & SVG 向量渲染 ---------- */
+.blk{
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  vertical-align: middle;
+  position: relative;
+}
+.svg-blk{
+  width: 100%;
+  height: 100%;
+  display: block;
+  pointer-events: none;
+  overflow: visible;
+  filter: drop-shadow(0 1px 2px rgba(0,0,0,0.18));
+}
+/* 向量填色降級與跨分頁防護 */
+.svg-blk-o circle{ fill: url(#svg-grad-o); }
+.svg-blk-t rect:first-of-type{ fill: url(#svg-grad-t); }
+.svg-blk-h rect:first-of-type{ fill: url(#svg-grad-h); }
+.svg-blk-th polygon:nth-of-type(1){ fill: url(#svg-grad-th-top); }
+.svg-blk-th polygon:nth-of-type(2){ fill: url(#svg-grad-th-left); }
+.svg-blk-th polygon:nth-of-type(3){ fill: url(#svg-grad-th-right); }
+
 .blk-th{
-  width: 30px; height: 30px; border-radius: 6px;
-  background: var(--th-color);
-  background-image:
-    linear-gradient(rgba(255,255,255,.4) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255,255,255,.4) 1px, transparent 1px),
-    linear-gradient(135deg, rgba(0,0,0,.15) 25%, transparent 25%);
-  background-size: 10px 10px, 10px 10px, 10px 10px;
-  border: 1.5px solid rgba(0,0,0,.2);
-  box-shadow: 2px 2px 0 rgba(0,0,0,.15);
+  width: 34px; height: 34px;
 }
 .blk-h{
-  width: 30px; height: 30px; border-radius: 8px;
-  background: var(--h-color);
-  background-image:
-    linear-gradient(rgba(255,255,255,.45) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255,255,255,.45) 1px, transparent 1px);
-  background-size: 20% 20%;
-  border: 1.5px solid rgba(0,0,0,.15);
+  width: 32px; height: 32px;
 }
 .blk-t{
-  width: 46px; height: 11px; border-radius: 999px;
-  background: var(--t-color);
-  background-image: repeating-linear-gradient(90deg, rgba(255,255,255,.55) 0 1.4px, transparent 1.4px 10%);
-  border: 1.5px solid rgba(0,0,0,.15);
+  width: 52px; height: 13px;
 }
 .blk-o{
-  width: 13px; height: 13px; border-radius: 50%;
-  background: var(--o-color);
-  border: 1.5px solid rgba(0,0,0,.15);
+  width: 14px; height: 14px;
 }
-.legend-card .blk-th{ width:38px; height:38px; border-radius:8px;}
-.legend-card .blk-h{ width:34px; height:34px; border-radius:10px;}
-.legend-card .blk-t{ width:56px; height:13px;}
-.legend-card .blk-o{ width:16px; height:16px;}
 
+/* 圖例大卡片中的放大尺寸 */
+.legend-card .blk-th{ width: 44px; height: 44px; }
+.legend-card .blk-h{ width: 40px; height: 40px; }
+.legend-card .blk-t{ width: 62px; height: 16px; }
+.legend-card .blk-o{ width: 18px; height: 18px; }
 
-/* 5 個一組積木群組容器 (5-Grouping Layout) */
+/* 拖曳互動手感樣式 (Interact.js Drag & Drop) */
+.draggable-block{
+  cursor: grab;
+  touch-action: none;
+  user-select: none;
+  transition: transform 0.15s ease, filter 0.15s ease;
+  will-change: transform;
+}
+.draggable-block:hover{
+  transform: translateY(-2px) scale(1.08);
+  filter: brightness(1.08) drop-shadow(0 4px 8px rgba(0,0,0,0.22));
+}
+.draggable-block.is-dragging{
+  cursor: grabbing !important;
+  opacity: 0.92;
+  z-index: 9999 !important;
+  transform: scale(1.22) rotate(4deg) !important;
+  filter: drop-shadow(0 10px 20px rgba(0,0,0,0.32)) !important;
+  pointer-events: none;
+}
+
+/* 拖曳放置目標區 (Dropzone) 提示 */
+.dropzone-target{
+  transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+  position: relative;
+}
+.dropzone-target.drop-possible{
+  outline: 2.5px dashed var(--accent, #f59e0b);
+  outline-offset: 4px;
+  background: rgba(245, 158, 11, 0.08) !important;
+}
+.dropzone-target.drop-hover{
+  outline: 3px solid var(--brand, #3b82f6);
+  outline-offset: 5px;
+  background: rgba(59, 130, 246, 0.16) !important;
+  transform: scale(1.02);
+}
+
 /* 5 個一組積木群組容器 (5-Grouping Layout) */
 .blk-group-5{
   display: inline-flex;

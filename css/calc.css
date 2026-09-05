@@ -608,4 +608,36 @@
   100%{ transform: scale(1); opacity: 1; }
 }
 
+/* Anime.js 補間飛躍元素 */
+.anime-carry-flyer{
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #fbbf24, #f59e0b);
+  color: #fff;
+  font-size: 16px;
+  font-weight: 900;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 14px rgba(245, 158, 11, 0.55), 0 0 0 3px rgba(255,255,255,0.8);
+  font-family: "Baloo 2", sans-serif;
+  transform: translate(-50%, -50%);
+}
+
+.anime-borrow-flyer{
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: linear-gradient(135deg, #60a5fa, #3b82f6);
+  color: #fff;
+  font-size: 14px;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 14px rgba(59, 130, 246, 0.55), 0 0 0 2px rgba(255,255,255,0.8);
+  font-family: "Baloo 2", sans-serif;
+  transform: translate(-50%, -50%);
+}
+
 
