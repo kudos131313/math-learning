@@ -11,20 +11,23 @@
   --surface: #ffffff;
   --surface-dim: #f1ede4;
   --shadow-ink: #332b22;
-  --th-color: #6c5ce7;
-  --th-color-dark: #4834d4;
-  --th-soft: #ebe8fc;
-  --h-color: #e8604c;
-  --h-color-dark: #a8432f;
-  --h-soft: #fbe2dc;
-  --t-color: #2e9e82;
-  --t-color-dark: #1f6e5b;
-  --t-soft: #dbf0e8;
-  --o-color: #ec9a1e;
-  --o-color-dark: #a5670f;
-  --o-soft: #fbe8c6;
-  --good: #2e9e82;
-  --bad: #e8604c;
+  --th-color: #7c3aed;
+  --th-color-dark: #5b21b6;
+  --th-soft: #ede9fe;
+  /* 百位 (百格板)：國小課本水藍色系 */
+  --h-color: #2563eb;
+  --h-color-dark: #1d4ed8;
+  --h-soft: #dbeafe;
+  /* 十位 (十格棒)：國小課本溫暖橘色系 */
+  --t-color: #ea580c;
+  --t-color-dark: #c2410c;
+  --t-soft: #ffedd5;
+  /* 個位 (小白積木)：國小課本白灰色系 */
+  --o-color: #64748b;
+  --o-color-dark: #334155;
+  --o-soft: #e2e8f0;
+  --good: #16a34a;
+  --bad: #ef4444;
   --radius-card: 22px;
   --shadow-hard: 5px 5px 0 var(--line-strong, rgba(51,43,34,.12));
 }

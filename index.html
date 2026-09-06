@@ -8,35 +8,72 @@
 <link href="https://fonts.googleapis.com/css2?family=ZCOOL+KuaiLe&family=Baloo+2:wght@500;700;800&family=Noto+Sans+TC:wght@400;500;700;900&display=swap" rel="stylesheet">
 <link rel="icon" href="favicon.ico" type="image/x-icon">
 <link rel="shortcut icon" href="favicon.ico" type="image/x-icon">
-<link rel="stylesheet" href="style.css?v=20260906j">
+<link rel="stylesheet" href="style.css?v=20260906l">
 </head>
 <body>
 
 <!-- 全域 SVG 漸層與濾鏡定義庫（常駐於 DOM 根部，確保跨分頁切換時漸層永不失效） -->
 <svg xmlns="http://www.w3.org/2000/svg" style="position:absolute;width:0;height:0;overflow:hidden;pointer-events:none;" aria-hidden="true">
   <defs>
-    <!-- 個位小圓珠漸層 -->
-    <radialGradient id="svg-grad-o" cx="32%" cy="30%" r="70%">
-      <stop offset="0%" stop-color="#ffffff" stop-opacity="0.95"/>
-      <stop offset="30%" stop-color="#f59e0b"/>
-      <stop offset="75%" stop-color="#d97706"/>
-      <stop offset="100%" stop-color="#92400e"/>
+    <!-- 個位小立方體漸層 (課本白色/淺灰色教具積木) -->
+    <linearGradient id="svg-grad-o-top" x1="0" y1="1" x2="0" y2="0">
+      <stop offset="0%" stop-color="#ffffff"/>
+      <stop offset="100%" stop-color="#ffffff"/>
+    </linearGradient>
+    <linearGradient id="svg-grad-o-front" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#f8fafc"/>
+      <stop offset="100%" stop-color="#e2e8f0"/>
+    </linearGradient>
+    <linearGradient id="svg-grad-o-side" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#cbd5e1"/>
+      <stop offset="100%" stop-color="#94a3b8"/>
+    </linearGradient>
+    <!-- 個位相容圓球漸層 (備用) -->
+    <radialGradient id="svg-grad-o" cx="35%" cy="30%" r="70%">
+      <stop offset="0%" stop-color="#ffffff"/>
+      <stop offset="45%" stop-color="#f1f5f9"/>
+      <stop offset="85%" stop-color="#cbd5e1"/>
+      <stop offset="100%" stop-color="#94a3b8"/>
     </radialGradient>
 
-    <!-- 十位長條棒漸層 -->
+    <!-- 十位立體長條棒漸層 (課本暖橘色，頂、前、側三面) -->
+    <linearGradient id="svg-grad-t-top" x1="0" y1="1" x2="0" y2="0">
+      <stop offset="0%" stop-color="#fed7aa"/>
+      <stop offset="100%" stop-color="#ffedd5"/>
+    </linearGradient>
+    <linearGradient id="svg-grad-t-front" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#fb923c"/>
+      <stop offset="100%" stop-color="#ea580c"/>
+    </linearGradient>
+    <linearGradient id="svg-grad-t-side" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#c2410c"/>
+      <stop offset="100%" stop-color="#9a3412"/>
+    </linearGradient>
     <linearGradient id="svg-grad-t" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0%" stop-color="#5eead4"/>
-      <stop offset="25%" stop-color="#14b8a6"/>
-      <stop offset="85%" stop-color="#0f766e"/>
-      <stop offset="100%" stop-color="#115e59"/>
+      <stop offset="0%" stop-color="#fed7aa"/>
+      <stop offset="25%" stop-color="#fb923c"/>
+      <stop offset="80%" stop-color="#ea580c"/>
+      <stop offset="100%" stop-color="#c2410c"/>
     </linearGradient>
 
-    <!-- 百位方板漸層 -->
-    <linearGradient id="svg-grad-h" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0%" stop-color="#93c5fd"/>
-      <stop offset="20%" stop-color="#3b82f6"/>
-      <stop offset="85%" stop-color="#1d4ed8"/>
+    <!-- 百位立體方板漸層 (課本水藍色，頂、前、側三面) -->
+    <linearGradient id="svg-grad-h-top" x1="0" y1="1" x2="0" y2="0">
+      <stop offset="0%" stop-color="#bfdbfe"/>
+      <stop offset="100%" stop-color="#dbeafe"/>
+    </linearGradient>
+    <linearGradient id="svg-grad-h-front" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#60a5fa"/>
+      <stop offset="100%" stop-color="#2563eb"/>
+    </linearGradient>
+    <linearGradient id="svg-grad-h-side" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#1d4ed8"/>
       <stop offset="100%" stop-color="#1e3a8a"/>
+    </linearGradient>
+    <linearGradient id="svg-grad-h" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#dbeafe"/>
+      <stop offset="20%" stop-color="#60a5fa"/>
+      <stop offset="75%" stop-color="#2563eb"/>
+      <stop offset="100%" stop-color="#1d4ed8"/>
     </linearGradient>
 
     <!-- 千位大立方體漸層 -->
@@ -121,7 +158,7 @@
         <div class="legend-card">
           <div class="shape"><span class="blk blk-o"></span></div>
           <b>個位</b>
-          <span>1 個小圓珠 = 1</span>
+          <span>1 個小白積木 = 1</span>
         </div>
       </div>
 
@@ -131,7 +168,7 @@
           <span style="font-size:12px;color:var(--ink-soft)">…共10個</span>
           <span class="arrow">→</span>
           <span class="blk blk-t"></span>
-          <span style="font-size:13px;">10 個一，捆成 1 條十</span>
+          <span style="font-size:13px;">10 個一，換成 1 條十</span>
         </div>
         <div class="bundle-row">
           <span class="blk blk-t"></span><span class="blk blk-t"></span><span class="blk blk-t"></span>
@@ -861,7 +898,7 @@
 <!-- 模組化應用腳本（相容本機雙擊開啟） -->
 <script defer src="js/core.js?v=20260906h"></script>
 <script defer src="js/audio.js?v=20260906n"></script>
-<script defer src="js/utils.js?v=20260906j"></script>
+<script defer src="js/utils.js?v=20260906l"></script>
 <script defer src="js/learn.js?v=20260906i"></script>
 <script defer src="js/quiz.js?v=20260906j"></script>
 <script defer src="js/seq.js?v=20260906l"></script>

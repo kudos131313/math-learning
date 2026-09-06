@@ -227,46 +227,83 @@
     toastTimer = setTimeout(function(){ toastEl.classList.remove('show'); }, 1700);
   }
 
-  /* ---------------- SVG 向量教具積木產生器 (高解析、擬真刻度) ---------------- */
+  /* ---------------- SVG 向量教具積木產生器 (高解析、擬真刻度、課本教具造型) ---------------- */
   function getBlockSvg(kind){
     if(kind === 'o'){
+      // 課本小白積木（微等角軸測 3D 立體小方塊）
       return '<svg class="svg-blk svg-blk-o" viewBox="0 0 24 24" aria-hidden="true">' +
-        '<circle cx="12" cy="12" r="9.5" fill="url(#svg-grad-o)" stroke="#78350f" stroke-width="1"/>' +
-        '<ellipse cx="9" cy="8" rx="3.2" ry="1.8" fill="#ffffff" opacity="0.65" transform="rotate(-25 9 8)"/>' +
+        '<polygon points="3,8 7,3 20,3 16,8" fill="url(#svg-grad-o-top)" stroke="#64748b" stroke-width="1.1" stroke-linejoin="round"/>' +
+        '<polygon points="16,8 20,3 20,16 16,21" fill="url(#svg-grad-o-side)" stroke="#64748b" stroke-width="1.1" stroke-linejoin="round"/>' +
+        '<polygon points="3,8 16,8 16,21 3,21" fill="url(#svg-grad-o-front)" stroke="#64748b" stroke-width="1.1" stroke-linejoin="round"/>' +
+        '<line x1="4.2" y1="9.2" x2="15" y2="9.2" stroke="#ffffff" stroke-opacity="0.85" stroke-width="0.8"/>' +
       '</svg>';
     }
 
     if(kind === 't'){
-      // 10 等分刻度的長條棒
-      var lines = '';
+      // 課本立體 10 等分長條棒（暖橘色，微等角軸測 3D 立體長條）
+      var frontLines = '';
+      var topLines = '';
       for(var i = 1; i <= 9; i++){
-        var x = i * 10;
-        lines += '<line x1="' + x + '" y1="1" x2="' + x + '" y2="21" stroke="#ffffff" stroke-opacity="0.45" stroke-width="1"/>' +
-                 '<line x1="' + (x + 0.8) + '" y1="1" x2="' + (x + 0.8) + '" y2="21" stroke="#000000" stroke-opacity="0.25" stroke-width="0.8"/>';
+        var fx = 3 + i * 9.6;
+        var tx1 = fx;
+        var tx2 = 7 + i * 9.6;
+        // 正面刻度線 (亮色高光 + 深橘紅陰影刻度)
+        frontLines += '<line x1="' + fx + '" y1="8" x2="' + fx + '" y2="22" stroke="#ffedd5" stroke-opacity="0.55" stroke-width="0.8"/>' +
+                      '<line x1="' + (fx + 0.6) + '" y1="8" x2="' + (fx + 0.6) + '" y2="22" stroke="#7c2d12" stroke-opacity="0.32" stroke-width="0.6"/>';
+        // 頂面刻度線
+        topLines += '<line x1="' + tx1 + '" y1="8" x2="' + tx2 + '" y2="3" stroke="#ffedd5" stroke-opacity="0.65" stroke-width="0.7"/>' +
+                    '<line x1="' + (tx1 + 0.5) + '" y1="8" x2="' + (tx2 + 0.5) + '" y2="3" stroke="#9a3412" stroke-opacity="0.3" stroke-width="0.5"/>';
       }
-      return '<svg class="svg-blk svg-blk-t" viewBox="0 0 100 22" preserveAspectRatio="none" aria-hidden="true">' +
-        '<rect x="1" y="1" width="98" height="20" rx="3.5" fill="url(#svg-grad-t)" stroke="#134e4a" stroke-width="1.2"/>' +
-        lines +
-        '<rect x="1.5" y="1.5" width="97" height="3" rx="1.5" fill="#ffffff" opacity="0.3"/>' +
+      return '<svg class="svg-blk svg-blk-t" viewBox="0 0 106 25" preserveAspectRatio="none" aria-hidden="true">' +
+        // 頂面 (Top)
+        '<polygon points="3,8 7,3 103,3 99,8" fill="url(#svg-grad-t-top)" stroke="#9a3412" stroke-width="1.1" stroke-linejoin="round"/>' +
+        topLines +
+        // 右側面 (Side)
+        '<polygon points="99,8 103,3 103,17 99,22" fill="url(#svg-grad-t-side)" stroke="#9a3412" stroke-width="1.1" stroke-linejoin="round"/>' +
+        // 正面 (Front)
+        '<polygon points="3,8 99,8 99,22 3,22" fill="url(#svg-grad-t-front)" stroke="#9a3412" stroke-width="1.1" stroke-linejoin="round"/>' +
+        frontLines +
+        // 正面頂部細高光
+        '<line x1="3.8" y1="9" x2="98.2" y2="9" stroke="#ffffff" stroke-opacity="0.5" stroke-width="0.8"/>' +
       '</svg>';
     }
 
     if(kind === 'h'){
-      // 10x10 = 100 個細格的百格板
-      var gridLines = '';
+      // 課本立體 10x10 百格板（水藍色，微等角軸測 3D 立體薄方板）
+      var frontLines = '';
+      var topLines = '';
+      var sideLines = '';
       for(var j = 1; j <= 9; j++){
-        var pos = j * 10;
-        // 垂直線
-        gridLines += '<line x1="' + pos + '" y1="2" x2="' + pos + '" y2="98" stroke="#ffffff" stroke-opacity="0.3" stroke-width="0.8"/>' +
-                     '<line x1="' + (pos + 0.6) + '" y1="2" x2="' + (pos + 0.6) + '" y2="98" stroke="#000000" stroke-opacity="0.2" stroke-width="0.6"/>';
-        // 水平線
-        gridLines += '<line x1="2" y1="' + pos + '" x2="98" y2="' + pos + '" stroke="#ffffff" stroke-opacity="0.3" stroke-width="0.8"/>' +
-                     '<line x1="2" y1="' + (pos + 0.6) + '" x2="98" y2="' + (pos + 0.6) + '" stroke="#000000" stroke-opacity="0.2" stroke-width="0.6"/>';
+        var pos = 3 + j * 9.2;
+        var tStart = pos;
+        var tEnd = 7 + j * 9.2;
+        var sStart = 12 + j * 9.2;
+        var sEnd = 7 + j * 9.2;
+        // 正面垂直網格線
+        frontLines += '<line x1="' + pos + '" y1="12" x2="' + pos + '" y2="104" stroke="#ffffff" stroke-opacity="0.35" stroke-width="0.8"/>' +
+                      '<line x1="' + (pos + 0.6) + '" y1="12" x2="' + (pos + 0.6) + '" y2="104" stroke="#1d4ed8" stroke-opacity="0.35" stroke-width="0.6"/>';
+        // 正面水平網格線
+        frontLines += '<line x1="3" y1="' + (12 + j * 9.2) + '" x2="95" y2="' + (12 + j * 9.2) + '" stroke="#ffffff" stroke-opacity="0.35" stroke-width="0.8"/>' +
+                      '<line x1="3" y1="' + (12 + j * 9.2 + 0.6) + '" x2="95" y2="' + (12 + j * 9.2 + 0.6) + '" stroke="#1d4ed8" stroke-opacity="0.35" stroke-width="0.6"/>';
+        // 頂面厚度分格線
+        topLines += '<line x1="' + tStart + '" y1="12" x2="' + tEnd + '" y2="7" stroke="#ffffff" stroke-opacity="0.6" stroke-width="0.7"/>' +
+                    '<line x1="' + (tStart + 0.5) + '" y1="12" x2="' + (tEnd + 0.5) + '" y2="7" stroke="#1d4ed8" stroke-opacity="0.3" stroke-width="0.5"/>';
+        // 右側面厚度分層線
+        sideLines += '<line x1="95" y1="' + sStart + '" x2="99" y2="' + sEnd + '" stroke="#ffffff" stroke-opacity="0.4" stroke-width="0.7"/>' +
+                     '<line x1="95" y1="' + (sStart + 0.5) + '" x2="99" y2="' + (sEnd + 0.5) + '" stroke="#1e3a8a" stroke-opacity="0.3" stroke-width="0.5"/>';
       }
-      return '<svg class="svg-blk svg-blk-h" viewBox="0 0 100 100" aria-hidden="true">' +
-        '<rect x="2" y="2" width="96" height="96" rx="5" fill="url(#svg-grad-h)" stroke="#1e3a8a" stroke-width="1.5"/>' +
-        gridLines +
-        '<rect x="3" y="3" width="94" height="94" rx="4" fill="none" stroke="#ffffff" stroke-opacity="0.25" stroke-width="1"/>' +
+      return '<svg class="svg-blk svg-blk-h" viewBox="0 0 102 107" aria-hidden="true">' +
+        // 頂面 (Top)
+        '<polygon points="3,12 7,7 99,7 95,12" fill="url(#svg-grad-h-top)" stroke="#1d4ed8" stroke-width="1.1" stroke-linejoin="round"/>' +
+        topLines +
+        // 右側面 (Side)
+        '<polygon points="95,12 99,7 99,99 95,104" fill="url(#svg-grad-h-side)" stroke="#1d4ed8" stroke-width="1.1" stroke-linejoin="round"/>' +
+        sideLines +
+        // 正面 (Front)
+        '<polygon points="3,12 95,12 95,104 3,104" fill="url(#svg-grad-h-front)" stroke="#1d4ed8" stroke-width="1.1" stroke-linejoin="round"/>' +
+        frontLines +
+        // 正面頂部細高光
+        '<line x1="3.5" y1="12.8" x2="94.5" y2="12.8" stroke="#ffffff" stroke-opacity="0.6" stroke-width="0.8"/>' +
       '</svg>';
     }
 

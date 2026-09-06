@@ -89,7 +89,7 @@ section.machine{
   margin-bottom: 2px;
 }
 .col.th .label{ color: var(--th-color-dark); }
-.col.h .label{ color: var(--h-color-dark, #a8432f); }
+.col.h .label{ color: var(--h-color-dark, #1d4ed8); }
 .col.t .label{ color: var(--t-color-dark); }
 .col.o .label{ color: var(--o-color-dark); }
 

@@ -56,8 +56,20 @@
 }
 /* 向量填色降級與跨分頁防護 */
 .svg-blk-o circle{ fill: url(#svg-grad-o); }
-.svg-blk-t rect:first-of-type{ fill: url(#svg-grad-t); }
-.svg-blk-h rect:first-of-type{ fill: url(#svg-grad-h); }
+.svg-blk-o polygon:nth-of-type(1){ fill: url(#svg-grad-o-top); }
+.svg-blk-o polygon:nth-of-type(2){ fill: url(#svg-grad-o-side); }
+.svg-blk-o polygon:nth-of-type(3){ fill: url(#svg-grad-o-front); }
+
+.svg-blk-t polygon:nth-of-type(1){ fill: url(#svg-grad-t-top); }
+.svg-blk-t polygon:nth-of-type(2){ fill: url(#svg-grad-t-side); }
+.svg-blk-t polygon:nth-of-type(3){ fill: url(#svg-grad-t-front); }
+.svg-blk-t rect:first-of-type{ fill: url(#svg-grad-t-front); }
+
+.svg-blk-h polygon:nth-of-type(1){ fill: url(#svg-grad-h-top); }
+.svg-blk-h polygon:nth-of-type(2){ fill: url(#svg-grad-h-side); }
+.svg-blk-h polygon:nth-of-type(3){ fill: url(#svg-grad-h-front); }
+.svg-blk-h rect:first-of-type{ fill: url(#svg-grad-h-front); }
+
 .svg-blk-th polygon:nth-of-type(1){ fill: url(#svg-grad-th-top); }
 .svg-blk-th polygon:nth-of-type(2){ fill: url(#svg-grad-th-left); }
 .svg-blk-th polygon:nth-of-type(3){ fill: url(#svg-grad-th-right); }
@@ -66,20 +78,20 @@
   width: 34px; height: 34px;
 }
 .blk-h{
-  width: 32px; height: 32px;
+  width: 33px; height: 34px;
 }
 .blk-t{
-  width: 52px; height: 13px;
+  width: 54px; height: 14px;
 }
 .blk-o{
-  width: 14px; height: 14px;
+  width: 16px; height: 16px;
 }
 
 /* 圖例大卡片中的放大尺寸 */
-.legend-card .blk-th{ width: 44px; height: 44px; }
-.legend-card .blk-h{ width: 40px; height: 40px; }
-.legend-card .blk-t{ width: 62px; height: 16px; }
-.legend-card .blk-o{ width: 18px; height: 18px; }
+.legend-card .blk-th{ width: 46px; height: 46px; }
+.legend-card .blk-h{ width: 44px; height: 46px; }
+.legend-card .blk-t{ width: 68px; height: 17px; }
+.legend-card .blk-o{ width: 20px; height: 20px; }
 
 /* 5 個一組積木群組容器 (5-Grouping Layout) */
 .blk-group-5{

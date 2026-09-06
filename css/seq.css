@@ -225,9 +225,9 @@
 }
 
 /* 分位顏色與高亮 */
-.digit-h { color: var(--h-color, #1d4ed8); }
-.digit-t { color: var(--t-color, #0f766e); }
-.digit-o { color: var(--o-color, #d97706); }
+.digit-h { color: var(--h-color, #2563eb); }
+.digit-t { color: var(--t-color, #ea580c); }
+.digit-o { color: var(--o-color, #64748b); }
 .digit-th { color: var(--th-color, #7e22ce); }
 
 /* 正在跳變的數位高亮脈動 */
@@ -418,9 +418,9 @@
   justify-content: center;
   gap: 6px;
 }
-.seq-block-col.col-h .seq-block-col-head { color: var(--h-color, #1d4ed8); }
-.seq-block-col.col-t .seq-block-col-head { color: var(--t-color, #0f766e); }
-.seq-block-col.col-o .seq-block-col-head { color: var(--o-color, #d97706); }
+.seq-block-col.col-h .seq-block-col-head { color: var(--h-color, #2563eb); }
+.seq-block-col.col-t .seq-block-col-head { color: var(--t-color, #ea580c); }
+.seq-block-col.col-o .seq-block-col-head { color: var(--o-color, #64748b); }
 
 .seq-block-container {
   min-height: 75px;

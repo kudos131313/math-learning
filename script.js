@@ -205,10 +205,11 @@
   if(mainTabCalc)  mainTabCalc.addEventListener('click',  function(){ switchMainTab('calc'); });
   if(mainTabQuiz)  mainTabQuiz.addEventListener('click',  function(){ switchMainTab('quiz'); });
 
-  /* ---------------- 共用積木圖示渲染 (支援 5 個一組分組鷹架) ---------------- */
+  /* ---------------- 共用積木圖示渲染 (支援 5 個一組分組鷹架與 SVG 向量) ---------------- */
   function blockGlyph(kind){
     var cls = kind === 'th' ? 'blk-th' : kind === 'h' ? 'blk-h' : kind === 't' ? 'blk-t' : 'blk-o';
-    return '<span class="blk ' + cls + '"></span>';
+    var svg = (window.MathApp && window.MathApp.utils && window.MathApp.utils.getBlockSvg) ? window.MathApp.utils.getBlockSvg(kind) : '';
+    return '<span class="blk ' + cls + '" data-kind="' + kind + '">' + svg + '</span>';
   }
   function renderGroupedBlocksHtml(kind, count){
     if(count <= 0) return '';
