@@ -56,6 +56,93 @@
     return s;
   }
 
+  /* 阿拉伯數字轉臺灣國小口語讀法 (支援 0 ~ 99999)
+   * 嚴格落實臺灣小學口語讀法規範：
+   * 1. 「兩」與「二」：百位、千位、萬位若為 2 讀作「兩」；十位、個位讀作「二」
+   * 2. 中間零之補位：如 203 讀「兩百零三」、2050 讀「兩千零五十」（連續零壓縮只補一個零，末尾零不補）
+   * 3. 10 ~ 19 省略「一」：如 15 讀「十五」，但在百位之後需讀出，如 215 讀「兩百一十五」
+   * 4. 純 0 讀作「零」
+   */
+  function numberToTaiwanSpokenText(num){
+    var n = Number(num);
+    if(isNaN(n)) return String(num);
+    if(n === 0) return '零';
+
+    var digits = ['零','一','二','三','四','五','六','七','八','九'];
+    var w  = Math.floor(n / 10000);        // 萬位
+    var remW = n % 10000;
+    var th = Math.floor(remW / 1000);      // 千位
+    var remTh = remW % 1000;
+    var h  = Math.floor(remTh / 100);       // 百位
+    var remH  = remTh % 100;
+    var t  = Math.floor(remH / 10);        // 十位
+    var o  = remH % 10;                    // 個位
+
+    var res = '';
+
+    // 萬位 (2 讀「兩」)
+    if(w > 0){
+      res += (w === 2 ? '兩' : digits[w]) + '萬';
+    }
+
+    // 千位 (2 讀「兩」)
+    if(th > 0){
+      res += (th === 2 ? '兩' : digits[th]) + '千';
+    } else if(w > 0 && (h > 0 || t > 0 || o > 0)){
+      res += '零';
+    }
+
+    // 百位 (2 讀「兩」)
+    if(h > 0){
+      res += (h === 2 ? '兩' : digits[h]) + '百';
+    } else if((w > 0 || th > 0) && (t > 0 || o > 0) && !res.endsWith('零')){
+      res += '零';
+    }
+
+    // 十位 (永遠讀「二」)
+    if(t > 0){
+      if(t === 1 && w === 0 && th === 0 && h === 0){
+        // 10 ~ 19 開頭省略「一」，讀作「十」
+        res += '十';
+      } else {
+        res += digits[t] + '十';
+      }
+    } else if((w > 0 || th > 0 || h > 0) && o > 0 && !res.endsWith('零')){
+      res += '零';
+    }
+
+    // 個位 (永遠讀「二」)
+    if(o > 0){
+      res += digits[o];
+    }
+
+    return res;
+  }
+
+  /* 算式整合替換函式：使用正規表達式將字串中的運算符號與所有獨立數字替換為臺灣口語文字 */
+  function formatSpokenMathText(text){
+    if(typeof text === 'number'){
+      return numberToTaiwanSpokenText(text);
+    }
+    if(typeof text !== 'string') return text;
+
+    return text
+      // 1. 算式運算符號口語化（加入標點或空格提升語音合成停頓節奏）
+      .replace(/\s*\+\s*/g, ' 加 ')
+      .replace(/\s*-\s*/g, ' 減 ')
+      .replace(/\s*[×*]\s*/g, ' 乘以 ')
+      .replace(/\s*[÷/]\s*/g, ' 除以 ')
+      .replace(/\s*=\s*/g, ' 等於 ')
+      // 2. 匹配所有獨立阿拉伯數字並自動替換為口語讀法
+      .replace(/\d+/g, function(match){
+        return numberToTaiwanSpokenText(match);
+      })
+      // 3. 中文國字正音修補（防止外部呼叫傳入傳統書面國字如「二百...」、「二千...」）
+      .replace(/二百/g, '兩百')
+      .replace(/二千/g, '兩千')
+      .replace(/(^|[^十\d一二三四五六七八九])二萬/g, function(m, p1){ return p1 + '兩萬'; });
+  }
+
   /* 答題回饋語句庫 */
   var goodMsgs = ['答對了，太棒了！', '沒錯，就是這樣！', '完全正確，繼續加油！', '答對囉，你抓到訣竅了！'];
   var badMsgs  = ['再想想看，你可以的！', '有點小誤會，看看正確答案吧！', '差一點點，繼續挑戰！'];
@@ -378,6 +465,8 @@
     randInt: randInt,
     formatTime: formatTime,
     numberToChinese: numberToChinese,
+    numberToTaiwanSpokenText: numberToTaiwanSpokenText,
+    formatSpokenMathText: formatSpokenMathText,
     launchConfetti: launchConfetti,
     refreshIcons: refreshIcons,
     showToast: showToast,
@@ -400,6 +489,8 @@
   // 掛載常用函式至 MathApp 捷徑
   MathApp.randInt = randInt;
   MathApp.numberToChinese = numberToChinese;
+  MathApp.numberToTaiwanSpokenText = numberToTaiwanSpokenText;
+  MathApp.formatSpokenMathText = formatSpokenMathText;
   MathApp.renderBlocks = renderBlocks;
   MathApp.renderGroupedBlocksHtml = renderGroupedBlocksHtml;
   MathApp.refreshIcons = refreshIcons;

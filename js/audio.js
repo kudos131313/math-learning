@@ -155,6 +155,9 @@
     try {
       window.speechSynthesis.cancel();
       var clean = text.replace(/[\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}]/gu, '').trim();
+      if(MathApp.utils && MathApp.utils.formatSpokenMathText){
+        clean = MathApp.utils.formatSpokenMathText(clean);
+      }
       var u = new SpeechSynthesisUtterance(clean);
       u.lang = (targetVoice && targetVoice.lang) ? targetVoice.lang : 'zh-TW';
       u.rate = 0.88;
@@ -224,6 +227,9 @@
     try {
       window.speechSynthesis.cancel();
       var clean = text.replace(/[\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}]/gu, '').trim();
+      if(MathApp.utils && MathApp.utils.formatSpokenMathText){
+        clean = MathApp.utils.formatSpokenMathText(clean);
+      }
       var u = new SpeechSynthesisUtterance(clean);
       u.lang = 'zh-TW';
       u.rate = 0.88;

@@ -251,9 +251,12 @@
       '</div>';
       quizEls.answer.innerHTML = answerFieldsHtml;
 
+      var spokenN2 = (MathApp.utils && MathApp.utils.numberToTaiwanSpokenText)
+        ? MathApp.utils.numberToTaiwanSpokenText(n2)
+        : MathApp.numberToChinese(n2);
       currentPromptSpeech = (thousandEnabled
         ? '看數字，寫出千位、百位、十位、個位各有幾個。這是 '
-        : '看數字，寫出百位、十位、個位各有幾個。這是 ') + MathApp.numberToChinese(n2);
+        : '看數字，寫出百位、十位、個位各有幾個。這是 ') + spokenN2;
     } else {
       quizEls.kicker.textContent = '看積木，寫出這是多少';
       var rowTh = thousandEnabled ? MathApp.renderGroupedBlocksHtml('th', th) : '';

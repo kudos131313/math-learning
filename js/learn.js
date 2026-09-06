@@ -477,7 +477,10 @@
       els.speakBtn.addEventListener('click', function(){
         var thousandEnabled = MathApp.thousand.isEnabled();
         var totalVal = (thousandEnabled ? state.th * 1000 : 0) + state.h * 100 + state.t * 10 + state.o;
-        MathApp.speak(MathApp.utils.numberToChinese(totalVal));
+        var spoken = (MathApp.utils && MathApp.utils.numberToTaiwanSpokenText)
+          ? MathApp.utils.numberToTaiwanSpokenText(totalVal)
+          : (MathApp.utils && MathApp.utils.numberToChinese ? MathApp.utils.numberToChinese(totalVal) : totalVal);
+        MathApp.speak(spoken);
       });
     }
 

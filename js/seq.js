@@ -249,9 +249,11 @@
     }
 
     // 語音播報
-    if(playVoice && MathApp.speak && MathApp.numberToChinese){
-      var cn = MathApp.numberToChinese(currentNum);
-      MathApp.speak(cn);
+    if(playVoice && MathApp.speak){
+      var spoken = (MathApp.utils && MathApp.utils.numberToTaiwanSpokenText)
+        ? MathApp.utils.numberToTaiwanSpokenText(currentNum)
+        : (MathApp.numberToChinese ? MathApp.numberToChinese(currentNum) : currentNum);
+      MathApp.speak(spoken);
     }
   }
 

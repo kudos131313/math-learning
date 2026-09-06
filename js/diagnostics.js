@@ -47,6 +47,57 @@
       }
     },
     {
+      id: 'num_spoken_taiwan',
+      name: '臺灣國小口語讀法與算式轉換 (Taiwan Spoken Math)',
+      run: function(){
+        if(!MathApp.utils || !MathApp.utils.numberToTaiwanSpokenText){
+          throw new Error('未找到 MathApp.utils.numberToTaiwanSpokenText 函式');
+        }
+        var spokenCases = [
+          { in: 0, out: '零' },
+          { in: 2, out: '二' },
+          { in: 10, out: '十' },
+          { in: 15, out: '十五' },
+          { in: 20, out: '二十' },
+          { in: 22, out: '二十二' },
+          { in: 100, out: '一百' },
+          { in: 200, out: '兩百' },
+          { in: 203, out: '兩百零三' },
+          { in: 215, out: '兩百一十五' },
+          { in: 220, out: '兩百二十' },
+          { in: 223, out: '兩百二十三' },
+          { in: 2000, out: '兩千' },
+          { in: 2003, out: '兩千零三' },
+          { in: 2050, out: '兩千零五十' },
+          { in: 2222, out: '兩千兩百二十二' },
+          { in: 20000, out: '兩萬' },
+          { in: 22000, out: '兩萬兩千' }
+        ];
+
+        for(var i=0; i<spokenCases.length; i++){
+          var actual = MathApp.utils.numberToTaiwanSpokenText(spokenCases[i].in);
+          if(actual !== spokenCases[i].out){
+            throw new Error('數字口語轉換錯誤：輸入 ' + spokenCases[i].in + ' 預期「' + spokenCases[i].out + '」，實際得到「' + actual + '」');
+          }
+        }
+
+        // 驗證算式替換函式
+        var mathTests = [
+          { in: '223 + 12 = 235', expected: '兩百二十三 加 十二 等於 兩百三十五' },
+          { in: '200 - 20 = 180', expected: '兩百 減 二十 等於 一百八十' }
+        ];
+
+        for(var j=0; j<mathTests.length; j++){
+          var converted = MathApp.utils.formatSpokenMathText(mathTests[j].in).trim();
+          if(converted !== mathTests[j].expected){
+            throw new Error('算式口語化錯誤：輸入「' + mathTests[j].in + '」預期「' + mathTests[j].expected + '」，實際得到「' + converted + '」');
+          }
+        }
+
+        return '驗證通過 18 組數字讀法（落實兩/二區分、中間補零、15/215）與 2 組算式替換';
+      }
+    },
+    {
       id: 'carry_borrow',
       name: '積木位值演算與滿十進位/借位邏輯 (Carry & Borrow)',
       run: function(){
