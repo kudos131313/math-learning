@@ -278,6 +278,66 @@
         }
         return '個位立體珠、十位10格棒、百位100格板、千位3D等角方塊向量刻度全數驗證正確';
       }
+    },
+    {
+      id: 'vertical_math_quiz',
+      name: '直式挑戰測驗題庫生成與算則校驗 (Vertical Math Quiz & Algorithm)',
+      run: function(){
+        if(!MathApp.calcQuiz || typeof MathApp.calcQuiz.generateQuestion !== 'function'){
+          throw new Error('MathApp.calcQuiz 模組尚未載入');
+        }
+
+        // 1. 測試不進退位題型
+        for(var i = 0; i < 5; i++){
+          var qBasic = MathApp.calcQuiz.generateQuestion('basic');
+          var expectedBasic = (qBasic.op === 'add') ? (qBasic.a + qBasic.b) : (qBasic.a - qBasic.b);
+          if(qBasic.ans !== expectedBasic){
+            throw new Error('基礎題型計算錯誤: ' + qBasic.a + ' ' + qBasic.op + ' ' + qBasic.b + ' != ' + qBasic.ans);
+          }
+          if(qBasic.op === 'add' && (qBasic.decomp.a_o + qBasic.decomp.b_o >= 10)){
+            throw new Error('基礎加法題不應出現個位進位');
+          }
+          if(qBasic.op === 'sub' && (qBasic.decomp.a_o < qBasic.decomp.b_o)){
+            throw new Error('基礎減法題不應出現退位借位');
+          }
+        }
+
+        // 2. 測試進位加法題型
+        for(var j = 0; j < 5; j++){
+          var qCarry = MathApp.calcQuiz.generateQuestion('carry');
+          if(qCarry.op !== 'add'){
+            throw new Error('進位題必須為加法');
+          }
+          if(qCarry.decomp.a_o + qCarry.decomp.b_o < 10){
+            throw new Error('進位加法個位相加必須滿十');
+          }
+          if(qCarry.a + qCarry.b !== qCarry.ans){
+            throw new Error('進位加法計算答案不符');
+          }
+        }
+
+        // 3. 測試退位減法題型
+        for(var k = 0; k < 5; k++){
+          var qBorrow = MathApp.calcQuiz.generateQuestion('borrow');
+          if(qBorrow.op !== 'sub'){
+            throw new Error('退位題必須為減法');
+          }
+          if(qBorrow.decomp.a_o >= qBorrow.decomp.b_o){
+            throw new Error('退位減法個位必須不夠減而需要向十位借位');
+          }
+          if(qBorrow.a - qBorrow.b !== qBorrow.ans){
+            throw new Error('退位減法計算答案不符');
+          }
+        }
+
+        // 4. 測試百位進退題型
+        var qHundred = MathApp.calcQuiz.generateQuestion('hundred');
+        if(!qHundred.needHundred){
+          throw new Error('百位挑戰題必須包含百位欄位');
+        }
+
+        return '已驗證基礎不進退位、個位進位加法、個位退位減法、進退百位題庫演算法皆完全合規';
+      }
     }
   ];
 

@@ -21,5 +21,8 @@
 /* 5. 直式加減法概念學習教室舞台與算則板 */
 @import url('css/calc.css');
 
-/* 6. 系統自我檢測彈窗 (Modal) 與浮動提示 (Toast) */
+/* 6. 直式挑戰測驗題卡、筆記本答題板與積木小幫手 */
+@import url('css/calc-quiz.css');
+
+/* 7. 系統自我檢測彈窗 (Modal) 與浮動提示 (Toast) */
 @import url('css/modal.css');

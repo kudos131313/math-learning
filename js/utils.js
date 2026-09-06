@@ -245,6 +245,12 @@
     showToast: showToast,
     goodMsgs: goodMsgs,
     badMsgs: badMsgs,
+    pickRandomPraise: function(){
+      return goodMsgs[Math.floor(Math.random() * goodMsgs.length)];
+    },
+    pickRandomEncouragement: function(){
+      return badMsgs[Math.floor(Math.random() * badMsgs.length)];
+    },
     getBlockSvg: getBlockSvg,
     blockGlyph: blockGlyph,
     renderGroupedBlocksHtml: renderGroupedBlocksHtml,

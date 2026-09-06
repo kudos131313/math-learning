@@ -19,6 +19,9 @@
     if(MathApp.calc && typeof MathApp.calc.init === 'function'){
       MathApp.calc.init();
     }
+    if(MathApp.calcQuiz && typeof MathApp.calcQuiz.init === 'function'){
+      MathApp.calcQuiz.init();
+    }
     if(MathApp.diagnostics && typeof MathApp.diagnostics.init === 'function'){
       MathApp.diagnostics.init();
     }

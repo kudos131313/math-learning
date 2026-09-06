@@ -468,17 +468,150 @@
       </section>
     </div><!-- /#subpanel-calc-learn -->
 
-    <!-- 子分頁 2：直式挑戰測驗 (專屬題庫預留插槽與引導卡片) -->
+    <!-- 子分頁 2：直式挑戰測驗 (自由練習 ＆ 自我評量挑戰) -->
     <div class="sub-panel" id="subpanel-calc-quiz" role="tabpanel" aria-labelledby="subtab-calc-quiz">
-      <section class="quiz-coming-soon-card">
-        <div class="coming-icon">🚧</div>
-        <h3>直式加減法挑戰測驗 · 正在精心籌備中</h3>
-        <p>
-          未來將提供「進位加法心算挑戰」、「退位借位填空」與「直式計算闖關」！<br>
-          目前您可以先在演示操作台多加練習加減法的進退位原理喔！
-        </p>
-        <div class="coming-actions">
-          <button class="primary-btn" id="btn-goto-calc-demo" type="button">🧱 返回算則操作台動手練習</button>
+      <section class="quiz calc-quiz-section" id="calc-quiz">
+        <h2>直式加減法挑戰測驗</h2>
+        <p class="sub">觀察直式算則，練習個位、十位與百位的進位與借位計算</p>
+
+        <!-- 模式切換器 (自由練習 vs 自我測驗) -->
+        <div class="mode-tabs" role="tablist" aria-label="直式挑戰模式切換">
+          <button class="mode-tab active" id="cq-tab-practice" type="button" role="tab" aria-selected="true">📖 自由練習</button>
+          <button class="mode-tab" id="cq-tab-selftest" type="button" role="tab" aria-selected="false">📝 自我測驗</button>
+        </div>
+
+        <!-- 題型難度過濾列 (自由練習專用) -->
+        <div class="cq-diff-bar" id="cq-diff-bar">
+          <span class="cq-diff-label">題型難度：</span>
+          <div class="cq-diff-chips" role="group" aria-label="直式題型難度選擇">
+            <button type="button" class="cq-diff-chip active" data-diff="all">🎲 綜合混合</button>
+            <button type="button" class="cq-diff-chip" data-diff="basic">🌱 不進退位</button>
+            <button type="button" class="cq-diff-chip" data-diff="carry">🌟 個位進位</button>
+            <button type="button" class="cq-diff-chip" data-diff="borrow">✂️ 個位退位</button>
+            <button type="button" class="cq-diff-chip" data-diff="hundred">🚀 百位挑戰</button>
+          </div>
+        </div>
+
+        <!-- 自由練習模式的計分列 -->
+        <div class="score-row" id="cq-practice-score-row">
+          <div class="score-pill">答對 <em id="cq-score-correct">0</em> 題</div>
+          <div class="score-pill">連續答對 <em id="cq-score-streak">0</em> 次</div>
+        </div>
+
+        <!-- 自我測驗模式：設定與開始卡片 -->
+        <div class="selftest-panel" id="cq-selftest-setup-panel" style="display: none;">
+          <div class="selftest-setup-card">
+            <div class="setup-icon">🏆</div>
+            <h3>直式加減法自我評量挑戰</h3>
+            <p>包含不進退位、進位加法、退位借位與百位混合題型，測驗你的直式算則實力！</p>
+            <div class="selftest-options">
+              <span class="opt-label">測驗題數：</span>
+              <button type="button" class="chip active" data-count="5">5 題速測</button>
+              <button type="button" class="chip" data-count="10">10 題完整測驗</button>
+            </div>
+            <button class="primary-btn pulse-glow" id="cq-start-selftest-btn" type="button">🚀 開始直式測驗</button>
+          </div>
+        </div>
+
+        <!-- 自我測驗進行中的進度列 -->
+        <div class="selftest-progress-row" id="cq-selftest-progress-row" style="display: none;">
+          <div class="progress-meta">
+            <span class="badge-tag">📝 直式測驗中</span>
+            <span class="progress-q" id="cq-selftest-progress-text">第 1 / 5 題</span>
+            <span class="timer-tag" id="cq-selftest-timer">⏱️ 00:00</span>
+          </div>
+          <div class="progress-track" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100">
+            <div class="progress-fill" id="cq-selftest-progress-fill" style="width: 0%;"></div>
+          </div>
+        </div>
+
+        <!-- 直式答題卡片本體 (自由練習與自我測驗共用) -->
+        <div class="quiz-card" id="cq-quiz-card">
+          <!-- 題目提示與朗讀 -->
+          <div class="cq-prompt-row">
+            <span class="cq-badge" id="cq-type-badge">進位加法</span>
+            <span class="cq-hint-text" id="cq-prompt-text">由個位開始算起，滿十記得進位喔！</span>
+            <button class="ghost-btn small" id="cq-speak-btn" type="button">🔊 朗讀題目</button>
+          </div>
+
+          <!-- 直式答題筆記板 (Vertical Notebook) -->
+          <div class="cq-board-container">
+            <div class="cq-notebook" id="cq-notebook">
+              <div class="cq-table" id="cq-math-table">
+                <!-- 動態注入直式算則表格 -->
+              </div>
+            </div>
+          </div>
+
+          <!-- 虛擬數字鍵盤 -->
+          <div class="virtual-keypad" id="cq-virtual-keypad" role="group" aria-label="直式輸入鍵盤">
+            <div class="keypad-grid">
+              <button type="button" class="num-key" data-key="1">1</button>
+              <button type="button" class="num-key" data-key="2">2</button>
+              <button type="button" class="num-key" data-key="3">3</button>
+              <button type="button" class="num-key" data-key="4">4</button>
+              <button type="button" class="num-key" data-key="5">5</button>
+              <button type="button" class="num-key" data-key="6">6</button>
+              <button type="button" class="num-key" data-key="7">7</button>
+              <button type="button" class="num-key" data-key="8">8</button>
+              <button type="button" class="num-key" data-key="9">9</button>
+              <button type="button" class="num-key func-key" data-key="backspace" aria-label="退格清除">⌫ 清除</button>
+              <button type="button" class="num-key" data-key="0">0</button>
+              <button type="button" class="num-key enter-key" data-key="enter" aria-label="確認答案">✓ 確認</button>
+            </div>
+          </div>
+
+          <!-- 操作按鈕 -->
+          <div class="quiz-actions">
+            <button class="ghost-btn" id="cq-helper-toggle-btn" type="button">🧱 展開積木小幫手</button>
+            <button class="primary-btn" id="cq-check-btn" type="button">確認答案</button>
+            <button class="ghost-btn" id="cq-next-btn" style="display:none;" type="button">下一題 →</button>
+          </div>
+
+          <!-- 積木小幫手抽屜 (視覺化動態輔助) -->
+          <div class="cq-helper-wrap">
+            <div class="cq-helper-drawer" id="cq-helper-drawer">
+              <div class="cq-helper-title">🧱 積木小幫手：看看積木是怎麼合體或拆開的！</div>
+              <div class="cq-helper-blocks" id="cq-helper-blocks-stage">
+                <!-- 動態注入積木展示 -->
+              </div>
+            </div>
+          </div>
+
+          <!-- 即時反饋訊息與引導說明 -->
+          <div class="feedback" id="cq-feedback"></div>
+          <div class="cq-explanation-box" id="cq-explanation-box" style="display: none;"></div>
+        </div>
+
+        <!-- 自我測驗成果結算卡片 -->
+        <div class="selftest-result-card" id="cq-selftest-result-card" style="display: none;">
+          <div class="result-header">
+            <div class="result-stars" id="cq-result-stars">⭐⭐⭐</div>
+            <h3 id="cq-result-title">直式測驗完成！太厲害了！</h3>
+            <p id="cq-result-subtitle">你已經能精準運用直式算則完成進退位計算！</p>
+          </div>
+
+          <div class="result-stats">
+            <div class="stat-box">
+              <div class="stat-num num-font" id="cq-result-score">100</div>
+              <div class="stat-lbl">測驗總分</div>
+            </div>
+            <div class="stat-box">
+              <div class="stat-num num-font" id="cq-result-accuracy">5 / 5</div>
+              <div class="stat-lbl">答對題數</div>
+            </div>
+            <div class="stat-box">
+              <div class="stat-num num-font" id="cq-result-time">00:42</div>
+              <div class="stat-lbl">總作答時間</div>
+            </div>
+          </div>
+
+          <div class="result-review" id="cq-result-review"></div>
+
+          <div class="result-actions">
+            <button class="primary-btn" id="cq-restart-selftest-btn" type="button">🔄 再測驗一次</button>
+            <button class="ghost-btn" id="cq-back-practice-btn" type="button">📖 回到自由練習</button>
+          </div>
         </div>
       </section>
     </div><!-- /#subpanel-calc-quiz -->
@@ -528,13 +661,14 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/two.js/0.8.14/two.min.js"></script>
 
 <!-- 模組化應用腳本（相容本機雙擊開啟） -->
-<script defer src="js/core.js?v=20260906g"></script>
-<script defer src="js/audio.js?v=20260906g"></script>
-<script defer src="js/utils.js?v=20260906g"></script>
-<script defer src="js/learn.js?v=20260906g"></script>
-<script defer src="js/quiz.js?v=20260906g"></script>
-<script defer src="js/calc.js?v=20260906g"></script>
-<script defer src="js/diagnostics.js?v=20260906g"></script>
-<script defer src="js/app.js?v=20260906g"></script>
+<script defer src="js/core.js?v=20260906h"></script>
+<script defer src="js/audio.js?v=20260906h"></script>
+<script defer src="js/utils.js?v=20260906h"></script>
+<script defer src="js/learn.js?v=20260906h"></script>
+<script defer src="js/quiz.js?v=20260906h"></script>
+<script defer src="js/calc.js?v=20260906h"></script>
+<script defer src="js/calc-quiz.js?v=20260906h"></script>
+<script defer src="js/diagnostics.js?v=20260906h"></script>
+<script defer src="js/app.js?v=20260906h"></script>
 </body>
 </html>

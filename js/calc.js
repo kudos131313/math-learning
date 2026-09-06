@@ -544,12 +544,12 @@
     animateVerticalStep(d, step);
 
     // 音效
-    if(info.sound && soundOn){
+    if(info.sound && MathApp.sfx){
       MathApp.sfx(info.sound);
     }
 
     // 語音朗讀
-    if(shouldSpeak && voiceOn){
+    if(shouldSpeak && MathApp.speak){
       MathApp.speak(info.speak);
     }
   }
