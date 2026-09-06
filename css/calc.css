@@ -427,13 +427,18 @@
   background: var(--h-soft);
   color: var(--h-color-dark);
   border: 1.5px solid var(--h-color-dark);
-  font-size: 13px;
-  font-weight: 900;
+  font-size: 12.5px;
+  font-weight: 800;
   border-radius: 6px;
   padding: 2px 5px;
   animation: popScale .3s ease-out;
-  font-family: "Baloo 2", sans-serif;
+  font-family: "Noto Sans TC", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   line-height: 1;
+  white-space: nowrap;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
 }
 
 /* 數字單元格與退位劃斜線 */
@@ -498,32 +503,90 @@
   background: var(--card);
   border: 2.5px solid var(--ink);
   border-radius: var(--radius-card);
-  padding: 20px 24px;
+  padding: 18px 24px;
   box-shadow: var(--shadow-hard);
   margin-bottom: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
 }
-.stepper-status-row{
+
+/* 頂部操作列：步驟標籤置左、控制按鈕置右，高度與位置絕對固定 */
+.stepper-header-row{
   display: flex;
   align-items: center;
-  gap: 14px;
-  margin-bottom: 16px;
+  justify-content: space-between;
+  gap: 12px;
+  padding-bottom: 12px;
+  border-bottom: 2px dashed var(--line-strong, rgba(51,43,34,.14));
   flex-wrap: wrap;
 }
+
 .stepper-step-pill{
-  padding: 6px 14px;
+  padding: 6px 16px;
   background: var(--ink);
   color: var(--bg);
   border-radius: 999px;
-  font-size: 13.5px;
+  font-size: 14px;
   font-weight: 900;
   white-space: nowrap;
+  letter-spacing: 0.5px;
+  box-shadow: 2px 2px 0 var(--shadow-ink);
 }
+
+/* 控制按鈕組：鎖定最小寬度與高度，避免文字與圖示變化導致晃動 */
+.stepper-controls{
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.stepper-controls .ghost-btn,
+.stepper-controls .primary-btn{
+  min-height: 42px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  white-space: nowrap;
+  font-size: 15px;
+  font-weight: 800;
+  padding: 8px 16px;
+}
+
+#step-prev-btn{
+  min-width: 98px;
+}
+#step-replay-btn{
+  min-width: 108px;
+}
+#step-auto-btn{
+  min-width: 112px;
+}
+#step-next-btn{
+  min-width: 112px;
+}
+
+/* 下方內容解說與互動引導區 */
+.stepper-content-body{
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.stepper-explanation-row{
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  min-height: 46px; /* 保障兩行文字的穩定展示空間，避免單/雙行文字切換微震 */
+}
+
 .stepper-explanation{
   flex: 1;
   font-size: 16.5px;
   font-weight: 700;
   color: var(--ink);
-  line-height: 1.5;
+  line-height: 1.55;
 }
 .stepper-explanation em{
   font-style: normal;
@@ -531,26 +594,26 @@
   font-weight: 900;
 }
 
-/* 互動操作提示列 (選項 A) */
+/* 互動操作提示列 (進位/借位重點引導) */
 .stepper-interactive-prompt{
   background: var(--surface-dim);
   border: 2px solid var(--ink);
   border-radius: 14px;
-  padding: 12px 18px;
-  margin-bottom: 16px;
+  padding: 10px 18px;
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 12px;
+  box-shadow: 2px 2px 0 var(--shadow-ink);
 }
 .prompt-btn{
-  padding: 8px 18px;
+  padding: 8px 20px;
   border-radius: 999px;
   border: 2px solid var(--ink);
   background: #f39c12;
   color: #fff;
   font-weight: 900;
-  font-size: 14px;
+  font-size: 14.5px;
   cursor: pointer;
   box-shadow: 2px 2px 0 var(--shadow-ink);
   transition: all .15s ease;
@@ -562,13 +625,28 @@
   background: var(--h-color);
 }
 
-/* 控制按鈕組 */
-.stepper-controls{
-  display: flex;
-  align-items: center;
-  justify-content: flex-end;
-  gap: 10px;
-  flex-wrap: wrap;
+@media (max-width: 680px){
+  .stepper-header-row{
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+  }
+  .stepper-step-pill{
+    align-self: flex-start;
+  }
+  .stepper-controls{
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    width: 100%;
+  }
+  .stepper-controls .ghost-btn,
+  .stepper-controls .primary-btn{
+    min-width: 0;
+    width: 100%;
+    font-size: 13.5px;
+    padding: 8px 6px;
+  }
 }
 
 /* 核心概念小卡 */

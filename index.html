@@ -6,7 +6,9 @@
 <title>數字積木屋｜國小數學概念探索與運算思維教室</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=ZCOOL+KuaiLe&family=Baloo+2:wght@500;700;800&family=Noto+Sans+TC:wght@400;500;700;900&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css?v=20260906h">
+<link rel="icon" href="favicon.ico" type="image/x-icon">
+<link rel="shortcut icon" href="favicon.ico" type="image/x-icon">
+<link rel="stylesheet" href="style.css?v=20260906i">
 </head>
 <body>
 
@@ -431,24 +433,30 @@
 
         <!-- 步驟引導控制器 -->
         <div class="calc-stepper-card">
-          <div class="stepper-status-row">
+          <!-- 頂部操作列：步驟進度標籤與控制按鈕群組（位置固定置頂） -->
+          <div class="stepper-header-row">
             <div class="stepper-step-pill" id="stepper-step-pill">第 1 步 / 共 4 步</div>
-            <div class="stepper-explanation" id="stepper-explanation">
-              先將數字排整齊！個位對齊個位、十位對齊十位，同一種位置才能相加喔！
+            <div class="stepper-controls">
+              <button class="ghost-btn" id="step-prev-btn" type="button"><i data-lucide="arrow-left"></i> 上一步</button>
+              <button class="ghost-btn" id="step-replay-btn" type="button"><i data-lucide="rotate-ccw"></i> 重播本步</button>
+              <button class="ghost-btn" id="step-auto-btn" type="button"><i data-lucide="play-circle"></i> 自動演示</button>
+              <button class="primary-btn pulse-glow" id="step-next-btn" type="button">下一步 <i data-lucide="arrow-right"></i></button>
             </div>
-            <button class="speaker-btn small" id="calc-speak-btn" type="button" aria-label="朗讀目前步驟解說"><i data-lucide="volume-2"></i></button>
           </div>
 
-          <!-- 互動引導操作提示區（選項 A） -->
-          <div class="stepper-interactive-prompt" id="stepper-interactive-prompt" style="display: none;">
-            <div class="prompt-content" id="prompt-content"></div>
-          </div>
+          <!-- 下方內容解說與互動引導區 -->
+          <div class="stepper-content-body">
+            <div class="stepper-explanation-row">
+              <div class="stepper-explanation" id="stepper-explanation">
+                先將數字排整齊！個位對齊個位、十位對齊十位，同一種位置才能相加喔！
+              </div>
+              <button class="speaker-btn small" id="calc-speak-btn" type="button" aria-label="朗讀目前步驟解說"><i data-lucide="volume-2"></i></button>
+            </div>
 
-          <div class="stepper-controls">
-            <button class="ghost-btn" id="step-prev-btn" type="button"><i data-lucide="arrow-left"></i> 上一步</button>
-            <button class="ghost-btn" id="step-replay-btn" type="button"><i data-lucide="rotate-ccw"></i> 重播本步</button>
-            <button class="ghost-btn" id="step-auto-btn" type="button"><i data-lucide="play-circle"></i> 自動演示</button>
-            <button class="primary-btn pulse-glow" id="step-next-btn" type="button">下一步 <i data-lucide="arrow-right"></i></button>
+            <!-- 互動引導操作提示區（選項 A） -->
+            <div class="stepper-interactive-prompt" id="stepper-interactive-prompt" style="display: none;">
+              <div class="prompt-content" id="prompt-content"></div>
+            </div>
           </div>
         </div>
 
@@ -667,8 +675,8 @@
 <script defer src="js/utils.js?v=20260906h"></script>
 <script defer src="js/learn.js?v=20260906h"></script>
 <script defer src="js/quiz.js?v=20260906h"></script>
-<script defer src="js/calc.js?v=20260906h"></script>
-<script defer src="js/calc-quiz.js?v=20260906h"></script>
+<script defer src="js/calc.js?v=20260906i"></script>
+<script defer src="js/calc-quiz.js?v=20260906i"></script>
 <script defer src="js/diagnostics.js?v=20260906h"></script>
 <script defer src="js/app.js?v=20260906h"></script>
 </body>

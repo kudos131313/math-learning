@@ -1463,14 +1463,12 @@
     if(showCarry){
       mark_t = '<span class="vm-carry-badge" title="滿十進一">1</span>';
     } else if(showBorrow){
-      mark_t = '<span class="vm-borrow-tag" title="十位被借走剩 ' + d.borrowed_t + '">' + d.borrowed_t + '</span>';
+      mark_t = '<span class="vm-borrow-tag" title="十位被借走 1 (借1)">借1</span>';
       mark_o = '<span class="vm-borrow-tag" title="借來的 10">10</span>';
     }
 
-    // 2. 被運算數 (A) 十位顯示
-    var numA_t_html = (showBorrow)
-      ? '<div class="vm-num-box slashed"><span class="vm-slash-stroke"></span>' + d.a_t + '</div>'
-      : '<div class="vm-num-box">' + d.a_t + '</div>';
+    // 2. 被運算數 (A) 十位顯示 (不劃掉原本數字)
+    var numA_t_html = '<div class="vm-num-box">' + d.a_t + '</div>';
 
     // 3. 答案格內容
     var ans_o_html = '<div class="vm-ans-placeholder"></div>';
@@ -1605,8 +1603,8 @@
         if(d.needsBorrow_o){
           return {
             pill: '第 2 步 (借位)：借一拆十到個位',
-            text: '向十位借 1 條十，十位劃掉改寫 <em>' + d.borrowed_t + '</em>；拆成 10 顆珠子到個位，個位變成 <em>' + d.effective_o + '</em> 顆，現在夠減囉！',
-            speak: '借一拆十！十位劃掉變成 ' + d.borrowed_t + '，個位現在有 ' + d.effective_o + ' 個，夠減了！',
+            text: '向十位借 1 條十，十位頭上記上 <em>借1</em>；拆成 10 顆珠子到個位，個位變成 <em>' + d.effective_o + '</em> 顆，現在夠減囉！',
+            speak: '借一拆十！十位頭上記上借 1，個位現在有 ' + d.effective_o + ' 個，夠減了！',
             showPrompt: false,
             sound: 'borrow'
           };
@@ -1635,10 +1633,10 @@
         };
       } else {
         var subExpText = d.needsBorrow_o
-          ? '接著算十位：十位剛剛被借走 1 條，剩下 ' + d.borrowed_t + ' 條。<em>' + d.borrowed_t + ' − ' + d.b_t + ' ＝ ' + d.ans_t + '</em>，在十位寫上 <em>' + d.ans_t + '</em>！'
+          ? '接著算十位：十位扣掉剛剛借出的 1 條，剩下 ' + d.borrowed_t + ' 條。<em>' + d.a_t + ' − 1 − ' + d.b_t + ' ＝ ' + d.ans_t + '</em>，在十位寫上 <em>' + d.ans_t + '</em>！'
           : '接著算十位：' + d.a_t + ' − ' + d.b_t + ' ＝ <em>' + d.ans_t + '</em>，在十位寫上 <em>' + d.ans_t + '</em>！';
         var subExpSpeak = d.needsBorrow_o
-          ? '接著算十位：十位剩 ' + d.borrowed_t + '，減 ' + d.b_t + ' 等於 ' + d.ans_t + '，寫上 ' + d.ans_t + '！'
+          ? '接著算十位：十位扣掉借 1 剩下 ' + d.borrowed_t + '，再減 ' + d.b_t + ' 等於 ' + d.ans_t + '，寫上 ' + d.ans_t + '！'
           : '接著算十位：' + d.a_t + ' 減 ' + d.b_t + ' 等於 ' + d.ans_t + '，寫上 ' + d.ans_t + '！';
         return {
           pill: '第 3 步 / 共 4 步：再算十位',
@@ -1797,7 +1795,7 @@
       calcEls.conceptText.textContent = '因為個位相加滿十時，要捆成 1 條十進位給十位！如果先算十位，十位剛算好的數字就又要被塗改一次，所以由最小的個位算起最順暢、最不容易出錯喔！';
     } else {
       calcEls.conceptTitle.textContent = '直式小秘訣：減法頭上的小 10 是哪裡來的？';
-      calcEls.conceptText.textContent = '當個位不夠減時，向十位借 1 條十，拆成 10 顆珠子放到個位！所以十位劃掉少 1 條，個位頭上就多出借來的 10 顆，合在一起就可以輕鬆扣減囉！';
+      calcEls.conceptText.textContent = '當個位不夠減時，向十位借 1 條十，拆成 10 顆珠子放到個位！所以在十位頭上記上「借1」（扣 1 條），個位頭上就多出借來的 10 顆，合在一起就可以輕鬆扣減囉！';
     }
 
     renderCalcPresetChips();
