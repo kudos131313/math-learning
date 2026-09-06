@@ -588,8 +588,8 @@
           subExpText = '接著算十位：看著十位頭頂沒被劃掉的 <em>9</em> 條十。<em>9 − ' + d.b_t + ' ＝ ' + d.ans_t + '</em>，在十位寫上 <em>' + d.ans_t + '</em>！';
           subExpSpeak = '接著算十位：十位剩下 9 條十，9 減 ' + d.b_t + ' 等於 ' + d.ans_t + '，在十位寫上 ' + d.ans_t + '！';
         } else if(d.needsBorrow_t){
-          subExpText = '接著算十位：百位劃掉記 <em>0</em>，十位向百位借 10 條，頭頂記 <em>' + d.effective_t + '</em>。<em>' + d.effective_t + ' − ' + d.b_t + ' ＝ ' + d.ans_t + '</em>，在十位寫上 <em>' + d.ans_t + '</em>！';
-          subExpSpeak = '接著算十位：十位頭頂記 ' + d.effective_t + '，減 ' + d.b_t + ' 等於 ' + d.ans_t + '，寫上 ' + d.ans_t + '！';
+          subExpText = '接著算十位：百位劃掉記 <em>' + d.borrowed_h + '</em>，十位向百位借 10 條，頭頂記 <em>' + d.effective_t + '</em>。<em>' + d.effective_t + ' − ' + d.b_t + ' ＝ ' + d.ans_t + '</em>，在十位寫上 <em>' + d.ans_t + '</em>！';
+          subExpSpeak = '接著算十位：百位借出 1 剩下 ' + d.borrowed_h + '，十位頭頂記 ' + d.effective_t + '，減 ' + d.b_t + ' 等於 ' + d.ans_t + '，寫上 ' + d.ans_t + '！';
         } else if(d.needsBorrow_o){
           subExpText = '接著算十位：看著十位頭頂劃掉後剩餘的 <em>' + d.borrowed_t + '</em> 條。<em>' + d.borrowed_t + ' − ' + d.b_t + ' ＝ ' + d.ans_t + '</em>，在十位寫上 <em>' + d.ans_t + '</em>！';
           subExpSpeak = '接著算十位：十位借出 1 條剩下 ' + d.borrowed_t + ' 條，' + d.borrowed_t + ' 減 ' + d.b_t + ' 等於 ' + d.ans_t + '，在十位寫上 ' + d.ans_t + '！';
@@ -609,8 +609,8 @@
       // Step 4 完成
       var opWord = d.op === 'add' ? ' 加 ' : ' 減 ';
       var extraHNote = '';
-      if(d.op === 'sub' && d.a_h > 0 && d.ans_h === 0){
-        extraHNote = '（百位的 1 已經被借走變為 0，最高位 0 省略不寫喔！）';
+      if(d.op === 'sub' && d.a_h > 0 && d.ans_h === 0 && d.b_h === 0){
+        extraHNote = '（百位借出後剩 0，最高位 0 省略不寫喔！）';
       }
       return {
         pill: '第 4 步 / 共 4 步：計算完成！',
@@ -861,10 +861,8 @@
     calcEls.btnOpSub.classList.toggle('active', newOp === 'sub');
     calcEls.btnOpSub.setAttribute('aria-selected', String(newOp === 'sub'));
 
-    // 更新自訂輸入運算符號
-    if(calcEls.customOpSymbol){
-      calcEls.customOpSymbol.textContent = newOp === 'add' ? '＋' : '−';
-    }
+    // 更新自訂輸入運算符號與標籤
+    updateCustomLabels();
 
     // 換成預設範例第一組
     var list = calcPresets[newOp];
@@ -909,24 +907,111 @@
     showToast('已換成新題目：' + a + (calcState.op === 'add' ? ' ＋ ' : ' − ') + b);
   }
 
-  /* 套用自訂題目 */
-  function applyCustomCalcProblem(){
+  /* 更新自訂輸入運算符號與欄位名稱 */
+  function updateCustomLabels(){
+    var isAdd = calcState.op === 'add';
+    var labelA = document.getElementById('custom-label-a');
+    var labelB = document.getElementById('custom-label-b');
+    if(labelA) labelA.textContent = isAdd ? '被加數：' : '被減數：';
+    if(labelB) labelB.textContent = isAdd ? '加數：' : '減數：';
+    if(calcEls.customOpSymbol) calcEls.customOpSymbol.textContent = isAdd ? '＋' : '−';
+    checkCustomWarningLive();
+  }
+
+  /* 即時檢查加法是否超過 999 或減法是否有負值風險並提供警告提示 */
+  function checkCustomWarningLive(){
+    var warningEl = document.getElementById('custom-calc-warning');
+    if(!warningEl) return;
+    if(!calcEls.customNumA || !calcEls.customNumB) return;
+
     var a = parseInt(calcEls.customNumA.value, 10);
     var b = parseInt(calcEls.customNumB.value, 10);
 
-    if(isNaN(a) || isNaN(b) || a <= 0 || b <= 0){
-      showToast('請輸入大於 0 的正整數喔！');
+    if(calcState.op === 'add'){
+      if(!isNaN(a) && !isNaN(b) && a + b > 999){
+        warningEl.style.display = 'inline-flex';
+        warningEl.innerHTML = '<i data-lucide="alert-circle"></i> 加法總和不得超出 999（' + a + ' ＋ ' + b + ' ＝ ' + (a + b) + '）';
+        if(MathApp.refreshIcons) MathApp.refreshIcons();
+      } else {
+        warningEl.style.display = 'none';
+      }
+    } else {
+      if(!isNaN(a) && !isNaN(b) && a < b){
+        warningEl.style.display = 'inline-flex';
+        warningEl.innerHTML = '<i data-lucide="alert-circle"></i> 減法不得算出負值（' + a + ' − ' + b + ' ＜ 0）';
+        if(MathApp.refreshIcons) MathApp.refreshIcons();
+      } else {
+        warningEl.style.display = 'none';
+      }
+    }
+  }
+
+  /* 套用自訂題目 (嚴格驗證 1 - 999，加法和不得超出 999，減法不得算出負值) */
+  function applyCustomCalcProblem(){
+    if(!calcEls.customNumA || !calcEls.customNumB) return;
+
+    var rawA = (calcEls.customNumA.value || '').trim();
+    var rawB = (calcEls.customNumB.value || '').trim();
+    var a = parseInt(rawA, 10);
+    var b = parseInt(rawB, 10);
+
+    // 重設錯誤邊框
+    calcEls.customNumA.classList.remove('input-error');
+    calcEls.customNumB.classList.remove('input-error');
+
+    if(!rawA || isNaN(a)){
+      calcEls.customNumA.classList.add('input-error');
+      showToast('請輸入 1 ~ 999 的整數喔！');
       if(MathApp.sfx) MathApp.sfx('boundary');
+      calcEls.customNumA.focus();
       return;
     }
+
+    if(!rawB || isNaN(b)){
+      calcEls.customNumB.classList.add('input-error');
+      showToast('請輸入 1 ~ 999 的整數喔！');
+      if(MathApp.sfx) MathApp.sfx('boundary');
+      calcEls.customNumB.focus();
+      return;
+    }
+
+    if(a < 1 || a > 999){
+      calcEls.customNumA.classList.add('input-error');
+      showToast('被運算數範圍必須在 1 ~ 999 之間喔！');
+      if(MathApp.sfx) MathApp.sfx('boundary');
+      calcEls.customNumA.focus();
+      calcEls.customNumA.select();
+      return;
+    }
+
+    if(b < 1 || b > 999){
+      calcEls.customNumB.classList.add('input-error');
+      showToast('運算數範圍必須在 1 ~ 999 之間喔！');
+      if(MathApp.sfx) MathApp.sfx('boundary');
+      calcEls.customNumB.focus();
+      calcEls.customNumB.select();
+      return;
+    }
+
+    // 加法規則：相加總和不得超出 999
+    if(calcState.op === 'add' && a + b > 999){
+      calcEls.customNumA.classList.add('input-error');
+      calcEls.customNumB.classList.add('input-error');
+      showToast('加法運算中，相加的和不得超出 999 喔！（目前為 ' + (a + b) + '）');
+      if(MathApp.sfx) MathApp.sfx('boundary');
+      calcEls.customNumB.focus();
+      calcEls.customNumB.select();
+      return;
+    }
+
+    // 減法規則：被減數不得小於減數，不得算出負值
     if(calcState.op === 'sub' && a < b){
-      showToast('減法運算中，被減數必須大於或等於減數喔！');
+      calcEls.customNumA.classList.add('input-error');
+      calcEls.customNumB.classList.add('input-error');
+      showToast('減法運算中，被減數必須大於或等於減數，不能算出負值喔！');
       if(MathApp.sfx) MathApp.sfx('boundary');
-      return;
-    }
-    if(a > 999 || b > 999){
-      showToast('請輸入三位數以內的數字喔！');
-      if(MathApp.sfx) MathApp.sfx('boundary');
+      calcEls.customNumA.focus();
+      calcEls.customNumA.select();
       return;
     }
 
@@ -938,6 +1023,39 @@
     renderCalcPresetChips();
     renderCalcView(true);
     showToast('已載入自訂算式：' + a + (calcState.op === 'add' ? ' ＋ ' : ' − ') + b);
+  }
+
+  /* 支援實體鍵盤直接輸入、Enter 送出與即時防呆 */
+  function setupCustomInputKeyboard(){
+    [calcEls.customNumA, calcEls.customNumB].forEach(function(inputEl){
+      if(!inputEl) return;
+
+      // 支援鍵盤按 Enter 鍵直接開始演示
+      inputEl.addEventListener('keydown', function(e){
+        if(e.key === 'Enter'){
+          e.preventDefault();
+          applyCustomCalcProblem();
+        }
+      });
+
+      // 監聽輸入字元：過濾非正整數字元、限制最大 3 位數、即時移除錯誤標記
+      inputEl.addEventListener('input', function(){
+        this.classList.remove('input-error');
+        var clean = this.value.replace(/[^0-9]/g, '');
+        if(clean.length > 3){
+          clean = clean.slice(0, 3);
+        }
+        if(this.value !== clean){
+          this.value = clean;
+        }
+        checkCustomWarningLive();
+      });
+
+      // 聚焦時自動選取內容，方便直接鍵入替換
+      inputEl.addEventListener('focus', function(){
+        this.select();
+      });
+    });
   }
 
   /* 事件綁定 */
@@ -955,12 +1073,26 @@
       if(isHidden){
         calcEls.customNumA.value = calcState.numA;
         calcEls.customNumB.value = calcState.numB;
+        calcEls.customNumA.classList.remove('input-error');
+        calcEls.customNumB.classList.remove('input-error');
+        updateCustomLabels();
+        // 自動聚焦並反白選取第一個輸入框，方便直接鍵盤打字輸入
+        setTimeout(function(){
+          if(calcEls.customNumA){
+            calcEls.customNumA.focus();
+            calcEls.customNumA.select();
+          }
+        }, 60);
       }
     });
   }
   if(calcEls.applyCustomBtn){
     calcEls.applyCustomBtn.addEventListener('click', applyCustomCalcProblem);
   }
+
+  // 初始化自訂輸入框鍵盤支援
+  setupCustomInputKeyboard();
+  updateCustomLabels();
   if(calcEls.stepNextBtn)   calcEls.stepNextBtn.addEventListener('click', calcNextStep);
   if(calcEls.stepPrevBtn)   calcEls.stepPrevBtn.addEventListener('click', calcPrevStep);
   if(calcEls.stepReplayBtn) calcEls.stepReplayBtn.addEventListener('click', calcReplayStep);

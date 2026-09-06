@@ -556,8 +556,17 @@
 
     // 綁定實體鍵盤全局支援
     window.addEventListener('keydown', function(e){
+      // 1. 若使用者正在原生輸入框 (input / textarea) 打字，絕不攔截
+      if(e.target && (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA')) return;
+
       var diagModal = document.getElementById('diagnostics-modal');
       if(diagModal && diagModal.style.display !== 'none') return;
+
+      // 2. 只有在單元 1 啟用中且為位值測驗子分頁時才響應
+      var panelLearn = document.getElementById('panel-learn');
+      var subpanelPvQuiz = document.getElementById('subpanel-pv-quiz');
+      if(!panelLearn || !panelLearn.classList.contains('active')) return;
+      if(!subpanelPvQuiz || !subpanelPvQuiz.classList.contains('active')) return;
 
       if(quizEls.card && quizEls.card.style.display !== 'none'){
         if(e.key >= '0' && e.key <= '9'){

@@ -8,7 +8,7 @@
 <link href="https://fonts.googleapis.com/css2?family=ZCOOL+KuaiLe&family=Baloo+2:wght@500;700;800&family=Noto+Sans+TC:wght@400;500;700;900&display=swap" rel="stylesheet">
 <link rel="icon" href="favicon.ico" type="image/x-icon">
 <link rel="shortcut icon" href="favicon.ico" type="image/x-icon">
-<link rel="stylesheet" href="style.css?v=20260907b">
+<link rel="stylesheet" href="style.css?v=20260907d">
 </head>
 <body>
 
@@ -549,15 +549,19 @@
           <div class="calc-custom-drawer" id="calc-custom-drawer" style="display: none;">
             <div class="custom-inputs-card">
               <div class="custom-field">
-                <label for="custom-num-a">被運算數：</label>
-                <input type="number" id="custom-num-a" min="1" max="99" value="28">
+                <label for="custom-num-a" id="custom-label-a">被運算數：</label>
+                <input type="text" id="custom-num-a" inputmode="numeric" pattern="[0-9]*" maxlength="3" value="28" placeholder="1~999" autocomplete="off">
               </div>
               <span class="custom-op-symbol" id="custom-op-symbol">＋</span>
               <div class="custom-field">
-                <label for="custom-num-b">運算數：</label>
-                <input type="number" id="custom-num-b" min="1" max="99" value="15">
+                <label for="custom-num-b" id="custom-label-b">運算數：</label>
+                <input type="text" id="custom-num-b" inputmode="numeric" pattern="[0-9]*" maxlength="3" value="15" placeholder="1~999" autocomplete="off">
               </div>
               <button class="primary-btn small" id="apply-custom-calc-btn" type="button">開始教學演示</button>
+              <div class="custom-hint-line" id="custom-hint-line">
+                <span id="custom-calc-warning" class="custom-calc-warning" style="display:none;color:var(--bad);margin-right:6px;"></span>
+                <span id="custom-calc-guide">範圍 1 ~ 999（加法和不得超出 999，減法不得為負值）｜支援 Enter 送出</span>
+              </div>
             </div>
           </div>
         </div>
@@ -900,11 +904,11 @@
 <script defer src="js/audio.js?v=20260906n"></script>
 <script defer src="js/utils.js?v=20260906l"></script>
 <script defer src="js/learn.js?v=20260906i"></script>
-<script defer src="js/quiz.js?v=20260906j"></script>
+<script defer src="js/quiz.js?v=20260907d"></script>
 <script defer src="js/seq.js?v=20260906l"></script>
-<script defer src="js/seq-quiz.js?v=20260906k"></script>
-<script defer src="js/calc.js?v=20260907b"></script>
-<script defer src="js/calc-quiz.js?v=20260907a"></script>
+<script defer src="js/seq-quiz.js?v=20260907d"></script>
+<script defer src="js/calc.js?v=20260907e"></script>
+<script defer src="js/calc-quiz.js?v=20260907d"></script>
 <script defer src="js/diagnostics.js?v=20260906i"></script>
 <script defer src="js/app.js?v=20260906h"></script>
 </body>

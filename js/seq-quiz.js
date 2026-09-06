@@ -457,6 +457,7 @@
 
     // 實體鍵盤監聽
     window.addEventListener('keydown', function(e){
+      if(e.target && (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA')) return;
       // 只有當前單元是 seq 且在 quiz 子分頁時響應
       var panelSeq = document.getElementById('panel-seq');
       var subPanelQuiz = document.getElementById('subpanel-seq-quiz');

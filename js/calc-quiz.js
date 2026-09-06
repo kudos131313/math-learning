@@ -1112,8 +1112,9 @@
     // 虛擬數字鍵盤：改用共用工廠函式
     MathApp.createNumpad('cq-virtual-keypad', handleInputKey);
 
-    // 電腦鍵盤按鍵監聽 (只在直式測驗面板可見時生效)
+    // 電腦鍵盤按鍵監聽 (只在直式測驗面板可見且非原生輸入框時生效)
     window.addEventListener('keydown', function(e){
+      if(e.target && (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA')) return;
       var subpanel = document.getElementById('subpanel-calc-quiz');
       if(!subpanel || !subpanel.classList.contains('active')) return;
 
