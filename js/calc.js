@@ -160,7 +160,7 @@
         calcState.step = 0;
         renderCalcPresetChips();
         renderCalcView();
-        if(soundOn) MathApp.sfx('click');
+        if(MathApp.sfx) MathApp.sfx('click');
       });
       calcEls.presetChips.appendChild(btn);
     });
@@ -673,7 +673,7 @@
     if(calcState.step < 4){
       calcState.step++;
       renderCalcView(true);
-      if(soundOn && calcState.step < 4) MathApp.sfx('click');
+      if(MathApp.sfx && calcState.step < 4) MathApp.sfx('click');
     } else {
       stopAutoPlay();
     }
@@ -685,14 +685,14 @@
     if(calcState.step > 0){
       calcState.step--;
       renderCalcView(true);
-      if(soundOn) MathApp.sfx('click');
+      if(MathApp.sfx) MathApp.sfx('click');
     }
   }
 
   /* 重播本步 */
   function calcReplayStep(){
     renderCalcView(true);
-    if(soundOn) MathApp.sfx('click');
+    if(MathApp.sfx) MathApp.sfx('click');
   }
 
   /* 自動演示控制 */
@@ -762,7 +762,7 @@
 
     renderCalcPresetChips();
     renderCalcView(true);
-    if(soundOn) MathApp.sfx('click');
+    if(MathApp.sfx) MathApp.sfx('click');
   }
 
   /* 產生隨機題目 */
@@ -793,17 +793,17 @@
 
     if(isNaN(a) || isNaN(b) || a <= 0 || b <= 0){
       showToast('請輸入大於 0 的正整數喔！');
-      if(soundOn) MathApp.sfx('boundary');
+      if(MathApp.sfx) MathApp.sfx('boundary');
       return;
     }
     if(calcState.op === 'sub' && a < b){
       showToast('減法運算中，被減數必須大於或等於減數喔！');
-      if(soundOn) MathApp.sfx('boundary');
+      if(MathApp.sfx) MathApp.sfx('boundary');
       return;
     }
     if(a > 999 || b > 999){
       showToast('請輸入三位數以內的數字喔！');
-      if(soundOn) MathApp.sfx('boundary');
+      if(MathApp.sfx) MathApp.sfx('boundary');
       return;
     }
 

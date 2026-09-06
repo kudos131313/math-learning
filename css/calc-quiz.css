@@ -288,56 +288,172 @@
 /* 積木小幫手抽屜 (Visual Blocks Helper) */
 .cq-helper-wrap{
   margin: 14px auto 0;
-  max-width: 580px;
+  max-width: 760px;
+  width: 100%;
   text-align: center;
 }
 .cq-helper-drawer{
   background: var(--surface-dim);
   border: 2px dashed var(--ink);
-  border-radius: 16px;
-  padding: 16px;
-  margin-top: 10px;
+  border-radius: 20px;
+  padding: 18px 16px;
+  margin-top: 12px;
   animation: panelFadeIn .25s ease-out;
   display: none;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.06);
 }
 .cq-helper-drawer.open{
   display: block;
 }
 .cq-helper-title{
-  font-size: 14.5px;
-  font-weight: 800;
+  font-size: 15.5px;
+  font-weight: 900;
   color: var(--ink);
-  margin-bottom: 12px;
+  margin-bottom: 14px;
 }
 .cq-helper-blocks{
   display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+}
+.cq-helper-stage-row{
+  display: flex;
   justify-content: center;
   align-items: center;
-  gap: 20px;
+  gap: 16px;
+  flex-wrap: wrap;
+  width: 100%;
+}
+.cq-helper-num-card{
+  flex: 1 1 260px;
+  max-width: 340px;
+  background: var(--surface);
+  border: 2px solid var(--ink);
+  border-radius: 14px;
+  padding: 12px 14px;
+  box-shadow: 3px 3px 0 var(--shadow-ink);
+  text-align: center;
+}
+.cq-helper-num-title{
+  font-size: 13.5px;
+  font-weight: 800;
+  color: var(--ink);
+  margin-bottom: 10px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 6px;
+}
+.cq-helper-num-val{
+  font-size: 16px;
+  font-weight: 900;
+  color: #2b6ef2;
+}
+.cq-helper-num-cols{
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  gap: 10px;
   flex-wrap: wrap;
 }
-.cq-helper-col{
+.cq-helper-col-group{
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 4px;
+  gap: 6px;
+  min-width: 65px;
 }
-.cq-helper-col-lbl{
+.cq-helper-col-tag{
+  font-size: 11px;
+  font-weight: 800;
+  padding: 2px 8px;
+  border-radius: 6px;
+  display: inline-block;
+}
+.cq-helper-col-tag.h-tag{
+  background: var(--h-soft, #fef3c7);
+  color: var(--h-color-dark, #b45309);
+}
+.cq-helper-col-tag.t-tag{
+  background: var(--t-soft, #fed7aa);
+  color: var(--t-color-dark, #c2410c);
+}
+.cq-helper-col-tag.o-tag{
+  background: var(--o-soft, #e2e8f0);
+  color: var(--o-color-dark, #334155);
+}
+.cq-helper-col-blocks{
+  min-height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 4px;
+  background: var(--surface-dim);
+  border-radius: 8px;
+  padding: 6px;
+  width: 100%;
+}
+.cq-helper-empty{
   font-size: 12px;
-  font-weight: 700;
   color: var(--ink-soft);
 }
-.cq-helper-col-stage{
+.cq-helper-op-badge{
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  background: var(--ink);
+  color: #fff;
   display: flex;
-  gap: 4px;
-  flex-wrap: wrap;
+  align-items: center;
   justify-content: center;
-  max-width: 130px;
-  min-height: 40px;
-  background: var(--surface);
-  border: 1.5px solid var(--ink);
+  font-size: 22px;
+  font-weight: 900;
+  box-shadow: 2px 2px 0 var(--shadow-ink);
+  flex-shrink: 0;
+}
+.cq-helper-action-card{
+  width: 100%;
+  background: linear-gradient(135deg, rgba(255,255,255,0.9) 0%, rgba(240,249,255,0.95) 100%);
+  border: 2px solid #2b6ef2;
+  border-radius: 14px;
+  padding: 14px 16px;
+  text-align: left;
+  box-shadow: 0 4px 12px rgba(43,110,242,0.1);
+}
+.cq-helper-action-header{
+  font-size: 14px;
+  font-weight: 900;
+  color: #2b6ef2;
+  margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.cq-helper-action-body{
+  font-size: 13.5px;
+  color: var(--ink);
+  line-height: 1.6;
+}
+.cq-helper-action-visual{
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin: 8px 0;
+  padding: 8px 12px;
+  background: rgba(255,255,255,0.8);
   border-radius: 10px;
-  padding: 6px;
+  border: 1px dashed rgba(43,110,242,0.4);
+}
+.cq-helper-transform-arrow{
+  font-size: 13px;
+  font-weight: 800;
+  color: #2b6ef2;
+  background: rgba(43,110,242,0.1);
+  padding: 2px 8px;
+  border-radius: 20px;
 }
 
 /* 詳解提示文字方塊 */
