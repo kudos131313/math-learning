@@ -99,8 +99,8 @@
       voiceOn = !voiceOn;
       voiceToggleBtn.setAttribute('aria-pressed', String(voiceOn));
       voiceToggleBtn.innerHTML = voiceOn 
-        ? '<i data-lucide="volume-1"></i><span>語音</span>' 
-        : '<i data-lucide="mic-off"></i><span>語音（關）</span>';
+        ? '<i data-lucide="speech"></i><span>語音</span>' 
+        : '<i data-lucide="message-square-off"></i><span>語音（關）</span>';
       if(MathApp.refreshIcons) MathApp.refreshIcons();
       if(!voiceOn && 'speechSynthesis' in window) window.speechSynthesis.cancel();
     });
