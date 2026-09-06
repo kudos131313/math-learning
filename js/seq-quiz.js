@@ -61,7 +61,7 @@
     }
   ];
 
-  var currentMode = 'paper'; // 'paper', 'count1', 'count10', 'mix'
+  var currentMode = 'count1'; // 'count1', 'count10', 'mix'
   var paperExamIndex = 0;
   var currentQuestion = null;
   var userInputs = {}; // { blankIndex: "字串" }
@@ -492,8 +492,8 @@
     var closeHelperBtn = document.getElementById('close-seq-helper-btn');
     if(closeHelperBtn) closeHelperBtn.addEventListener('click', closeBlockHelper);
 
-    // 預設載入考卷真題第 1 題（靜音模式，頁面載入時不發出點擊音效）
-    setMode('paper', true);
+    // 預設載入 1個1個數 關卡（靜音模式，頁面載入時不發出點擊音效）
+    setMode('count1', true);
     console.log('📝 規律神探測驗模組 (seq-quiz.js) 已就緒！');
   }
 

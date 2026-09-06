@@ -8,7 +8,7 @@
 <link href="https://fonts.googleapis.com/css2?family=ZCOOL+KuaiLe&family=Baloo+2:wght@500;700;800&family=Noto+Sans+TC:wght@400;500;700;900&display=swap" rel="stylesheet">
 <link rel="icon" href="favicon.ico" type="image/x-icon">
 <link rel="shortcut icon" href="favicon.ico" type="image/x-icon">
-<link rel="stylesheet" href="style.css?v=20260906m">
+<link rel="stylesheet" href="style.css?v=20260907a">
 </head>
 <body>
 
@@ -373,14 +373,15 @@
           <div class="seq-control-row">
             <div class="seq-control-label"><i data-lucide="settings-2"></i> 選擇跳數規則（步長）：</div>
             <div class="seq-step-pills">
-              <button class="step-pill active badge-cross-hundred" type="button" data-step="10"><i data-lucide="plus"></i> 10 個 10 個數</button>
-              <button class="step-pill badge-cross-hundred" type="button" data-step="-10"><i data-lucide="minus"></i> 10 個 10 個倒數</button>
+              <button class="step-pill active" type="button" data-step="10"><i data-lucide="plus"></i> 10 個 10 個數</button>
+              <button class="step-pill" type="button" data-step="-10"><i data-lucide="minus"></i> 10 個 10 個倒數</button>
               <button class="step-pill" type="button" data-step="1"><i data-lucide="plus"></i> 1 個 1 個數</button>
               <button class="step-pill" type="button" data-step="-1"><i data-lucide="minus"></i> 1 個 1 個倒數</button>
-              <button class="step-pill" type="button" data-step="100"><i data-lucide="chevrons-right"></i> +100</button>
-              <button class="step-pill" type="button" data-step="-100"><i data-lucide="chevrons-left"></i> -100</button>
-              <button class="step-pill" type="button" data-step="5">+5 跳數</button>
-              <button class="step-pill" type="button" data-step="2">+2 跳數</button>
+              <div class="seq-custom-step-item" id="seq-custom-step-group">
+                <label for="seq-custom-step-input" class="seq-custom-label"><i data-lucide="sliders"></i> 自訂間隔：</label>
+                <input type="number" id="seq-custom-step-input" class="seq-custom-step-input" value="5" min="-999" max="999" placeholder="步長">
+                <button class="step-pill-custom-apply" id="seq-custom-step-btn" type="button"><i data-lucide="check"></i> 套用</button>
+              </div>
             </div>
           </div>
 
@@ -445,8 +446,7 @@
       <section class="seq-quiz-card">
         <!-- 關卡選擇器 -->
         <div class="seq-level-selector">
-          <button class="level-pill featured active" type="button" data-mode="paper"><i data-lucide="file-check-2"></i> 考卷真題精選（全 6 題）</button>
-          <button class="level-pill" type="button" data-mode="count1"><i data-lucide="target"></i> 1個1個數（跨十跨百）</button>
+          <button class="level-pill active" type="button" data-mode="count1"><i data-lucide="target"></i> 1個1個數（跨十跨百）</button>
           <button class="level-pill" type="button" data-mode="count10"><i data-lucide="zap"></i> 10個10個數（跨百進退位）</button>
           <button class="level-pill" type="button" data-mode="mix"><i data-lucide="dices"></i> 百數神探大挑戰</button>
         </div>
@@ -454,7 +454,7 @@
         <!-- 考卷題卡板面 -->
         <div class="paper-quiz-board">
           <div class="paper-meta-row">
-            <div class="paper-title" id="paper-title-text"><i data-lucide="award"></i> 考卷真題挑戰</div>
+            <div class="paper-title" id="paper-title-text"><i data-lucide="award"></i> 規律神探挑戰</div>
             <div class="paper-stats" id="paper-score-stats">累積答對：0 題 / 總作答：0 次</div>
           </div>
 
@@ -904,7 +904,7 @@
 <script defer src="js/seq.js?v=20260906l"></script>
 <script defer src="js/seq-quiz.js?v=20260906k"></script>
 <script defer src="js/calc.js?v=20260906i"></script>
-<script defer src="js/calc-quiz.js?v=20260906i"></script>
+<script defer src="js/calc-quiz.js?v=20260907a"></script>
 <script defer src="js/diagnostics.js?v=20260906i"></script>
 <script defer src="js/app.js?v=20260906h"></script>
 </body>

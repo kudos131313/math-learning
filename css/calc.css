@@ -287,11 +287,6 @@
   font-size: 20px;
   font-weight: 900;
   color: #2b6ef2;
-  animation: pulseGlowArrow 1s infinite alternate;
-}
-@keyframes pulseGlowArrow{
-  0%{ transform: translateX(0); opacity: .7; }
-  100%{ transform: translateX(4px); opacity: 1; }
 }
 
 /* ---------- 右側：小學作業簿直式算則 (結構化極致穩定版) ---------- */

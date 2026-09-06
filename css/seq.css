@@ -98,22 +98,80 @@
   box-shadow: 0 3px 8px rgba(37, 99, 235, 0.35);
 }
 
-.step-pill.badge-cross-hundred {
-  position: relative;
+/* 自訂跳數間隔膠囊 */
+.seq-custom-step-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: #ffffff;
+  border: 1.5px solid #cbd5e1;
+  border-radius: 24px;
+  padding: 3px 6px 3px 12px;
+  transition: all 0.18s ease;
 }
 
-.step-pill.badge-cross-hundred::after {
-  content: "考卷重點";
-  position: absolute;
-  top: -9px;
-  right: -6px;
-  background: #ef4444;
-  color: #ffffff;
-  font-size: 10px;
-  font-weight: 800;
-  padding: 1px 5px;
+.seq-custom-step-item:hover {
+  border-color: #94a3b8;
+}
+
+.seq-custom-step-item:focus-within,
+.seq-custom-step-item.active {
+  border-color: #2563eb;
+  background: #eff6ff;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+}
+
+.seq-custom-label {
+  font-size: 13.5px;
+  font-weight: 700;
+  color: var(--ink);
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.seq-custom-step-input {
+  width: 58px;
+  padding: 4px 6px;
+  font-size: 14px;
+  font-weight: 700;
+  text-align: center;
+  border: 1.5px solid #cbd5e1;
   border-radius: 8px;
-  letter-spacing: 0.5px;
+  background: #ffffff;
+  color: var(--ink);
+  transition: border-color 0.15s ease;
+}
+
+.seq-custom-step-input:focus {
+  outline: none;
+  border-color: #2563eb;
+}
+
+.step-pill-custom-apply {
+  background: #2563eb;
+  color: #ffffff;
+  border: none;
+  border-radius: 18px;
+  padding: 4px 12px;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  transition: all 0.18s ease;
+}
+
+.step-pill-custom-apply:hover {
+  background: #1d4ed8;
+  transform: translateY(-1px);
+}
+
+.step-pill-custom-apply:active {
+  transform: translateY(0);
 }
 
 /* 起點與手動輸入列 */

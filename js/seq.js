@@ -205,8 +205,9 @@
       title = '💯 百數大跳躍：只有「百位」大步跨！';
       body = '每次跳 100，十位與個位完全不動，只有百位從 ' + prevH + ' 變成 ' + curH + '！';
     } else {
-      title = '🎯 跳數規律探索：步長為 ' + (curStep > 0 ? '+' : '') + curStep;
-      body = '觀察前後數字的差值，找出每一格規律的節奏！';
+      var dirText = curStep > 0 ? '每次增加 ' + curStep : '每次倒退減少 ' + Math.abs(curStep);
+      title = '🎯 自訂跳數規律：步長為 ' + (curStep > 0 ? '+' : '') + curStep;
+      body = '自訂跳數規律：' + dirText + '！觀察前後車廂的數字變化，看看個位、十位或百位有什麼節奏！';
     }
 
     return { title: title, body: body };
@@ -295,20 +296,32 @@
   }
 
   /* 設定跳數步長 */
-  function setStep(newStep){
+  function setStep(newStep, isCustom){
+    if(typeof newStep !== 'number' || isNaN(newStep) || newStep === 0) return;
     step = newStep;
     // 依據新步長選取合適的起點範例，讓孩子立刻看到亮點！
     if(step === 10) setNumber(189);
     else if(step === -10) setNumber(205);
     else if(step === -1) setNumber(201);
     else if(step === 1) setNumber(198);
-    else if(step === 100 || step === -100) setNumber(350);
+    else {
+      setNumber(currentNum);
+    }
 
-    document.querySelectorAll('.step-pill').forEach(function(pill){
-      var s = parseInt(pill.getAttribute('data-step'), 10);
-      var isActive = (s === step);
-      pill.classList.toggle('active', isActive);
-    });
+    var customGroup = document.getElementById('seq-custom-step-group');
+    if(isCustom){
+      document.querySelectorAll('.step-pill[data-step]').forEach(function(pill){
+        pill.classList.remove('active');
+      });
+      if(customGroup) customGroup.classList.add('active');
+    } else {
+      if(customGroup) customGroup.classList.remove('active');
+      document.querySelectorAll('.step-pill[data-step]').forEach(function(pill){
+        var s = parseInt(pill.getAttribute('data-step'), 10);
+        var isActive = (s === step);
+        pill.classList.toggle('active', isActive);
+      });
+    }
 
     if(MathApp.sfx) MathApp.sfx('click');
   }
@@ -328,12 +341,35 @@
     playBtnEl = document.getElementById('seq-play-btn');
 
     // 步長按鈕
-    document.querySelectorAll('.step-pill').forEach(function(btn){
+    document.querySelectorAll('.step-pill[data-step]').forEach(function(btn){
       btn.addEventListener('click', function(){
         var s = parseInt(btn.getAttribute('data-step'), 10);
-        if(!isNaN(s)) setStep(s);
+        if(!isNaN(s)) setStep(s, false);
       });
     });
+
+    // 自訂跳數步長
+    var customInputEl = document.getElementById('seq-custom-step-input');
+    var customBtnEl = document.getElementById('seq-custom-step-btn');
+    function applyCustomStep(){
+      if(!customInputEl) return;
+      var val = parseInt(customInputEl.value, 10);
+      if(isNaN(val) || val === 0){
+        alert('請輸入不為 0 的整數跳數間隔（例如 5、2 或 -5）');
+        return;
+      }
+      setStep(val, true);
+    }
+    if(customBtnEl){
+      customBtnEl.addEventListener('click', applyCustomStep);
+    }
+    if(customInputEl){
+      customInputEl.addEventListener('keydown', function(e){
+        if(e.key === 'Enter'){
+          applyCustomStep();
+        }
+      });
+    }
 
     // 前後操作按鈕
     var prevBtn = document.getElementById('seq-prev-btn');

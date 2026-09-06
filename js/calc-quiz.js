@@ -704,6 +704,17 @@
     renderHelperBlocks(currentQ);
   }
 
+  /* 模式切換 Tab 滑塊更新 */
+  function updateTabSlider(activeTab){
+    var slider = document.getElementById('cq-mode-tab-slider');
+    if(!slider || !activeTab) return;
+    var tabsRect = activeTab.parentElement.getBoundingClientRect();
+    var tabRect  = activeTab.getBoundingClientRect();
+    if(tabRect.width === 0) return;
+    slider.style.left  = (tabRect.left - tabsRect.left - 4) + 'px';
+    slider.style.width = tabRect.width + 'px';
+  }
+
   /* 模式切換 */
   function switchMode(mode){
     currentMode = mode;
@@ -712,6 +723,7 @@
       cqEls.tabPractice.setAttribute('aria-selected', 'true');
       cqEls.tabSelftest.classList.remove('active');
       cqEls.tabSelftest.setAttribute('aria-selected', 'false');
+      updateTabSlider(cqEls.tabPractice);
 
       cqEls.diffBar.style.display = 'flex';
       cqEls.practiceScoreRow.style.display = 'flex';
@@ -727,6 +739,7 @@
       cqEls.tabSelftest.setAttribute('aria-selected', 'true');
       cqEls.tabPractice.classList.remove('active');
       cqEls.tabPractice.setAttribute('aria-selected', 'false');
+      updateTabSlider(cqEls.tabSelftest);
 
       cqEls.diffBar.style.display = 'none';
       cqEls.practiceScoreRow.style.display = 'none';
@@ -948,10 +961,27 @@
       }
     });
 
-    // 監聽子分頁切換
+    // 初始化直式測驗模式 Tab 滑塊
+    (function initTabSlider(){
+      var tabsEl = document.querySelector('#calc-quiz .mode-tabs');
+      if(!tabsEl) return;
+      var slider = document.createElement('div');
+      slider.id = 'cq-mode-tab-slider';
+      slider.className = 'mode-tab-slider';
+      tabsEl.insertBefore(slider, tabsEl.firstChild);
+      requestAnimationFrame(function(){
+        updateTabSlider(cqEls.tabPractice);
+      });
+    })();
+
+    // 監聽子分頁切換與分頁切換時的滑塊校準
     if(MathApp.on){
       MathApp.on('subTabChange', function(data){
         if(data && data.unit === 'calc' && data.subTab === 'quiz'){
+          requestAnimationFrame(function(){
+            var activeTab = (currentMode === 'practice') ? cqEls.tabPractice : cqEls.tabSelftest;
+            updateTabSlider(activeTab);
+          });
           if(!currentQ){
             newRound();
           } else {
@@ -960,7 +990,23 @@
           }
         }
       });
+      MathApp.on('tabChange', function(tab){
+        if(tab === 'calc'){
+          requestAnimationFrame(function(){
+            var activeTab = (currentMode === 'practice') ? cqEls.tabPractice : cqEls.tabSelftest;
+            updateTabSlider(activeTab);
+          });
+        }
+      });
     }
+
+    // 視窗縮放時自動重新計算滑塊寬度與偏移
+    window.addEventListener('resize', function(){
+      if(cqEls.tabPractice && cqEls.tabPractice.offsetParent !== null){
+        var activeTab = (currentMode === 'practice') ? cqEls.tabPractice : cqEls.tabSelftest;
+        updateTabSlider(activeTab);
+      }
+    });
   }
 
   /* 模組初始化 */
