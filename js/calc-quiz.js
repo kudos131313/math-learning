@@ -318,8 +318,58 @@
 
     if(markT){
       markT.addEventListener('click', function(){
-        var sym = (currentQ && currentQ.op === 'add') ? '+1' : '借1';
-        toggleMark(markT, sym);
+        if(!currentQ) return;
+        if(currentQ.op === 'add'){
+          toggleMark(markT, '+1');
+        } else {
+          var d = currentQ.decomp || {};
+          var needBorrowO = d.a_o < d.b_o;
+          var isAcrossZero = needBorrowO && d.a_t === 0 && d.a_h > 0;
+          var tempT = needBorrowO ? (d.a_t - 1) : (d.a_t || 0);
+          var needBorrowT = (tempT < (d.b_t || 0)) && (d.a_h > 0);
+
+          if(isAcrossZero){
+            // 跨零退位 (如 105 - 38)：循環 空 -> 9 -> 借1 -> 空
+            if(markT.textContent === ''){
+              markT.textContent = '9';
+              markT.className = 'cq-mark-slot borrow-mark';
+            } else if(markT.textContent === '9'){
+              markT.textContent = '借1';
+              markT.className = 'cq-mark-slot borrow-mark';
+            } else {
+              markT.textContent = '';
+              markT.className = 'cq-mark-slot';
+            }
+          } else if(needBorrowT && !needBorrowO){
+            // 十位向百位借位且個位不借 (如 117 - 55)：循環 空 -> 10 -> 借1 -> 空
+            if(markT.textContent === ''){
+              markT.textContent = '10';
+              markT.className = 'cq-mark-slot borrow-mark';
+            } else if(markT.textContent === '10'){
+              markT.textContent = '借1';
+              markT.className = 'cq-mark-slot borrow-mark';
+            } else {
+              markT.textContent = '';
+              markT.className = 'cq-mark-slot';
+            }
+          } else if(needBorrowT && needBorrowO){
+            // 連續借位 (如 125 - 48)：循環 空 -> 10 -> 借1 -> 空
+            if(markT.textContent === ''){
+              markT.textContent = '10';
+              markT.className = 'cq-mark-slot borrow-mark';
+            } else if(markT.textContent === '10'){
+              markT.textContent = '借1';
+              markT.className = 'cq-mark-slot borrow-mark';
+            } else {
+              markT.textContent = '';
+              markT.className = 'cq-mark-slot';
+            }
+          } else {
+            toggleMark(markT, '借1');
+            return;
+          }
+          if(MathApp.sfx) MathApp.sfx('click');
+        }
       });
     }
     if(markH){
@@ -412,11 +462,24 @@
     } else {
       // 減法
       var needBorrowO = (d.a_o < d.b_o);
+      var isAcrossZero = needBorrowO && d.a_t === 0 && d.a_h > 0;
       var remT = needBorrowO ? (d.a_t - 1) : d.a_t;
       var effO = needBorrowO ? (d.a_o + 10) : d.a_o;
       var subO = effO - d.b_o;
 
-      if(needBorrowO){
+      if(isAcrossZero){
+        actionTitle = '✂️ 百位退位借十魔法：十位是 0 ➔ 向百位借 1 片百！';
+        actionBody = '先看個位：只有 ' + d.a_o + ' 顆拿不走 ' + d.b_o + ' 顆（不夠減）！想向十位借，但<b>十位是 0 條</b>沒得借！' +
+          '必須先向百位借 1 片百拆成 10 條十，借 1 條給個位後<b>十位剩下 9 條</b>，個位變成 10 + ' + d.a_o + ' = <b>' + effO + '</b> 顆，' +
+          '減掉 ' + d.b_o + ' 剩下 <b>' + subO + '</b> 顆！再算十位時就是 <b>9 − ' + d.b_t + ' ＝ ' + (9 - d.b_t) + '</b>！';
+        actionVisual = '<div class="cq-helper-action-visual">' +
+          '<div style="display:flex;align-items:center;gap:4px;">' + MathApp.utils.blockGlyph('h') + '<b style="color:var(--h-color-dark);">百位借 1</b></div>' +
+          '<span class="cq-helper-transform-arrow">➔ 拆成 ➔</span>' +
+          '<div style="display:flex;align-items:center;gap:4px;">' + MathApp.renderGroupedBlocksHtml('t', 9) + '<b style="font-size:12px;color:var(--t-color-dark);">(十位留 9 條)</b></div>' +
+          '<span class="cq-helper-transform-arrow">＋ 借 10 顆 ➔</span>' +
+          '<div style="display:flex;align-items:center;gap:4px;">' + MathApp.renderGroupedBlocksHtml('o', 10) + '<b style="font-size:12px;color:var(--o-color-dark);">(個位得 10 顆)</b></div>' +
+          '</div>';
+      } else if(needBorrowO){
         actionTitle = '✂️ 借一拆十魔法：1 條十 ➔ 拆成 10 個一！';
         actionBody = '先看個位：只有 ' + d.a_o + ' 顆，拿不走 ' + d.b_o + ' 顆（不夠減）！向十位借 1 條十拆成 10 顆一，個位現在有 10 + ' + d.a_o + ' = <b>' + effO + '</b> 顆，減掉 ' + d.b_o + ' 剩下 <b>' + subO + '</b> 顆！十位被借走 1 條剩下 <b>' + remT + '</b> 條。';
         actionVisual = '<div class="cq-helper-action-visual">' +
@@ -621,27 +684,52 @@
         detailExplanation = '💡 <b>算則小叮嚀：</b>先算個位：' + d.a_o + ' + ' + d.b_o + ' = ' + oSum + '（寫 ' + realO + (carry1 ? '，十位進 1' : '') + '）；再算十位：' + d.a_t + ' + ' + d.b_t + (carry1 ? ' + 1' : '') + ' = ' + tSum + '。';
       } else {
         // 減法
-        var needBorrow = (d.a_o < d.b_o);
-        var realSubO = needBorrow ? (d.a_o + 10 - d.b_o) : (d.a_o - d.b_o);
-        var remT = needBorrow ? (d.a_t - 1) : d.a_t;
-        var realSubT = remT - d.b_t;
+        var needBorrowO = (d.a_o < d.b_o);
+        var isAcrossZero = needBorrowO && d.a_t === 0 && d.a_h > 0;
+        var realSubO = needBorrowO ? (d.a_o + 10 - d.b_o) : (d.a_o - d.b_o);
+
+        var tempT = needBorrowO ? (d.a_t - 1) : d.a_t;
+        var needBorrowT = (tempT < d.b_t) && (d.a_h > 0);
+        var effectiveT = isAcrossZero ? 9 : (needBorrowT ? (tempT + 10) : tempT);
+        var realSubT = effectiveT - d.b_t;
 
         if(numO !== realSubO){
           if(inpO) inpO.classList.add('error-field');
-          if(needBorrow){
+          if(isAcrossZero){
+            errorMsg = '個位 ' + d.a_o + ' 減 ' + d.b_o + ' 不夠減！向百位借 1 拆十再借給個位，個位變成 10 + ' + d.a_o + ' = ' + (10 + d.a_o) + '，減 ' + d.b_o + ' 應該是 ' + realSubO + ' 喔！';
+          } else if(needBorrowO){
             errorMsg = '個位 ' + d.a_o + ' 減 ' + d.b_o + ' 不夠減，向十位借 1 當 10，10 加上 ' + d.a_o + ' 等於 ' + (10 + d.a_o) + ' 再減 ' + d.b_o + ' = ' + realSubO + ' 喔！';
           } else {
             errorMsg = '個位相減是 ' + d.a_o + ' − ' + d.b_o + ' = ' + realSubO + ' 喔！';
           }
         } else if(numT !== realSubT){
           if(inpT) inpT.classList.add('error-field');
-          if(needBorrow && numT === (d.a_t - d.b_t)){
-            errorMsg = '注意十位！十位已經被個位借走 1 條了，剩下 ' + remT + '，再扣掉 ' + d.b_t + ' 喔！';
+          if(isAcrossZero){
+            errorMsg = '注意十位！十位是 0 向百位借 10 條，借給個位 1 條後剩下 9 條，9 − ' + d.b_t + ' 應該是 ' + realSubT + ' 喔！';
+          } else if(needBorrowT && !needBorrowO){
+            errorMsg = '注意十位！十位只有 ' + d.a_t + ' 條不夠減 ' + d.b_t + ' 條，向百位借 1 片百（10 條十），10 + ' + d.a_t + ' = ' + effectiveT + '，' + effectiveT + ' − ' + d.b_t + ' 應該是 ' + realSubT + ' 喔！';
+          } else if(needBorrowT && needBorrowO){
+            errorMsg = '注意十位！十位借出 1 條後剩下 ' + tempT + ' 條，向百位借 1 個百變成 ' + effectiveT + ' 條，' + effectiveT + ' − ' + d.b_t + ' 應該是 ' + realSubT + ' 喔！';
+          } else if(needBorrowO && numT === (d.a_t - d.b_t)){
+            errorMsg = '注意十位！十位已經被個位借走 1 條了，剩下 ' + effectiveT + '，再扣掉 ' + d.b_t + ' 喔！';
           } else {
-            errorMsg = '十位相減後應該是 ' + remT + ' − ' + d.b_t + ' = ' + realSubT + ' 喔！';
+            errorMsg = '十位相減後應該是 ' + effectiveT + ' − ' + d.b_t + ' = ' + realSubT + ' 喔！';
           }
         }
-        detailExplanation = '💡 <b>算則小叮嚀：</b>' + (needBorrow ? '個位不夠減，向十位借 1 當 10。十位剩下 ' + remT + '，個位變成 10 + ' + d.a_o + ' = ' + (10 + d.a_o) + '。' : '直接分位相減即可。');
+
+        var detailMsg = '';
+        if(isAcrossZero){
+          detailMsg = '💡 <b>算則小叮嚀：</b>個位不夠減向十位借，十位是 0 先向百位借 1 片百；十位留 9 條，個位得到 10 顆。個位算 15 − ' + d.b_o + ' = ' + realSubO + '，十位算 9 − ' + d.b_t + ' = ' + realSubT + '。';
+        } else if(needBorrowT && !needBorrowO){
+          detailMsg = '💡 <b>算則小叮嚀：</b>個位夠減（' + d.a_o + ' − ' + d.b_o + ' = ' + realSubO + '）；十位只有 ' + d.a_t + ' 條不夠減 ' + d.b_t + ' 條，向百位借 1 片百拆成 10 條十，十位變成 10 + ' + d.a_t + ' = ' + effectiveT + ' 條，' + effectiveT + ' − ' + d.b_t + ' = ' + realSubT + '。';
+        } else if(needBorrowT && needBorrowO){
+          detailMsg = '💡 <b>算則小叮嚀：</b>個位向十位借 1 當 10（' + (10 + d.a_o) + ' − ' + d.b_o + ' = ' + realSubO + '）；十位剩 ' + tempT + ' 條不夠減，向百位借 1 片百變成 ' + effectiveT + ' 條，' + effectiveT + ' − ' + d.b_t + ' = ' + realSubT + '。';
+        } else if(needBorrowO){
+          detailMsg = '💡 <b>算則小叮嚀：</b>個位不夠減向十位借 1 當 10，十位剩下 ' + effectiveT + '，個位變成 10 + ' + d.a_o + ' = ' + (10 + d.a_o) + '。';
+        } else {
+          detailMsg = '💡 <b>算則小叮嚀：</b>直接分位相減即可。';
+        }
+        detailExplanation = detailMsg;
       }
 
       cqEls.feedback.textContent = errorMsg;

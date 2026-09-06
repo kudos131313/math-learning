@@ -114,15 +114,30 @@
       };
     } else {
       var needsBorrow_o = a_o < b_o;
+      var isAcrossZeroBorrow = needsBorrow_o && a_t === 0 && a_h > 0;
       var borrowed_t = needsBorrow_o ? a_t - 1 : a_t;
       var effective_o = needsBorrow_o ? a_o + 10 : a_o;
       var ans_o = effective_o - b_o;
 
-      var needsBorrow_t = borrowed_t < b_t;
-      var borrowed_h = needsBorrow_t ? a_h - 1 : a_h;
-      var effective_t = needsBorrow_t ? borrowed_t + 10 : borrowed_t;
-      var ans_t = effective_t - b_t;
+      var needsBorrow_t = false;
+      var borrowed_h = a_h;
+      var effective_t = borrowed_t;
 
+      if(isAcrossZeroBorrow){
+        // 百位退位跨零借位：例如 105 - 38
+        // 十位是 0，先向百位借 1 個百 (拆成 10 個十，百位減 1)
+        // 十位再借 1 個十給個位，十位留下 9 個十
+        needsBorrow_t = true;
+        borrowed_h = a_h - 1;
+        effective_t = 9;
+      } else if(borrowed_t < b_t){
+        // 一般十位不夠減向百位借位：例如 125 - 48
+        needsBorrow_t = true;
+        borrowed_h = a_h - 1;
+        effective_t = borrowed_t + 10;
+      }
+
+      var ans_t = effective_t - b_t;
       var ans_h = borrowed_h - b_h;
       var diff = a - b;
 
@@ -131,10 +146,12 @@
         a_h: a_h, a_t: a_t, a_o: a_o,
         b_h: b_h, b_t: b_t, b_o: b_o,
         needsBorrow_o: needsBorrow_o,
+        isAcrossZeroBorrow: isAcrossZeroBorrow,
         borrowed_t: borrowed_t,
         effective_o: effective_o,
         ans_o: ans_o,
         needsBorrow_t: needsBorrow_t,
+        borrowed_h: borrowed_h,
         effective_t: effective_t,
         ans_t: ans_t,
         ans_h: ans_h,
@@ -244,7 +261,13 @@
       // 減法
       if(step === 1){
         calcEls.actionBox.style.display = 'block';
-        if(d.needsBorrow_o){
+        if(d.isAcrossZeroBorrow){
+          calcEls.actionBoxTitle.innerHTML = '⚠️ 個位不夠減 ＋ 十位是 0 警告！';
+          calcEls.actionBoxContent.innerHTML =
+            '<span style="font-size:13.5px;font-weight:700;color:var(--bad);">' +
+            '個位只有 ' + d.a_o + ' 顆拿不走 ' + d.b_o + ' 顆，且十位是 0 沒得借！必須向百位借 1 個百（拆成 10 條十），再借 1 條給個位！' +
+            '</span>';
+        } else if(d.needsBorrow_o){
           calcEls.actionBoxTitle.innerHTML = '⚠️ 個位不夠減警告：個位只有 ' + d.a_o + ' 顆，拿不走 ' + d.b_o + ' 顆！';
           calcEls.actionBoxContent.innerHTML =
             '<span style="font-size:13.5px;font-weight:700;color:var(--bad);">' +
@@ -259,14 +282,27 @@
         }
       } else if(step === 2 && d.needsBorrow_o){
         calcEls.actionBox.style.display = 'block';
-        calcEls.actionBoxTitle.innerHTML = '✂️ 借一拆十：1 條十 ➔ 拆成 10 顆一！';
-        var subActHtml = '<div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap;">';
-        subActHtml += '<div style="display:flex;align-items:center;gap:4px;">' + MathApp.utils.blockGlyph('t') + '<b>向十位借 1 條</b></div>';
-        subActHtml += '<span class="action-transform-arrow">➔ 散開成 ➔</span>';
-        subActHtml += '<div style="display:flex;align-items:center;gap:4px;">' + MathApp.utils.renderGroupedBlocksHtml('o', 10) + '</div>';
-        subActHtml += '<span style="font-size:13px;color:var(--ink-soft);">個位現在有 ' + d.a_o + ' + 10 = <b>' + d.effective_o + '</b> 顆了！</span>';
-        subActHtml += '</div>';
-        calcEls.actionBoxContent.innerHTML = subActHtml;
+        if(d.isAcrossZeroBorrow){
+          calcEls.actionBoxTitle.innerHTML = '✂️ 百位退位：1 個百 ➔ 拆成 10 條十 ➔ 十位留 9 條，借 1 條 (10 顆) 給個位！';
+          var subActHtmlZero = '<div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;">';
+          subActHtmlZero += '<div style="display:flex;align-items:center;gap:4px;">' + MathApp.utils.blockGlyph('h') + '<b>向百位借 1 個百</b></div>';
+          subActHtmlZero += '<span class="action-transform-arrow">➔ 拆成 ➔</span>';
+          subActHtmlZero += '<div style="display:flex;align-items:center;gap:4px;">' + MathApp.utils.renderGroupedBlocksHtml('t', 9) + '<span style="font-size:12.5px;font-weight:700;color:var(--t-color-dark);">(十位留 9 條)</span></div>';
+          subActHtmlZero += '<span class="action-transform-arrow">＋ 借 10 顆 ➔</span>';
+          subActHtmlZero += '<div style="display:flex;align-items:center;gap:4px;">' + MathApp.utils.renderGroupedBlocksHtml('o', 10) + '<span style="font-size:12.5px;font-weight:700;color:var(--o-color-dark);">(個位得 10 顆)</span></div>';
+          subActHtmlZero += '<span style="font-size:13px;color:var(--ink-soft);">個位現在有 ' + d.a_o + ' + 10 = <b>' + d.effective_o + '</b> 顆了！</span>';
+          subActHtmlZero += '</div>';
+          calcEls.actionBoxContent.innerHTML = subActHtmlZero;
+        } else {
+          calcEls.actionBoxTitle.innerHTML = '✂️ 借一拆十：1 條十 ➔ 拆成 10 顆一！';
+          var subActHtml = '<div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap;">';
+          subActHtml += '<div style="display:flex;align-items:center;gap:4px;">' + MathApp.utils.blockGlyph('t') + '<b>向十位借 1 條</b></div>';
+          subActHtml += '<span class="action-transform-arrow">➔ 散開成 ➔</span>';
+          subActHtml += '<div style="display:flex;align-items:center;gap:4px;">' + MathApp.utils.renderGroupedBlocksHtml('o', 10) + '</div>';
+          subActHtml += '<span style="font-size:13px;color:var(--ink-soft);">個位現在有 ' + d.a_o + ' + 10 = <b>' + d.effective_o + '</b> 顆了！</span>';
+          subActHtml += '</div>';
+          calcEls.actionBoxContent.innerHTML = subActHtml;
+        }
       } else if(step >= 4){
         calcEls.rowResult.style.display = 'block';
         calcEls.labelBlockResult.textContent = '相減剩餘積木 (結果 ' + d.total + ')';
@@ -286,7 +322,7 @@
     var opSymbol = d.op === 'add' ? '＋' : '−';
     var hasH = (d.a_h > 0 || d.b_h > 0 || (d.op === 'add' && d.ans_h > 0));
     var showCarry = (d.op === 'add' && d.needsCarry && step >= 2);
-    var showBorrow = (d.op === 'sub' && d.needsBorrow_o && step >= 2);
+    var showBorrow = (d.op === 'sub' && (d.needsBorrow_o || d.needsBorrow_t) && step >= 2);
 
     // 判斷當前高亮欄位
     var isOActive = (step === 1 || step === 2);
@@ -304,8 +340,21 @@
     if(showCarry){
       mark_t = '<span class="vm-carry-badge" title="滿十進一">1</span>';
     } else if(showBorrow){
-      mark_t = '<span class="vm-borrow-tag" title="十位被借走 1 (借1)">借1</span>';
-      mark_o = '<span class="vm-borrow-tag" title="借來的 10">10</span>';
+      if(d.isAcrossZeroBorrow){
+        mark_h = '<span class="vm-borrow-tag" title="百位被借走 1 (借1)">借1</span>';
+        mark_t = '<span class="vm-borrow-tag" style="background:#fef3c7;color:#b45309;border-color:#f59e0b;" title="十位向百位借10再借出1剩9">9</span>';
+        mark_o = '<span class="vm-borrow-tag" title="借來的 10">10</span>';
+      } else {
+        if(d.needsBorrow_t){
+          mark_h = '<span class="vm-borrow-tag" title="百位被借走 1 (借1)">借1</span>';
+          mark_t = '<span class="vm-borrow-tag" title="向百位借 10">10</span>';
+        } else if(d.needsBorrow_o){
+          mark_t = '<span class="vm-borrow-tag" title="十位被借走 1 (借1)">借1</span>';
+        }
+        if(d.needsBorrow_o){
+          mark_o = '<span class="vm-borrow-tag" title="借來的 10">10</span>';
+        }
+      }
     }
 
     // 2. 被運算數 (A) 十位顯示 (不劃掉原本數字)
@@ -404,7 +453,16 @@
         }
       } else {
         // 減法
-        if(d.needsBorrow_o){
+        if(d.isAcrossZeroBorrow){
+          return {
+            pill: '第 2 步 / 共 4 步：先算個位',
+            text: '先算個位：個位只有 <em>' + d.a_o + '</em> 顆，拿不走 <em>' + d.b_o + '</em> 顆！想向十位借，但<em>十位是 0 條</em>，要先向百位借 1 個百拆成 10 條十，再借 1 條給個位！',
+            speak: '先算個位：個位只有 ' + d.a_o + ' 個，不夠減 ' + d.b_o + ' 個！十位是 0，要先向百位借 1 個百拆開，再借給個位！',
+            showPrompt: true,
+            promptBtn: '✂️ 點擊啟動百位退位借十！',
+            isBorrow: true
+          };
+        } else if(d.needsBorrow_o){
           return {
             pill: '第 2 步 / 共 4 步：先算個位',
             text: '先算個位：個位只有 <em>' + d.a_o + '</em> 顆，拿不走 <em>' + d.b_o + '</em> 顆！個位不夠減，要向十位<em>借 1 條十</em>來拆開幫忙！',
@@ -441,11 +499,19 @@
           };
         }
       } else {
-        if(d.needsBorrow_o){
+        if(d.isAcrossZeroBorrow){
+          return {
+            pill: '第 2 步 (借位)：百位退位與借一拆十',
+            text: '百位借 1 拆成 10 條十（百位頭上記 <em>借1</em>）；借 1 條給個位後十位留下 <em>9</em> 條（十位記 <em>9</em>）；個位得到 10 顆變成 <em>' + d.effective_o + '</em> 顆，' + d.effective_o + ' − ' + d.b_o + ' ＝ <em>' + d.ans_o + '</em>！',
+            speak: '百位退位！十位向百位借 10 條，借 1 條給個位後十位剩 9 條；個位有 ' + d.effective_o + ' 個，減 ' + d.b_o + ' 等於 ' + d.ans_o + '！',
+            showPrompt: false,
+            sound: 'borrow'
+          };
+        } else if(d.needsBorrow_o){
           return {
             pill: '第 2 步 (借位)：借一拆十到個位',
-            text: '向十位借 1 條十，十位頭上記上 <em>借1</em>；拆成 10 顆珠子到個位，個位變成 <em>' + d.effective_o + '</em> 顆，現在夠減囉！',
-            speak: '借一拆十！十位頭上記上借 1，個位現在有 ' + d.effective_o + ' 個，夠減了！',
+            text: '向十位借 1 條十，十位頭上記上 <em>借1</em>；拆成 10 顆珠子到個位，個位變成 <em>' + d.effective_o + '</em> 顆，' + d.effective_o + ' − ' + d.b_o + ' ＝ <em>' + d.ans_o + '</em>！',
+            speak: '借一拆十！十位頭上記上借 1，個位現在有 ' + d.effective_o + ' 個，減 ' + d.b_o + ' 等於 ' + d.ans_o + '！',
             showPrompt: false,
             sound: 'borrow'
           };
@@ -473,12 +539,23 @@
           showPrompt: false
         };
       } else {
-        var subExpText = d.needsBorrow_o
-          ? '接著算十位：十位扣掉剛剛借出的 1 條，剩下 ' + d.borrowed_t + ' 條。<em>' + d.a_t + ' − 1 − ' + d.b_t + ' ＝ ' + d.ans_t + '</em>，在十位寫上 <em>' + d.ans_t + '</em>！'
-          : '接著算十位：' + d.a_t + ' − ' + d.b_t + ' ＝ <em>' + d.ans_t + '</em>，在十位寫上 <em>' + d.ans_t + '</em>！';
-        var subExpSpeak = d.needsBorrow_o
-          ? '接著算十位：十位扣掉借 1 剩下 ' + d.borrowed_t + '，再減 ' + d.b_t + ' 等於 ' + d.ans_t + '，寫上 ' + d.ans_t + '！'
-          : '接著算十位：' + d.a_t + ' 減 ' + d.b_t + ' 等於 ' + d.ans_t + '，寫上 ' + d.ans_t + '！';
+        var subExpText = '';
+        var subExpSpeak = '';
+
+        if(d.isAcrossZeroBorrow){
+          subExpText = '接著算十位：十位向百位借來 10 條十，借給個位 1 條後，剩下 <em>9</em> 條十。<em>9 − ' + d.b_t + ' ＝ ' + d.ans_t + '</em>，在十位寫上 <em>' + d.ans_t + '</em>！';
+          subExpSpeak = '接著算十位：十位向百位借 10 條，借出 1 條後剩下 9 條十。9 減 ' + d.b_t + ' 等於 ' + d.ans_t + '，在十位寫上 ' + d.ans_t + '！';
+        } else if(d.needsBorrow_t){
+          subExpText = '接著算十位：十位扣除借出後剩下 ' + d.borrowed_t + ' 條，不夠減再向百位借 1 個百（10 條十），變成 ' + d.effective_t + ' 條。<em>' + d.effective_t + ' − ' + d.b_t + ' ＝ ' + d.ans_t + '</em>，在十位寫上 <em>' + d.ans_t + '</em>！';
+          subExpSpeak = '接著算十位：十位向百位借 1 個百變成 ' + d.effective_t + ' 條，減 ' + d.b_t + ' 等於 ' + d.ans_t + '，寫上 ' + d.ans_t + '！';
+        } else if(d.needsBorrow_o){
+          subExpText = '接著算十位：十位扣掉剛剛借出的 1 條，剩下 ' + d.borrowed_t + ' 條。<em>' + d.borrowed_t + ' − ' + d.b_t + ' ＝ ' + d.ans_t + '</em>，在十位寫上 <em>' + d.ans_t + '</em>！';
+          subExpSpeak = '接著算十位：十位借出 1 條剩下 ' + d.borrowed_t + ' 條，' + d.borrowed_t + ' 減 ' + d.b_t + ' 等於 ' + d.ans_t + '，在十位寫上 ' + d.ans_t + '！';
+        } else {
+          subExpText = '接著算十位：' + d.a_t + ' − ' + d.b_t + ' ＝ <em>' + d.ans_t + '</em>，在十位寫上 <em>' + d.ans_t + '</em>！';
+          subExpSpeak = '接著算十位：' + d.a_t + ' 減 ' + d.b_t + ' 等於 ' + d.ans_t + '，寫上 ' + d.ans_t + '！';
+        }
+
         return {
           pill: '第 3 步 / 共 4 步：再算十位',
           text: subExpText,
@@ -489,9 +566,13 @@
     } else {
       // Step 4 完成
       var opWord = d.op === 'add' ? ' 加 ' : ' 減 ';
+      var extraHNote = '';
+      if(d.op === 'sub' && d.a_h > 0 && d.ans_h === 0){
+        extraHNote = '（百位的 1 已經被借走變為 0，最高位 0 省略不寫喔！）';
+      }
       return {
         pill: '第 4 步 / 共 4 步：計算完成！',
-        text: '太厲害了！<em>' + d.a + (d.op === 'add' ? ' ＋ ' : ' − ') + d.b + ' ＝ ' + d.total + '</em>。橫式與直式的答案完全一致！',
+        text: '太厲害了！<em>' + d.a + (d.op === 'add' ? ' ＋ ' : ' − ') + d.b + ' ＝ ' + d.total + '</em>' + extraHNote + '。橫式與直式的答案完全一致！',
         speak: '太棒了！' + d.a + opWord + d.b + ' 等於 ' + d.total + '！計算完成！',
         showPrompt: false,
         sound: 'correct'
