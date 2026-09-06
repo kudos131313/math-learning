@@ -315,7 +315,7 @@
     }
   }
 
-  /* 渲染作業簿直式算則 (Vertical Math Board - 穩定 Row/Cell 結構) */
+  /* 渲染作業簿直式算則 (Vertical Math Board - 方案 A 劃斜線與剩餘數筆記法) */
   function renderVerticalMathBoard(d, step){
     if(!calcEls.verticalBoard) return;
 
@@ -333,32 +333,74 @@
     var clsT = 'vm-cell vm-cell-t' + (isTActive ? ' active-col' : '');
     var clsH = 'vm-cell vm-cell-h' + (isHActive ? ' active-col' : '');
 
-    // 1. 進退位標記內容
+    // 判斷被減數十位與百位是否被劃斜線 (方案 A)
+    var isTSlashed = false;
+    var isHSlashed = false;
+
+    if(d.op === 'sub'){
+      // 十位劃線：個位向十位借位 (step >= 2)
+      if(d.needsBorrow_o && step >= 2){
+        isTSlashed = true;
+      }
+      // 百位劃線：
+      // 1. 若為跨零借位 (如 105 - 38)，在 step >= 2 百位連同退位劃線
+      // 2. 若為一般十位向百位借位 (如 142 - 54 或 117 - 55)，在 step >= 3 劃線
+      if(d.a_h > 0){
+        if(d.isAcrossZeroBorrow && step >= 2){
+          isHSlashed = true;
+        } else if(d.needsBorrow_t && step >= 3){
+          isHSlashed = true;
+        }
+      }
+    }
+
+    // 1. 進退位標記內容 (方案 A：浮現扣除借位後的剩餘數或借入總值)
     var mark_h = '';
     var mark_t = '';
     var mark_o = '';
     if(showCarry){
       mark_t = '<span class="vm-carry-badge" title="滿十進一">1</span>';
     } else if(showBorrow){
-      if(d.isAcrossZeroBorrow){
-        mark_h = '<span class="vm-borrow-tag" title="百位被借走 1 (借1)">借1</span>';
-        mark_t = '<span class="vm-borrow-tag" style="background:#fef3c7;color:#b45309;border-color:#f59e0b;" title="十位向百位借10再借出1剩9">9</span>';
+      // 個位借入的 10
+      if(d.needsBorrow_o && step >= 2){
         mark_o = '<span class="vm-borrow-tag" title="借來的 10">10</span>';
-      } else {
+      }
+
+      // 百位剩餘數
+      if(isHSlashed){
+        var remH = d.borrowed_h !== undefined ? d.borrowed_h : (d.a_h - 1);
+        mark_h = '<span class="vm-borrow-tag rem-mark" title="百位借走剩 ' + remH + '">' + remH + '</span>';
+      }
+
+      // 十位剩餘數 / 借入值
+      if(d.isAcrossZeroBorrow && step >= 2){
+        // 百位跨零退位：十位向百位借 10 留 9
+        mark_t = '<span class="vm-borrow-tag rem-mark" title="十位向百位借10再借出1剩9">9</span>';
+      } else if(d.needsBorrow_o && step === 2){
+        // Step 2：個位借走 1，十位顯示剩餘數 (例如 142 顯示 3；112 顯示 0)
+        var remT = d.a_t - 1;
+        mark_t = '<span class="vm-borrow-tag rem-mark" title="十位被借走1剩 ' + remT + '">' + remT + '</span>';
+      } else if(step >= 3){
         if(d.needsBorrow_t){
-          mark_h = '<span class="vm-borrow-tag" title="百位被借走 1 (借1)">借1</span>';
-          mark_t = '<span class="vm-borrow-tag" title="向百位借 10">10</span>';
+          // Step 3+：十位向百位借 10，合併剩餘數！
+          // 若先前被個位借了：(a_t - 1) + 10 (例如 142 顯示 13；112 顯示 10)
+          // 若先前個位沒借：a_t + 10 (例如 117 顯示 11)
+          var totalT = d.needsBorrow_o ? ((d.a_t - 1) + 10) : (d.a_t + 10);
+          mark_t = '<span class="vm-borrow-tag rem-mark" title="十位向百位借10，現有 ' + totalT + '">' + totalT + '</span>';
         } else if(d.needsBorrow_o){
-          mark_t = '<span class="vm-borrow-tag" title="十位被借走 1 (借1)">借1</span>';
-        }
-        if(d.needsBorrow_o){
-          mark_o = '<span class="vm-borrow-tag" title="借來的 10">10</span>';
+          // 十位不需要向百位借，維持顯示剩餘數
+          mark_t = '<span class="vm-borrow-tag rem-mark" title="十位被借走1剩 ' + (d.a_t - 1) + '">' + (d.a_t - 1) + '</span>';
         }
       }
     }
 
-    // 2. 被運算數 (A) 十位顯示 (不劃掉原本數字)
-    var numA_t_html = '<div class="vm-num-box">' + d.a_t + '</div>';
+    // 2. 被運算數 (A) 數字顯示 (支援劃斜線 is-slashed)
+    var numA_h_html = '';
+    if(d.a_h > 0){
+      numA_h_html = '<div class="vm-num-box' + (isHSlashed ? ' is-slashed' : '') + '">' + d.a_h + '</div>';
+    }
+    var numA_t_html = '<div class="vm-num-box' + (isTSlashed ? ' is-slashed' : '') + '">' + d.a_t + '</div>';
+    var numA_o_html = '<div class="vm-num-box">' + d.a_o + '</div>';
 
     // 3. 答案格內容
     var ans_o_html = '<div class="vm-ans-placeholder"></div>';
@@ -396,9 +438,9 @@
     // Row 2: 被運算數 (A)
     html += '<div class="vm-row vm-row-num">';
     html += '<div class="vm-cell vm-cell-op"></div>';
-    if(hasH) html += '<div class="' + clsH + '">' + (d.a_h > 0 ? d.a_h : '') + '</div>';
+    if(hasH) html += '<div class="' + clsH + '">' + numA_h_html + '</div>';
     html += '<div class="' + clsT + '">' + numA_t_html + '</div>';
-    html += '<div class="' + clsO + '"><div class="vm-num-box">' + d.a_o + '</div></div>';
+    html += '<div class="' + clsO + '">' + numA_o_html + '</div>';
     html += '</div>';
 
     // Row 3: 運算數 (B) 與符號
@@ -502,16 +544,16 @@
         if(d.isAcrossZeroBorrow){
           return {
             pill: '第 2 步 (借位)：百位退位與借一拆十',
-            text: '百位借 1 拆成 10 條十（百位頭上記 <em>借1</em>）；借 1 條給個位後十位留下 <em>9</em> 條（十位記 <em>9</em>）；個位得到 10 顆變成 <em>' + d.effective_o + '</em> 顆，' + d.effective_o + ' − ' + d.b_o + ' ＝ <em>' + d.ans_o + '</em>！',
-            speak: '百位退位！十位向百位借 10 條，借 1 條給個位後十位剩 9 條；個位有 ' + d.effective_o + ' 個，減 ' + d.b_o + ' 等於 ' + d.ans_o + '！',
+            text: '百位借 1 劃掉記 <em>0</em>，十位向百位借 10 條、再借 1 條給個位後劃掉記 <em>9</em>；個位得到 10 顆變成 <em>' + d.effective_o + '</em> 顆，' + d.effective_o + ' − ' + d.b_o + ' ＝ <em>' + d.ans_o + '</em>！',
+            speak: '百位退位！百位劃掉記 0，十位劃掉記 9；個位得到 10 顆，減 ' + d.b_o + ' 等於 ' + d.ans_o + '！',
             showPrompt: false,
             sound: 'borrow'
           };
         } else if(d.needsBorrow_o){
           return {
             pill: '第 2 步 (借位)：借一拆十到個位',
-            text: '向十位借 1 條十，十位頭上記上 <em>借1</em>；拆成 10 顆珠子到個位，個位變成 <em>' + d.effective_o + '</em> 顆，' + d.effective_o + ' − ' + d.b_o + ' ＝ <em>' + d.ans_o + '</em>！',
-            speak: '借一拆十！十位頭上記上借 1，個位現在有 ' + d.effective_o + ' 個，減 ' + d.b_o + ' 等於 ' + d.ans_o + '！',
+            text: '向十位借 1 條十，十位劃掉記上剩餘的 <em>' + d.borrowed_t + '</em>；拆成 10 顆珠子到個位，個位變成 <em>' + d.effective_o + '</em> 顆，' + d.effective_o + ' − ' + d.b_o + ' ＝ <em>' + d.ans_o + '</em>！',
+            speak: '借一拆十！十位劃掉記 ' + d.borrowed_t + '，個位現在有 ' + d.effective_o + ' 個，減 ' + d.b_o + ' 等於 ' + d.ans_o + '！',
             showPrompt: false,
             sound: 'borrow'
           };
@@ -543,13 +585,13 @@
         var subExpSpeak = '';
 
         if(d.isAcrossZeroBorrow){
-          subExpText = '接著算十位：十位向百位借來 10 條十，借給個位 1 條後，剩下 <em>9</em> 條十。<em>9 − ' + d.b_t + ' ＝ ' + d.ans_t + '</em>，在十位寫上 <em>' + d.ans_t + '</em>！';
-          subExpSpeak = '接著算十位：十位向百位借 10 條，借出 1 條後剩下 9 條十。9 減 ' + d.b_t + ' 等於 ' + d.ans_t + '，在十位寫上 ' + d.ans_t + '！';
+          subExpText = '接著算十位：看著十位頭頂沒被劃掉的 <em>9</em> 條十。<em>9 − ' + d.b_t + ' ＝ ' + d.ans_t + '</em>，在十位寫上 <em>' + d.ans_t + '</em>！';
+          subExpSpeak = '接著算十位：十位剩下 9 條十，9 減 ' + d.b_t + ' 等於 ' + d.ans_t + '，在十位寫上 ' + d.ans_t + '！';
         } else if(d.needsBorrow_t){
-          subExpText = '接著算十位：十位扣除借出後剩下 ' + d.borrowed_t + ' 條，不夠減再向百位借 1 個百（10 條十），變成 ' + d.effective_t + ' 條。<em>' + d.effective_t + ' − ' + d.b_t + ' ＝ ' + d.ans_t + '</em>，在十位寫上 <em>' + d.ans_t + '</em>！';
-          subExpSpeak = '接著算十位：十位向百位借 1 個百變成 ' + d.effective_t + ' 條，減 ' + d.b_t + ' 等於 ' + d.ans_t + '，寫上 ' + d.ans_t + '！';
+          subExpText = '接著算十位：百位劃掉記 <em>0</em>，十位向百位借 10 條，頭頂記 <em>' + d.effective_t + '</em>。<em>' + d.effective_t + ' − ' + d.b_t + ' ＝ ' + d.ans_t + '</em>，在十位寫上 <em>' + d.ans_t + '</em>！';
+          subExpSpeak = '接著算十位：十位頭頂記 ' + d.effective_t + '，減 ' + d.b_t + ' 等於 ' + d.ans_t + '，寫上 ' + d.ans_t + '！';
         } else if(d.needsBorrow_o){
-          subExpText = '接著算十位：十位扣掉剛剛借出的 1 條，剩下 ' + d.borrowed_t + ' 條。<em>' + d.borrowed_t + ' − ' + d.b_t + ' ＝ ' + d.ans_t + '</em>，在十位寫上 <em>' + d.ans_t + '</em>！';
+          subExpText = '接著算十位：看著十位頭頂劃掉後剩餘的 <em>' + d.borrowed_t + '</em> 條。<em>' + d.borrowed_t + ' − ' + d.b_t + ' ＝ ' + d.ans_t + '</em>，在十位寫上 <em>' + d.ans_t + '</em>！';
           subExpSpeak = '接著算十位：十位借出 1 條剩下 ' + d.borrowed_t + ' 條，' + d.borrowed_t + ' 減 ' + d.b_t + ' 等於 ' + d.ans_t + '，在十位寫上 ' + d.ans_t + '！';
         } else {
           subExpText = '接著算十位：' + d.a_t + ' − ' + d.b_t + ' ＝ <em>' + d.ans_t + '</em>，在十位寫上 <em>' + d.ans_t + '</em>！';
@@ -838,7 +880,7 @@
       calcEls.conceptText.textContent = '因為個位相加滿十時，要捆成 1 條十進位給十位！如果先算十位，十位剛算好的數字就又要被塗改一次，所以由最小的個位算起最順暢、最不容易出錯喔！';
     } else {
       calcEls.conceptTitle.textContent = '直式小秘訣：減法頭上的小 10 是哪裡來的？';
-      calcEls.conceptText.textContent = '當個位不夠減時，向十位借 1 條十，拆成 10 顆珠子放到個位！所以在十位頭上記上「借1」（扣 1 條），個位頭上就多出借來的 10 顆，合在一起就可以輕鬆扣減囉！';
+      calcEls.conceptText.textContent = '當個位不夠減時，向十位借 1 條十，十位劃斜線並記上扣除後的剩餘數；個位頭上多出借來的 10 顆，合在一起就可以輕鬆扣減囉！';
     }
 
     renderCalcPresetChips();

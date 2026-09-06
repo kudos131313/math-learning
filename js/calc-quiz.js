@@ -232,13 +232,24 @@
     html += '</div>';
 
     // 3. 第一行：被加數 / 被減數 A
+    var isSub = (q.op === 'sub');
     html += '<div class="cq-row">';
     html += '  <div class="cq-cell cq-cell-op"></div>';
     if(q.needHundred){
-      html += '  <div class="cq-cell" id="cq-cell-a-h">' + (q.decomp.a_h > 0 ? q.decomp.a_h : '') + '</div>';
+      var hNum = q.decomp.a_h > 0 ? q.decomp.a_h : '';
+      var hBox = (isSub && q.decomp.a_h > 0)
+        ? '<span class="cq-num-box can-borrow" id="cq-num-a-h" data-place="h" title="點擊向百位借位劃斜線">' + hNum + '</span>'
+        : (hNum ? '<span class="cq-num-box" id="cq-num-a-h">' + hNum + '</span>' : '');
+      html += '  <div class="cq-cell" id="cq-cell-a-h">' + hBox + '</div>';
     }
-    html += '  <div class="cq-cell" id="cq-cell-a-t">' + (q.decomp.a_t > 0 || q.decomp.a_h > 0 ? q.decomp.a_t : '') + '</div>';
-    html += '  <div class="cq-cell" id="cq-cell-a-o">' + q.decomp.a_o + '</div>';
+    var tNum = (q.decomp.a_t > 0 || q.decomp.a_h > 0) ? q.decomp.a_t : '';
+    var tBox = (isSub && tNum !== '')
+      ? '<span class="cq-num-box can-borrow" id="cq-num-a-t" data-place="t" title="點擊向十位借位劃斜線">' + tNum + '</span>'
+      : (tNum !== '' ? '<span class="cq-num-box" id="cq-num-a-t">' + tNum + '</span>' : '');
+    html += '  <div class="cq-cell" id="cq-cell-a-t">' + tBox + '</div>';
+    var oNum = q.decomp.a_o;
+    var oBox = '<span class="cq-num-box" id="cq-num-a-o">' + oNum + '</span>';
+    html += '  <div class="cq-cell" id="cq-cell-a-o">' + oBox + '</div>';
     html += '</div>';
 
     // 4. 第二行：運算符號 + 運算數 B
@@ -269,8 +280,8 @@
     // 綁定輸入格事件
     bindInputEvents();
 
-    // 綁定註記小格按鈕
-    bindMarkSlotEvents();
+    // 方案 A：綁定被減數數字劃斜線與上方註記小格事件
+    bindSlashBorrowEvents();
   }
 
   /* 綁定作答輸入格點擊與焦點管理 */
@@ -298,89 +309,179 @@
     }
   }
 
-  /* 註記按鈕事件 (小朋友可自行點擊標註小 1 或借位) */
-  function bindMarkSlotEvents(){
-    var markO = document.getElementById('mark-o');
-    var markT = document.getElementById('mark-t');
-    var markH = document.getElementById('mark-h');
+  /* 方案 A：劃斜線借位與剩餘數控制器 (Slash Borrowing Controller) */
+  function toggleBorrowSlash(place){
+    if(!currentQ || currentQ.op !== 'sub') return;
 
-    function toggleMark(btn, symbol){
-      if(!btn) return;
-      if(btn.textContent === symbol){
-        btn.textContent = '';
-        btn.className = 'cq-mark-slot';
+    var d = currentQ.decomp || {};
+    var numH = document.getElementById('cq-num-a-h');
+    var numT = document.getElementById('cq-num-a-t');
+    var markH = document.getElementById('mark-h');
+    var markT = document.getElementById('mark-t');
+    var markO = document.getElementById('mark-o');
+
+    var needBorrowO = d.a_o < d.b_o;
+    var isAcrossZero = needBorrowO && d.a_t === 0 && d.a_h > 0;
+
+    if(place === 't'){
+      // 點擊十位：向十位借 1 條十給個位
+      var isTSlashed = numT && numT.classList.contains('is-slashed');
+      if(!isTSlashed){
+        if(numT) numT.classList.add('is-slashed');
+        if(markO){
+          markO.textContent = '10';
+          markO.className = 'cq-mark-slot borrow-mark';
+        }
+
+        if(isAcrossZero){
+          // 跨零退位 (例如 105 - 38)：十位是 0 沒得借，連同百位一起借！
+          if(numH) numH.classList.add('is-slashed');
+          if(markH){
+            markH.textContent = '0';
+            markH.className = 'cq-mark-slot rem-mark';
+          }
+          if(markT){
+            markT.textContent = '9';
+            markT.className = 'cq-mark-slot rem-mark';
+          }
+        } else {
+          // 一般個位退位 (例如 112 - 47 或 42 - 17)：十位扣 1
+          var remT = d.a_t - 1;
+          if(markT){
+            markT.textContent = '' + remT;
+            markT.className = 'cq-mark-slot rem-mark';
+          }
+        }
+        if(MathApp.sfx) MathApp.sfx('borrow');
       } else {
-        btn.textContent = symbol;
-        btn.className = (symbol === '+1' ? 'cq-mark-slot active-mark' : 'cq-mark-slot borrow-mark');
+        // 取消十位劃線
+        if(numT) numT.classList.remove('is-slashed');
+        if(markO){
+          markO.textContent = '';
+          markO.className = 'cq-mark-slot';
+        }
+        if(markT){
+          markT.textContent = '';
+          markT.className = 'cq-mark-slot';
+        }
+        if(isAcrossZero){
+          if(numH) numH.classList.remove('is-slashed');
+          if(markH){
+            markH.textContent = '';
+            markH.className = 'cq-mark-slot';
+          }
+        }
+        if(MathApp.sfx) MathApp.sfx('click');
       }
-      if(MathApp.sfx) MathApp.sfx('click');
+    } else if(place === 'h'){
+      // 點擊百位：十位向百位借 1 個百 (拆成 10 條十)
+      var isHSlashed = numH && numH.classList.contains('is-slashed');
+      if(!isHSlashed){
+        if(numH) numH.classList.add('is-slashed');
+        var remH = d.a_h - 1;
+        if(markH){
+          markH.textContent = '' + remH;
+          markH.className = 'cq-mark-slot rem-mark';
+        }
+        // 十位向百位借 10：若十位已被個位借走 1 剩餘 (a_t - 1)，與借來的 10 合併顯示 (例如 142 顯示 13，避免學生誤算 10 - 5)
+        if(markT){
+          var isTSlashed = numT && numT.classList.contains('is-slashed');
+          var totalT = isTSlashed ? ((d.a_t - 1) + 10) : (d.a_t + 10);
+          markT.textContent = '' + totalT;
+          markT.className = 'cq-mark-slot rem-mark';
+        }
+        if(MathApp.sfx) MathApp.sfx('borrow');
+      } else {
+        // 取消百位劃線
+        if(numH) numH.classList.remove('is-slashed');
+        if(markH){
+          markH.textContent = '';
+          markH.className = 'cq-mark-slot';
+        }
+        // 如果十位先前已經被個位劃線借走了，恢復顯示十位借走後的剩餘數
+        if(numT && numT.classList.contains('is-slashed')){
+          if(markT){
+            markT.textContent = '' + (d.a_t - 1);
+            markT.className = 'cq-mark-slot rem-mark';
+          }
+        } else {
+          if(markT){
+            markT.textContent = '';
+            markT.className = 'cq-mark-slot';
+          }
+        }
+        if(MathApp.sfx) MathApp.sfx('click');
+      }
+    }
+  }
+
+  /* 方案 A 雙軌互動事件綁定 (數字點擊劃斜線 ＋ 註記小格聯動) */
+  function bindSlashBorrowEvents(){
+    var numH = document.getElementById('cq-num-a-h');
+    var numT = document.getElementById('cq-num-a-t');
+    var markH = document.getElementById('mark-h');
+    var markT = document.getElementById('mark-t');
+    var markO = document.getElementById('mark-o');
+
+    if(numH){
+      numH.addEventListener('click', function(){
+        toggleBorrowSlash('h');
+      });
+    }
+    if(numT){
+      numT.addEventListener('click', function(){
+        toggleBorrowSlash('t');
+      });
+    }
+
+    if(markH){
+      markH.addEventListener('click', function(){
+        if(!currentQ) return;
+        if(currentQ.op === 'add'){
+          if(markH.textContent === '+1'){
+            markH.textContent = '';
+            markH.className = 'cq-mark-slot';
+          } else {
+            markH.textContent = '+1';
+            markH.className = 'cq-mark-slot active-mark';
+          }
+          if(MathApp.sfx) MathApp.sfx('click');
+        } else {
+          toggleBorrowSlash('h');
+        }
+      });
     }
 
     if(markT){
       markT.addEventListener('click', function(){
         if(!currentQ) return;
         if(currentQ.op === 'add'){
-          toggleMark(markT, '+1');
+          if(markT.textContent === '+1'){
+            markT.textContent = '';
+            markT.className = 'cq-mark-slot';
+          } else {
+            markT.textContent = '+1';
+            markT.className = 'cq-mark-slot active-mark';
+          }
+          if(MathApp.sfx) MathApp.sfx('click');
         } else {
           var d = currentQ.decomp || {};
           var needBorrowO = d.a_o < d.b_o;
-          var isAcrossZero = needBorrowO && d.a_t === 0 && d.a_h > 0;
-          var tempT = needBorrowO ? (d.a_t - 1) : (d.a_t || 0);
-          var needBorrowT = (tempT < (d.b_t || 0)) && (d.a_h > 0);
-
-          if(isAcrossZero){
-            // 跨零退位 (如 105 - 38)：循環 空 -> 9 -> 借1 -> 空
-            if(markT.textContent === ''){
-              markT.textContent = '9';
-              markT.className = 'cq-mark-slot borrow-mark';
-            } else if(markT.textContent === '9'){
-              markT.textContent = '借1';
-              markT.className = 'cq-mark-slot borrow-mark';
-            } else {
-              markT.textContent = '';
-              markT.className = 'cq-mark-slot';
-            }
-          } else if(needBorrowT && !needBorrowO){
-            // 十位向百位借位且個位不借 (如 117 - 55)：循環 空 -> 10 -> 借1 -> 空
-            if(markT.textContent === ''){
-              markT.textContent = '10';
-              markT.className = 'cq-mark-slot borrow-mark';
-            } else if(markT.textContent === '10'){
-              markT.textContent = '借1';
-              markT.className = 'cq-mark-slot borrow-mark';
-            } else {
-              markT.textContent = '';
-              markT.className = 'cq-mark-slot';
-            }
-          } else if(needBorrowT && needBorrowO){
-            // 連續借位 (如 125 - 48)：循環 空 -> 10 -> 借1 -> 空
-            if(markT.textContent === ''){
-              markT.textContent = '10';
-              markT.className = 'cq-mark-slot borrow-mark';
-            } else if(markT.textContent === '10'){
-              markT.textContent = '借1';
-              markT.className = 'cq-mark-slot borrow-mark';
-            } else {
-              markT.textContent = '';
-              markT.className = 'cq-mark-slot';
-            }
+          // 若個位夠減但十位不夠減向百位借(如 117 - 55)，點十位直接切換向百位借位
+          if(!needBorrowO && d.a_t < d.b_t && d.a_h > 0){
+            toggleBorrowSlash('h');
           } else {
-            toggleMark(markT, '借1');
-            return;
+            toggleBorrowSlash('t');
           }
-          if(MathApp.sfx) MathApp.sfx('click');
         }
       });
     }
-    if(markH){
-      markH.addEventListener('click', function(){
-        var sym = (currentQ && currentQ.op === 'add') ? '+1' : '借1';
-        toggleMark(markH, sym);
-      });
-    }
+
     if(markO){
       markO.addEventListener('click', function(){
-        toggleMark(markO, '10');
+        if(!currentQ) return;
+        if(currentQ.op === 'add') return;
+        toggleBorrowSlash('t');
       });
     }
   }
