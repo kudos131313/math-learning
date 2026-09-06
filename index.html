@@ -6,7 +6,7 @@
 <title>數字積木屋｜國小數學概念探索與運算思維教室</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=ZCOOL+KuaiLe&family=Baloo+2:wght@500;700;800&family=Noto+Sans+TC:wght@400;500;700;900&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css?v=20260906g">
+<link rel="stylesheet" href="style.css?v=20260906h">
 </head>
 <body>
 
@@ -55,28 +55,36 @@
 
 <div class="wrap">
 
-  <header class="top">
-    <div class="badge" id="grade-badge">國小數學 · 視覺化概念實驗室</div>
-    <h1 id="main-title">數字積木屋：<span>動手玩</span>數學</h1>
-    <p id="main-subtitle">動手操作具體積木，看懂數學背後的原理與運算思維！</p>
+  <!-- 頂部全站導航中樞卡片 (SITE HEADER HUB - 明確區隔全站中樞與下方單元舞台) -->
+  <header class="site-header-hub" id="site-header-hub">
+    <div class="hub-brand">
+      <div class="badge" id="grade-badge">國小數學 · 視覺化概念實驗室</div>
+      <h1 id="main-title">數字積木屋：<span>動手玩</span>數學</h1>
+      <p id="main-subtitle">動手操作具體積木，看懂數學背後的原理與運算思維！</p>
+    </div>
+
+    <div class="audio-bar">
+      <button class="toggle-pill" id="toggle-theme" type="button" aria-pressed="false">🌙 深色模式</button>
+      <button class="toggle-pill" id="toggle-sound" type="button" aria-pressed="true">🔊 音效</button>
+      <button class="toggle-pill" id="toggle-voice" type="button" aria-pressed="true">🗣️ 語音</button>
+      <button class="toggle-pill thousand-pill" id="toggle-thousand" type="button" aria-pressed="false">📦 千位數：關閉</button>
+    </div>
+
+    <!-- 主模組單元導覽列 (各學習單元入口) -->
+    <nav class="main-nav-tabs" role="tablist" aria-label="學習單元切換">
+      <button class="main-tab active" id="main-tab-learn" type="button" role="tab" aria-selected="true" aria-controls="panel-learn">
+        <span class="unit-badge">單元 1</span> 💡 位值探索
+      </button>
+      <button class="main-tab" id="main-tab-calc" type="button" role="tab" aria-selected="false" aria-controls="panel-calc">
+        <span class="unit-badge">單元 2</span> ➕➖ 直式加減法
+      </button>
+    </nav>
   </header>
 
-  <div class="audio-bar">
-    <button class="toggle-pill" id="toggle-theme" type="button" aria-pressed="false">🌙 深色模式</button>
-    <button class="toggle-pill" id="toggle-sound" type="button" aria-pressed="true">🔊 音效</button>
-    <button class="toggle-pill" id="toggle-voice" type="button" aria-pressed="true">🗣️ 語音</button>
-    <button class="toggle-pill thousand-pill" id="toggle-thousand" type="button" aria-pressed="false">📦 千位數：關閉</button>
+  <!-- 單元視覺過渡指示線 -->
+  <div class="unit-boundary" aria-hidden="true">
+    <span class="unit-boundary-tag">📖 學習單元操作舞台</span>
   </div>
-
-  <!-- 主模組單元導覽列 (各學習單元入口) -->
-  <nav class="main-nav-tabs" role="tablist" aria-label="學習單元切換">
-    <button class="main-tab active" id="main-tab-learn" type="button" role="tab" aria-selected="true" aria-controls="panel-learn">
-      <span class="unit-badge">單元 1</span> 💡 位值探索
-    </button>
-    <button class="main-tab" id="main-tab-calc" type="button" role="tab" aria-selected="false" aria-controls="panel-calc">
-      <span class="unit-badge">單元 2</span> ➕➖ 直式加減法
-    </button>
-  </nav>
 
   <!-- ================= 單元 1：位值探索 (PLACE VALUE MODULE) ================= -->
   <div class="tab-panel active" id="panel-learn" role="tabpanel" aria-labelledby="main-tab-learn">
