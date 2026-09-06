@@ -1,0 +1,813 @@
+@charset "UTF-8";
+/* ==========================================================================
+   單元 2：數的規律與跳數 (SEQUENCE & SKIP COUNTING MODULE)
+   專門破解：1個1個數、10個10個數、跨百跨十進退位與倒數反推
+   ========================================================================== */
+
+/* ---------- 規律探索舞台容器 ---------- */
+.seq-card {
+  background: var(--card);
+  border: 2px solid var(--ink);
+  border-radius: var(--radius-card);
+  box-shadow: 6px 6px 0 var(--shadow-ink);
+  padding: 28px 22px 32px;
+  margin-bottom: 40px;
+}
+
+.seq-header {
+  text-align: center;
+  margin-bottom: 24px;
+}
+
+.seq-header h2 {
+  font-size: clamp(20px, 3.4vw, 28px);
+  margin: 0 0 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+}
+
+.seq-header .sub {
+  color: var(--ink-soft);
+  font-size: 14.5px;
+  margin: 0;
+}
+
+/* ---------- 步長與模式控制盤 (STEP CONTROLLER) ---------- */
+.seq-control-deck {
+  background: #f8fafc;
+  border: 1.5px solid #cbd5e1;
+  border-radius: 16px;
+  padding: 16px 18px;
+  margin-bottom: 26px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.seq-control-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.seq-control-label {
+  font-weight: 700;
+  font-size: 14px;
+  color: var(--ink);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.seq-step-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.step-pill {
+  background: #ffffff;
+  border: 1.5px solid #cbd5e1;
+  border-radius: 24px;
+  padding: 6px 14px;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--ink);
+  cursor: pointer;
+  transition: all 0.18s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.step-pill:hover {
+  border-color: #2563eb;
+  color: #2563eb;
+  background: #eff6ff;
+  transform: translateY(-1px);
+}
+
+.step-pill.active {
+  background: #2563eb;
+  color: #ffffff;
+  border-color: #1d4ed8;
+  box-shadow: 0 3px 8px rgba(37, 99, 235, 0.35);
+}
+
+.step-pill.badge-cross-hundred {
+  position: relative;
+}
+
+.step-pill.badge-cross-hundred::after {
+  content: "考卷重點";
+  position: absolute;
+  top: -9px;
+  right: -6px;
+  background: #ef4444;
+  color: #ffffff;
+  font-size: 10px;
+  font-weight: 800;
+  padding: 1px 5px;
+  border-radius: 8px;
+  letter-spacing: 0.5px;
+}
+
+/* 起點與手動輸入列 */
+.seq-start-input-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.seq-start-input-group label {
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--ink-soft);
+}
+
+.seq-number-input {
+  width: 90px;
+  padding: 6px 10px;
+  font-size: 16px;
+  font-weight: 700;
+  text-align: center;
+  border: 1.5px solid #cbd5e1;
+  border-radius: 10px;
+  background: #ffffff;
+  color: var(--ink);
+}
+
+.seq-number-input:focus {
+  outline: none;
+  border-color: #2563eb;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+}
+
+/* ---------- 數列列車車廂 (NUMBER TRAIN CAROUSEL) ---------- */
+.seq-train-stage {
+  position: relative;
+  margin: 20px 0 28px;
+  padding: 18px 8px 10px;
+  background: linear-gradient(180deg, #f1f5f9 0%, #e2e8f0 100%);
+  border-radius: 20px;
+  border: 2px dashed #94a3b8;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.seq-train-track {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  min-width: 620px;
+  padding: 10px 14px 20px;
+}
+
+/* 車廂單元卡片 */
+.train-car {
+  flex: 0 0 auto;
+  width: 106px;
+  background: #ffffff;
+  border: 2px solid #64748b;
+  border-radius: 16px;
+  padding: 12px 6px 10px;
+  text-align: center;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  position: relative;
+  transition: transform 0.22s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.22s ease, border-color 0.22s ease;
+}
+
+/* 軌道小輪子 */
+.train-car::after,
+.train-car::before {
+  content: "";
+  position: absolute;
+  bottom: -11px;
+  width: 16px;
+  height: 16px;
+  background: #334155;
+  border: 2px solid #cbd5e1;
+  border-radius: 50%;
+  z-index: 2;
+}
+.train-car::before { left: 16px; }
+.train-car::after { right: 16px; }
+
+/* 車廂連接軸 */
+.train-car + .train-car::after-axis {
+  content: "";
+}
+
+.train-car-role {
+  font-size: 11px;
+  font-weight: 700;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 4px;
+}
+
+/* 車廂內的大數字 (分位拆解顯示) */
+.train-car-num {
+  font-family: 'Baloo 2', 'Noto Sans TC', sans-serif;
+  font-size: 28px;
+  font-weight: 800;
+  line-height: 1.1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1px;
+}
+
+/* 分位顏色與高亮 */
+.digit-h { color: var(--h-color, #1d4ed8); }
+.digit-t { color: var(--t-color, #0f766e); }
+.digit-o { color: var(--o-color, #d97706); }
+.digit-th { color: var(--th-color, #7e22ce); }
+
+/* 正在跳變的數位高亮脈動 */
+.digit-pulsing {
+  background: #fef08a;
+  color: #854d0e !important;
+  padding: 0 3px;
+  border-radius: 6px;
+  box-shadow: 0 0 0 2px #facc15;
+  animation: digitBounce 0.45s ease;
+}
+
+@keyframes digitBounce {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.35) translateY(-3px); }
+  100% { transform: scale(1); }
+}
+
+/* 當前聚焦車廂 (中央主焦點) */
+.train-car.current {
+  width: 126px;
+  border: 3px solid #2563eb;
+  background: #eff6ff;
+  box-shadow: 0 10px 25px -3px rgba(37, 99, 235, 0.35);
+  transform: translateY(-8px) scale(1.08);
+  z-index: 5;
+}
+
+.train-car.current .train-car-role {
+  color: #1d4ed8;
+  font-weight: 800;
+}
+
+.train-car.current .train-car-num {
+  font-size: 34px;
+}
+
+/* 跨百進退位特殊高光車廂 */
+.train-car.cross-hundred {
+  border-color: #f59e0b;
+  background: linear-gradient(145deg, #fffbeb 0%, #fef3c7 100%);
+  box-shadow: 0 0 0 4px rgba(245, 158, 11, 0.35), 0 10px 25px -3px rgba(245, 158, 11, 0.4);
+}
+
+.cross-badge {
+  position: absolute;
+  top: -12px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #f59e0b;
+  color: #ffffff;
+  font-size: 10.5px;
+  font-weight: 800;
+  padding: 2px 8px;
+  border-radius: 12px;
+  white-space: nowrap;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.15);
+  animation: badgePop 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@keyframes badgePop {
+  0% { transform: translateX(-50%) scale(0.5); }
+  100% { transform: translateX(-50%) scale(1); }
+}
+
+/* ---------- 列車操作按鈕群 (NAVIGATION BAR) ---------- */
+.seq-nav-controls {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  margin-top: 14px;
+  flex-wrap: wrap;
+}
+
+.seq-nav-btn {
+  padding: 10px 18px;
+  font-size: 15px;
+  font-weight: 700;
+  border-radius: 12px;
+  border: 1.5px solid var(--ink);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.15s ease;
+}
+
+.seq-nav-btn.primary {
+  background: #2563eb;
+  color: #ffffff;
+  border-color: #1d4ed8;
+  box-shadow: 0 4px 10px rgba(37, 99, 235, 0.25);
+}
+.seq-nav-btn.primary:hover {
+  background: #1d4ed8;
+  transform: translateY(-2px);
+}
+
+.seq-nav-btn.secondary {
+  background: #ffffff;
+  color: var(--ink);
+}
+.seq-nav-btn.secondary:hover {
+  background: #f1f5f9;
+  transform: translateY(-2px);
+}
+
+/* ---------- 規律透視與積木同步展開盒 (EXPLANATION & BLOCKS DOCK) ---------- */
+.seq-inspect-card {
+  margin-top: 26px;
+  background: #ffffff;
+  border: 2px solid #e2e8f0;
+  border-radius: 18px;
+  padding: 20px 22px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.seq-tip-banner {
+  background: #f0fdf4;
+  border: 1.5px solid #86efac;
+  border-radius: 14px;
+  padding: 14px 18px;
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.seq-tip-icon {
+  font-size: 24px;
+  line-height: 1;
+  flex-shrink: 0;
+}
+
+.seq-tip-content {
+  flex: 1;
+}
+
+.seq-tip-title {
+  font-weight: 800;
+  font-size: 15px;
+  color: #166534;
+  margin-bottom: 4px;
+}
+
+.seq-tip-body {
+  font-size: 14px;
+  color: #15803d;
+  line-height: 1.6;
+}
+
+.seq-tip-body b {
+  font-weight: 800;
+  padding: 1px 4px;
+  border-radius: 4px;
+}
+.seq-tip-body b.t-highlight { background: #ccfbf1; color: #0f766e; }
+.seq-tip-body b.h-highlight { background: #dbeafe; color: #1d4ed8; }
+.seq-tip-body b.o-highlight { background: #fef3c7; color: #b45309; }
+
+/* 積木連動顯示區 */
+.seq-blocks-view {
+  display: flex;
+  gap: 16px;
+  justify-content: space-around;
+  flex-wrap: wrap;
+  padding-top: 8px;
+}
+
+.seq-block-col {
+  flex: 1;
+  min-width: 140px;
+  background: #f8fafc;
+  border: 1.5px solid #cbd5e1;
+  border-radius: 14px;
+  padding: 12px 14px;
+  text-align: center;
+}
+
+.seq-block-col-head {
+  font-weight: 800;
+  font-size: 13.5px;
+  margin-bottom: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+.seq-block-col.col-h .seq-block-col-head { color: var(--h-color, #1d4ed8); }
+.seq-block-col.col-t .seq-block-col-head { color: var(--t-color, #0f766e); }
+.seq-block-col.col-o .seq-block-col-head { color: var(--o-color, #d97706); }
+
+.seq-block-container {
+  min-height: 75px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+
+/* ==========================================================================
+   子分頁 2：規律神探挑戰賽 (QUIZ MODE)
+   高度擬真考卷格式、直覺易按、多救生圈輔助
+   ========================================================================== */
+.seq-quiz-card {
+  background: var(--card);
+  border: 2px solid var(--ink);
+  border-radius: var(--radius-card);
+  box-shadow: 6px 6px 0 var(--shadow-ink);
+  padding: 26px 20px 32px;
+  margin-bottom: 40px;
+}
+
+/* 關卡選擇按鈕欄 */
+.seq-level-selector {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-bottom: 22px;
+}
+
+.level-pill {
+  padding: 8px 16px;
+  font-size: 14px;
+  font-weight: 700;
+  border-radius: 20px;
+  border: 1.5px solid #cbd5e1;
+  background: #ffffff;
+  color: var(--ink);
+  cursor: pointer;
+  transition: all 0.18s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.level-pill:hover {
+  background: #f1f5f9;
+  border-color: #94a3b8;
+}
+
+.level-pill.active {
+  background: #0f766e;
+  color: #ffffff;
+  border-color: #115e59;
+  box-shadow: 0 3px 8px rgba(15, 118, 110, 0.3);
+}
+
+.level-pill.featured {
+  border-color: #f59e0b;
+  color: #b45309;
+}
+.level-pill.featured.active {
+  background: #f59e0b;
+  color: #ffffff;
+}
+
+/* 考卷橫式題卡排版 */
+.paper-quiz-board {
+  background: #fffdfa;
+  border: 2px solid #334155;
+  border-radius: 20px;
+  padding: 24px 18px 26px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  margin-bottom: 24px;
+}
+
+.paper-meta-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 18px;
+  padding-bottom: 12px;
+  border-bottom: 1.5px dashed #cbd5e1;
+}
+
+.paper-title {
+  font-size: 16px;
+  font-weight: 800;
+  color: #1e293b;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.paper-stats {
+  font-size: 13.5px;
+  font-weight: 700;
+  color: #64748b;
+  display: flex;
+  gap: 12px;
+}
+
+/* 考卷方格數列 (格狀排列) */
+.paper-slots-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  padding: 10px 4px;
+}
+
+/* 連接符號橫槓 */
+.paper-slot-dash {
+  width: 14px;
+  height: 2px;
+  background: #64748b;
+  border-radius: 2px;
+}
+
+/* 考卷格子卡片 */
+.paper-slot {
+  min-width: 78px;
+  height: 64px;
+  background: #ffffff;
+  border: 2px solid #475569;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Baloo 2', 'Noto Sans TC', sans-serif;
+  font-size: 26px;
+  font-weight: 800;
+  color: #0f172a;
+  position: relative;
+  transition: all 0.2s ease;
+}
+
+/* 題目既有的固定數字 */
+.paper-slot.fixed {
+  background: #f1f5f9;
+  color: #334155;
+  border-color: #94a3b8;
+  cursor: default;
+}
+
+/* 待作答的空白輸入格 */
+.paper-slot.blank {
+  background: #ffffff;
+  border: 2px dashed #2563eb;
+  color: #2563eb;
+  cursor: pointer;
+}
+
+.paper-slot.blank:hover {
+  background: #eff6ff;
+  transform: translateY(-2px);
+  border-style: solid;
+}
+
+/* 正在作用中的輸入格 */
+.paper-slot.blank.active {
+  background: #eff6ff;
+  border: 2.5px solid #2563eb;
+  box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.25);
+  transform: translateY(-3px) scale(1.04);
+}
+
+/* 作答正確 */
+.paper-slot.blank.correct {
+  background: #ecfdf5;
+  border: 2px solid #10b981;
+  color: #047857;
+}
+.paper-slot.blank.correct::after {
+  content: "✓";
+  position: absolute;
+  top: -8px;
+  right: -6px;
+  background: #10b981;
+  color: #ffffff;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  font-size: 11px;
+  font-weight: 900;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* 作答錯誤 */
+.paper-slot.blank.wrong {
+  background: #fef2f2;
+  border: 2px solid #ef4444;
+  color: #b91c1c;
+  animation: slotShake 0.35s ease;
+}
+
+@keyframes slotShake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-5px); }
+  75% { transform: translateX(5px); }
+}
+
+/* 空格內打字光標效果 */
+.paper-slot.blank.active:empty::before {
+  content: "?";
+  color: #93c5fd;
+  opacity: 0.6;
+  animation: pulseQmark 1.2s infinite ease-in-out;
+}
+
+@keyframes pulseQmark {
+  0%, 100% { opacity: 0.3; transform: scale(0.9); }
+  50% { opacity: 0.8; transform: scale(1.1); }
+}
+
+/* ---------- 救生圈小幫手列 (LIFELINES) ---------- */
+.paper-rescue-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 18px;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.rescue-btn {
+  background: #ffffff;
+  border: 1.5px solid #cbd5e1;
+  border-radius: 12px;
+  padding: 7px 14px;
+  font-size: 13.5px;
+  font-weight: 700;
+  color: #334155;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.16s ease;
+}
+
+.rescue-btn:hover {
+  background: #f8fafc;
+  border-color: #64748b;
+  transform: translateY(-1px);
+}
+
+.rescue-btn.detect-btn {
+  color: #b45309;
+  border-color: #fde68a;
+  background: #fffbeb;
+}
+.rescue-btn.detect-btn:hover {
+  background: #fef3c7;
+  border-color: #f59e0b;
+}
+
+/* 偵探分析提示框 (動態滑出) */
+.detective-analysis-card {
+  margin-top: 14px;
+  background: #fefce8;
+  border: 1.5px solid #facc15;
+  border-radius: 14px;
+  padding: 14px 16px;
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  animation: slideDown 0.25s ease;
+}
+
+@keyframes slideDown {
+  from { opacity: 0; transform: translateY(-8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.detective-avatar {
+  font-size: 26px;
+  line-height: 1;
+}
+
+.detective-msg-title {
+  font-size: 14.5px;
+  font-weight: 800;
+  color: #854d0e;
+  margin-bottom: 2px;
+}
+
+.detective-msg-body {
+  font-size: 13.5px;
+  color: #713f12;
+  line-height: 1.5;
+}
+
+/* ---------- 虛擬大數字鍵盤外殼 (NUMPAD WRAPPER) ---------- */
+/* 內部鍵盤按鈕由 createNumpad 工廠函式產生，使用 quiz.css 的共用 .virtual-keypad 樣式 */
+.seq-numpad-wrap {
+  max-width: 340px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+/* 覆寫 margin，讓 seq 的 virtual-keypad 不額外增加下方留白 */
+.seq-numpad-wrap .virtual-keypad {
+  margin: 0;
+}
+
+
+
+/* 底部操作主按鈕 (檢查、下一題) */
+.seq-action-bar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  margin-top: 14px;
+}
+
+.seq-check-btn {
+  padding: 12px 28px;
+  font-size: 16px;
+  font-weight: 800;
+  border-radius: 14px;
+  background: #10b981;
+  color: #ffffff;
+  border: 2px solid #059669;
+  box-shadow: 0 4px 10px rgba(16, 185, 129, 0.3);
+  cursor: pointer;
+  transition: all 0.16s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.seq-check-btn:hover {
+  background: #059669;
+  transform: translateY(-2px);
+}
+
+.seq-next-btn {
+  padding: 12px 24px;
+  font-size: 16px;
+  font-weight: 800;
+  border-radius: 14px;
+  background: #2563eb;
+  color: #ffffff;
+  border: 2px solid #1d4ed8;
+  cursor: pointer;
+  transition: all 0.16s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.seq-next-btn:hover {
+  background: #1d4ed8;
+  transform: translateY(-2px);
+}
+
+/* 響應式優化 */
+@media (max-width: 680px) {
+  .seq-train-track {
+    min-width: 540px;
+    gap: 8px;
+  }
+  .train-car {
+    width: 88px;
+    padding: 10px 4px 8px;
+  }
+  .train-car-num {
+    font-size: 22px;
+  }
+  .train-car.current {
+    width: 104px;
+  }
+  .train-car.current .train-car-num {
+    font-size: 26px;
+  }
+  .paper-slot {
+    min-width: 64px;
+    height: 56px;
+    font-size: 22px;
+  }
+}

@@ -18,6 +18,9 @@
 /* 4. 挑戰測驗題卡、虛擬數字鍵盤與自測成果卡 */
 @import url('css/quiz.css');
 
+/* 4.5 數的規律與跳數列車舞台、考卷題卡與視覺小幫手 */
+@import url('css/seq.css');
+
 /* 5. 直式加減法概念學習教室舞台與算則板 */
 @import url('css/calc.css');
 

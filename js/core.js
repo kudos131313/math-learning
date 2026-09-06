@@ -73,10 +73,12 @@
     setMode: setThousandMode
   };
 
-  /* ---------------- 主分頁切換 (MAIN UNIT TABS: LEARN vs CALC) ---------------- */
+  /* ---------------- 主分頁切換 (MAIN UNIT TABS: LEARN vs SEQ vs CALC) ---------------- */
   var mainTabLearn = document.getElementById('main-tab-learn');
+  var mainTabSeq   = document.getElementById('main-tab-seq');
   var mainTabCalc  = document.getElementById('main-tab-calc');
   var panelLearn   = document.getElementById('panel-learn');
+  var panelSeq     = document.getElementById('panel-seq');
   var panelCalc    = document.getElementById('panel-calc');
 
   function switchMainTab(tab){
@@ -89,6 +91,7 @@
 
     var tabs = [
       { id: 'learn', btn: mainTabLearn, panel: panelLearn },
+      { id: 'seq',   btn: mainTabSeq,   panel: panelSeq },
       { id: 'calc',  btn: mainTabCalc,  panel: panelCalc }
     ];
 
@@ -112,6 +115,7 @@
   }
 
   if(mainTabLearn) mainTabLearn.addEventListener('click', function(){ switchMainTab('learn'); });
+  if(mainTabSeq)   mainTabSeq.addEventListener('click',   function(){ switchMainTab('seq'); });
   if(mainTabCalc)  mainTabCalc.addEventListener('click',  function(){ switchMainTab('calc'); });
 
   /* ---------------- 單元內部子分頁切換 (UNIT SUB TABS) ---------------- */

@@ -835,15 +835,8 @@
       cqEls.nextBtn.addEventListener('click', nextRound);
     }
 
-    // 虛擬數字鍵盤按鈕
-    if(cqEls.virtualKeypad){
-      cqEls.virtualKeypad.addEventListener('click', function(e){
-        var btn = e.target.closest('button[data-key]');
-        if(!btn) return;
-        var key = btn.dataset.key;
-        handleInputKey(key);
-      });
-    }
+    // 虛擬數字鍵盤：改用共用工廠函式
+    MathApp.createNumpad('cq-virtual-keypad', handleInputKey);
 
     // 電腦鍵盤按鍵監聽 (只在直式測驗面板可見時生效)
     window.addEventListener('keydown', function(e){

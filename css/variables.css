@@ -146,9 +146,10 @@ a, button{ font-family: inherit; }
 .main-nav-tabs{
   display: flex;
   justify-content: center;
-  gap: 8px;
+  gap: 6px;
   margin: 0 auto;
-  max-width: 580px;
+  max-width: 760px;
+  width: 100%;
   background: var(--surface-dim);
   border: 2px solid var(--ink);
   border-radius: 999px;
@@ -159,11 +160,11 @@ a, button{ font-family: inherit; }
 }
 .main-tab{
   flex: 1;
-  padding: 8.5px 16px;
+  padding: 8.5px 10px;
   background: transparent;
   border: none;
   border-radius: 999px;
-  font-size: 14.5px;
+  font-size: 14px;
   font-weight: 800;
   color: var(--ink-soft);
   cursor: pointer;
@@ -171,7 +172,8 @@ a, button{ font-family: inherit; }
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 8px;
+  gap: 6px;
+  white-space: nowrap;
 }
 .main-tab .unit-badge{
   font-size: 11px;

@@ -273,6 +273,107 @@
     upgradeDomBlocks();
   }
 
+  /* ====================================================================
+   * 共用虛擬數字鍵盤工廠函式
+   * createNumpad(containerId, onKey, opts)
+   *   containerId {string}   - 鍵盤外殼元素的 id（需已存在於 DOM）
+   *   onKey       {function} - 按鍵回呼，接收標準 key 值：
+   *                            '0'~'9' | 'backspace' | 'clear' | 'enter'
+   *   opts        {object}   - 選項設定
+   *     hasEnter  {boolean}  - 是否顯示確認鍵（預設 true）
+   *     hasClear  {boolean}  - 是否顯示全清鍵（預設 false）
+   *     enterLabel {string}  - 確認鍵文字（預設 '確認'）
+   * ==================================================================== */
+  function createNumpad(containerId, onKey, opts){
+    var container = typeof containerId === 'string'
+      ? document.getElementById(containerId)
+      : containerId;
+    if(!container || !onKey) return;
+
+    opts = opts || {};
+    var hasEnter = opts.hasEnter !== false;  // 預設 true
+    var hasClear = !!opts.hasClear;           // 預設 false
+    var enterLabel = opts.enterLabel || '確認';
+
+    // 清空並加上統一 class（不強制覆蓋 id）
+    container.className = (container.className || '') + ' virtual-keypad';
+    container.setAttribute('role', 'group');
+    container.setAttribute('aria-label', '數字輸入鍵盤');
+
+    // 格子容器
+    var grid = document.createElement('div');
+    grid.className = 'keypad-grid';
+
+    // 產生 1~9 數字鍵
+    for(var n = 1; n <= 9; n++){
+      var btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'num-key';
+      btn.setAttribute('data-key', String(n));
+      btn.textContent = String(n);
+      grid.appendChild(btn);
+    }
+
+    // 底列左：清除 or 退格
+    var leftBtn = document.createElement('button');
+    leftBtn.type = 'button';
+    if(hasClear){
+      // 全清鍵（單元2需求）
+      leftBtn.className = 'num-key func-key';
+      leftBtn.setAttribute('data-key', 'clear');
+      leftBtn.setAttribute('aria-label', '全部清除');
+      leftBtn.innerHTML = '<i data-lucide="x-circle"></i><span>清除</span>';
+    } else {
+      // 退格鍵（單元1/3風格）
+      leftBtn.className = 'num-key func-key';
+      leftBtn.setAttribute('data-key', 'backspace');
+      leftBtn.setAttribute('aria-label', '退格清除');
+      leftBtn.innerHTML = '<i data-lucide="delete"></i><span>退格</span>';
+    }
+    grid.appendChild(leftBtn);
+
+    // 底列中：0 鍵
+    var zeroBtn = document.createElement('button');
+    zeroBtn.type = 'button';
+    zeroBtn.className = 'num-key';
+    zeroBtn.setAttribute('data-key', '0');
+    zeroBtn.textContent = '0';
+    grid.appendChild(zeroBtn);
+
+    // 底列右：確認 or 退格（無全清時）
+    if(hasEnter){
+      var enterBtn = document.createElement('button');
+      enterBtn.type = 'button';
+      enterBtn.className = 'num-key enter-key';
+      enterBtn.setAttribute('data-key', 'enter');
+      enterBtn.setAttribute('aria-label', enterLabel);
+      enterBtn.innerHTML = '<i data-lucide="check"></i><span>' + enterLabel + '</span>';
+      grid.appendChild(enterBtn);
+    } else {
+      // 無確認鍵時，底列右改放退格鍵
+      var delBtn2 = document.createElement('button');
+      delBtn2.type = 'button';
+      delBtn2.className = 'num-key func-key';
+      delBtn2.setAttribute('data-key', 'backspace');
+      delBtn2.setAttribute('aria-label', '退格清除');
+      delBtn2.innerHTML = '<i data-lucide="delete"></i><span>退格</span>';
+      grid.appendChild(delBtn2);
+    }
+
+    container.appendChild(grid);
+
+    // 事件代理：一個監聽器處理全部按鍵
+    container.addEventListener('click', function(e){
+      var btn = e.target.closest('button[data-key]');
+      if(!btn) return;
+      e.preventDefault();
+      onKey(btn.getAttribute('data-key'));
+    });
+
+    // 刷新 Lucide icon
+    refreshIcons();
+  }
+
   MathApp.utils = {
     randInt: randInt,
     formatTime: formatTime,
@@ -292,7 +393,8 @@
     blockGlyph: blockGlyph,
     renderGroupedBlocksHtml: renderGroupedBlocksHtml,
     renderBlocks: renderBlocks,
-    upgradeDomBlocks: upgradeDomBlocks
+    upgradeDomBlocks: upgradeDomBlocks,
+    createNumpad: createNumpad
   };
 
   // 掛載常用函式至 MathApp 捷徑
@@ -301,5 +403,6 @@
   MathApp.renderBlocks = renderBlocks;
   MathApp.renderGroupedBlocksHtml = renderGroupedBlocksHtml;
   MathApp.refreshIcons = refreshIcons;
+  MathApp.createNumpad = createNumpad;
 
 })();

@@ -24,7 +24,6 @@
   var current = null; // { type: 'A'|'B', th, h, t, o }
   var currentPromptSpeech = '';
   var activeInput = null;
-  var keypadEl = null;
 
   function initElements(){
     quizEls = {
@@ -65,7 +64,6 @@
       backPracticeBtn: document.getElementById('back-practice-btn')
     };
 
-    keypadEl = document.getElementById('virtual-keypad');
   }
 
   /* 模式切換邏輯與 Tab 滑塊 */
@@ -539,22 +537,16 @@
     if(quizEls.restartBtn)      quizEls.restartBtn.addEventListener('click', startSelfTest);
     if(quizEls.backPracticeBtn) quizEls.backPracticeBtn.addEventListener('click', function(){ switchMode('practice'); });
 
-    // 綁定虛擬鍵盤點擊事件
-    if(keypadEl){
-      keypadEl.querySelectorAll('.num-key').forEach(function(btn){
-        btn.addEventListener('click', function(e){
-          e.preventDefault();
-          var key = btn.getAttribute('data-key');
-          if(key === 'backspace'){
-            handleKeypadBackspace();
-          } else if(key === 'enter'){
-            handleKeypadEnter();
-          } else if(key !== null) {
-            handleKeypadInput(key);
-          }
-        });
-      });
-    }
+    // 綁定虛擬鍵盤：改用共用工廠函式
+    MathApp.createNumpad('virtual-keypad', function(key){
+      if(key === 'backspace'){
+        handleKeypadBackspace();
+      } else if(key === 'enter'){
+        handleKeypadEnter();
+      } else {
+        handleKeypadInput(key);
+      }
+    });
 
     // 綁定實體鍵盤全局支援
     window.addEventListener('keydown', function(e){

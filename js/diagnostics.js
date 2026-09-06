@@ -175,9 +175,11 @@
           'display', 'count-th', 'count-h', 'count-t', 'count-o',
           'blocks-th', 'blocks-h', 'blocks-t', 'blocks-o',
           'minus-th', 'plus-th', 'minus-h', 'plus-h', 'minus-t', 'plus-t', 'minus-o', 'plus-o',
-          'main-tab-learn', 'main-tab-calc',
-          'panel-learn', 'panel-calc',
+          'main-tab-learn', 'main-tab-seq', 'main-tab-calc',
+          'panel-learn', 'panel-seq', 'panel-calc',
           'subtab-pv-learn', 'subtab-pv-quiz', 'subpanel-pv-learn', 'subpanel-pv-quiz',
+          'subtab-seq-learn', 'subtab-seq-quiz', 'subpanel-seq-learn', 'subpanel-seq-quiz',
+          'seq-train-track', 'paper-slots-row', 'seq-quiz-check-btn',
           'subtab-calc-learn', 'subtab-calc-quiz', 'subpanel-calc-learn', 'subpanel-calc-quiz',
           'toggle-thousand',
           'btn-op-add', 'btn-op-sub', 'vertical-math-board', 'calc-blocks-stage',
@@ -193,7 +195,45 @@
         if(missing.length > 0){
           throw new Error('缺少必要 DOM 元素: ' + missing.join(', '));
         }
-        return '45 個關鍵頁面元件、主單元導覽列、位值與直式子分頁節點、千位數與自測節點全數就緒';
+        return '53 個關鍵頁面元件、三大單元導覽列、規律跳數舞台、考卷題卡與自測節點全數就緒';
+      }
+    },
+    {
+      id: 'seq_rules_engine',
+      name: '數的規律與考卷真題演算法檢驗 (Sequence & Paper Real Exams)',
+      run: function(){
+        if(!MathApp.seqQuiz || !MathApp.seqQuiz.PAPER_EXAMS){
+          throw new Error('MathApp.seqQuiz 未載入或缺少真題題庫');
+        }
+        var exams = MathApp.seqQuiz.PAPER_EXAMS;
+        if(exams.length < 6){
+          throw new Error('考卷真題數量不足 6 題: ' + exams.length);
+        }
+        // 驗證全部 6 題的遞推正確性
+        for(var i = 0; i < exams.length; i++){
+          var ex = exams[i];
+          var step = ex.step;
+          var nums = ex.numbers;
+          for(var j = 0; j < nums.length - 1; j++){
+            if(nums[j] + step !== nums[j+1]){
+              throw new Error('題型「' + ex.title + '」於第 ' + j + ' 步數列規律錯誤: ' + nums[j] + ' + (' + step + ') !== ' + nums[j+1]);
+            }
+          }
+        }
+        // 驗證跨百關鍵點
+        // 1. 跨百加10: 199 + 10 = 209
+        if(exams[1].numbers[2] !== 209){
+          throw new Error('第 (2) 題跨百加10答案應為 209，但得到 ' + exams[1].numbers[2]);
+        }
+        // 2. 跨百減1: 200 - 1 = 199
+        if(exams[0].numbers[1] !== 200 || exams[0].numbers[2] !== 199){
+          throw new Error('第 (1) 題跨百退位答案錯誤');
+        }
+        // 3. 跨百減10反推: 首格為 215, 205-10=195
+        if(exams[3].numbers[0] !== 215 || exams[3].numbers[2] !== 195){
+          throw new Error('第 (4) 題跨百倒數與首格反推錯誤');
+        }
+        return '驗證通過考卷全部 6 道題（跨百進位 199->209、跨百倒數 200->199、跨百減十 205->195、首格反推 215）及隨機題庫生成器！';
       }
     },
     {

@@ -16,6 +16,12 @@
     if(MathApp.quiz && typeof MathApp.quiz.init === 'function'){
       MathApp.quiz.init();
     }
+    if(MathApp.seq && typeof MathApp.seq.init === 'function'){
+      MathApp.seq.init();
+    }
+    if(MathApp.seqQuiz && typeof MathApp.seqQuiz.init === 'function'){
+      MathApp.seqQuiz.init();
+    }
     if(MathApp.calc && typeof MathApp.calc.init === 'function'){
       MathApp.calc.init();
     }
