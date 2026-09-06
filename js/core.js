@@ -77,14 +77,6 @@
     }
     document.body.classList.toggle('thousand-mode', enabled);
 
-    // 更新頂部標題說明
-    var subEl = document.getElementById('main-subtitle');
-    if(subEl){
-      subEl.textContent = enabled
-        ? '用積木堆出數字，動手玩一玩，就能看懂每個數字裡藏著幾個千、幾個百、幾個十、幾個一！'
-        : '用積木堆出數字，動手玩一玩，就能看懂每個數字裡藏著幾個百、幾個十、幾個一！';
-    }
-
     // 發布千位數模式變更事件，讓各模組自動響應
     MathApp.emit('thousandChange', enabled);
   }
@@ -106,19 +98,23 @@
     setMode: setThousandMode
   };
 
-  /* ---------------- 主分頁切換 (MAIN TABS: LEARN vs CALC vs QUIZ) ---------------- */
+  /* ---------------- 主分頁切換 (MAIN UNIT TABS: LEARN vs CALC) ---------------- */
   var mainTabLearn = document.getElementById('main-tab-learn');
   var mainTabCalc  = document.getElementById('main-tab-calc');
-  var mainTabQuiz  = document.getElementById('main-tab-quiz');
   var panelLearn   = document.getElementById('panel-learn');
   var panelCalc    = document.getElementById('panel-calc');
-  var panelQuiz    = document.getElementById('panel-quiz');
 
   function switchMainTab(tab){
+    // 向前相容：若傳入 'quiz'，自動導流至位值探索的測驗子分頁
+    if(tab === 'quiz'){
+      switchMainTab('learn');
+      switchSubTab('pv', 'quiz');
+      return;
+    }
+
     var tabs = [
       { id: 'learn', btn: mainTabLearn, panel: panelLearn },
-      { id: 'calc',  btn: mainTabCalc,  panel: panelCalc },
-      { id: 'quiz',  btn: mainTabQuiz,  panel: panelQuiz }
+      { id: 'calc',  btn: mainTabCalc,  panel: panelCalc }
     ];
 
     tabs.forEach(function(item){
@@ -131,16 +127,62 @@
 
     if(MathApp.sfx) MathApp.sfx('click');
 
-    // 發布分頁切換事件
+    // 工具列按鈕依單元智慧適配：千位數僅在位值探索單元呈現
+    if(thousandToggleBtn){
+      thousandToggleBtn.style.display = (tab === 'learn') ? 'inline-block' : 'none';
+    }
+
+    // 發布主單元切換事件
     MathApp.emit('tabChange', tab);
   }
 
   if(mainTabLearn) mainTabLearn.addEventListener('click', function(){ switchMainTab('learn'); });
   if(mainTabCalc)  mainTabCalc.addEventListener('click',  function(){ switchMainTab('calc'); });
-  if(mainTabQuiz)  mainTabQuiz.addEventListener('click',  function(){ switchMainTab('quiz'); });
+
+  /* ---------------- 單元內部子分頁切換 (UNIT SUB TABS) ---------------- */
+  function switchSubTab(unit, subTab){
+    var subTabs = document.querySelectorAll('[id^="subtab-' + unit + '-"]');
+    var subPanels = document.querySelectorAll('[id^="subpanel-' + unit + '-"]');
+
+    subTabs.forEach(function(btn){
+      var isTarget = (btn.id === ('subtab-' + unit + '-' + subTab));
+      btn.classList.toggle('active', isTarget);
+      btn.setAttribute('aria-selected', String(isTarget));
+    });
+
+    subPanels.forEach(function(panel){
+      var isTarget = (panel.id === ('subpanel-' + unit + '-' + subTab));
+      panel.classList.toggle('active', isTarget);
+    });
+
+    if(MathApp.sfx) MathApp.sfx('click');
+
+    // 發布子分頁切換事件
+    MathApp.emit('subTabChange', { unit: unit, subTab: subTab });
+  }
+
+  // 自動為所有單元子分頁按鈕綁定切換事件
+  document.querySelectorAll('.unit-sub-tab').forEach(function(btn){
+    btn.addEventListener('click', function(){
+      var id = btn.id; // 如 subtab-pv-quiz 或 subtab-calc-learn
+      var parts = id.replace('subtab-', '').split('-');
+      var unit = parts[0];
+      var subTab = parts.slice(1).join('-');
+      switchSubTab(unit, subTab);
+    });
+  });
+
+  // 直式加減法「返回算則操作台」按鈕跳轉
+  var gotoCalcDemoBtn = document.getElementById('btn-goto-calc-demo');
+  if(gotoCalcDemoBtn){
+    gotoCalcDemoBtn.addEventListener('click', function(){
+      switchSubTab('calc', 'learn');
+    });
+  }
 
   MathApp.tabs = {
-    switchMainTab: switchMainTab
+    switchMainTab: switchMainTab,
+    switchSubTab: switchSubTab
   };
 
 })();

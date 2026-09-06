@@ -175,8 +175,11 @@
           'display', 'count-th', 'count-h', 'count-t', 'count-o',
           'blocks-th', 'blocks-h', 'blocks-t', 'blocks-o',
           'minus-th', 'plus-th', 'minus-h', 'plus-h', 'minus-t', 'plus-t', 'minus-o', 'plus-o',
-          'main-tab-learn', 'main-tab-calc', 'main-tab-quiz',
-          'panel-learn', 'panel-calc', 'panel-quiz', 'toggle-thousand',
+          'main-tab-learn', 'main-tab-calc',
+          'panel-learn', 'panel-calc',
+          'subtab-pv-learn', 'subtab-pv-quiz', 'subpanel-pv-learn', 'subpanel-pv-quiz',
+          'subtab-calc-learn', 'subtab-calc-quiz', 'subpanel-calc-learn', 'subpanel-calc-quiz',
+          'toggle-thousand',
           'btn-op-add', 'btn-op-sub', 'vertical-math-board', 'calc-blocks-stage',
           'step-next-btn', 'step-prev-btn', 'step-auto-btn',
           'tab-practice', 'tab-selftest', 'start-selftest-btn',
@@ -190,7 +193,7 @@
         if(missing.length > 0){
           throw new Error('缺少必要 DOM 元素: ' + missing.join(', '));
         }
-        return '39 個關鍵頁面元件、三個主分頁、直式加減法節點、千位數與自測節點全數就緒';
+        return '45 個關鍵頁面元件、主單元導覽列、位值與直式子分頁節點、千位數與自測節點全數就緒';
       }
     },
     {

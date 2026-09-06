@@ -596,6 +596,18 @@
       }
     });
 
+    // 監聽單元子分頁切換至位值測驗時，重新校準滑塊與聚焦輸入框
+    MathApp.on('subTabChange', function(info){
+      if(info && info.unit === 'pv' && info.subTab === 'quiz'){
+        requestAnimationFrame(function(){
+          var activeTab = (currentMode === 'practice') ? quizEls.tabPractice : quizEls.tabSelftest;
+          updateTabSlider(activeTab);
+          var firstInput = document.querySelector('#quiz-answer input');
+          if(firstInput) setActiveInput(firstInput);
+        });
+      }
+    });
+
     newRound();
   }
 
