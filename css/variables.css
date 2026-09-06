@@ -503,3 +503,30 @@ body.thousand-mode .columns{
   80% { opacity: 1; }
   100%{ transform: translateX(var(--cx,0px)) translateY(var(--cy,100vh)) rotate(var(--cr,360deg)) scale(.6); opacity: 0; }
 }
+
+/* ========== Lucide Icons 向量圖標全域規範 ========== */
+.lucide, svg.lucide {
+  width: 1.15em;
+  height: 1.15em;
+  vertical-align: -0.18em;
+  display: inline-block;
+  stroke-width: 2.2;
+  stroke: currentColor;
+  fill: none;
+  flex-shrink: 0;
+}
+.btn-icon {
+  margin-right: 0.35rem;
+}
+.btn-icon-end {
+  margin-left: 0.35rem;
+}
+.toggle-pill .lucide {
+  margin-right: 0.28rem;
+  vertical-align: -0.15em;
+}
+.main-tab .lucide, .unit-sub-tab .lucide, .mode-tab .lucide {
+  margin-right: 0.35rem;
+  vertical-align: -0.16em;
+}
+

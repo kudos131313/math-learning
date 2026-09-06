@@ -705,7 +705,8 @@
     }
     calcState.isAutoPlaying = false;
     if(calcEls.stepAutoBtn){
-      calcEls.stepAutoBtn.textContent = '⏯ 自動演示';
+      calcEls.stepAutoBtn.innerHTML = '<i data-lucide="play-circle"></i> 自動演示';
+      if(MathApp.refreshIcons) MathApp.refreshIcons();
     }
   }
   function toggleAutoPlay(){
@@ -713,7 +714,8 @@
       stopAutoPlay();
     } else {
       calcState.isAutoPlaying = true;
-      calcEls.stepAutoBtn.textContent = '⏸ 暫停演示';
+      calcEls.stepAutoBtn.innerHTML = '<i data-lucide="pause-circle"></i> 暫停演示';
+      if(MathApp.refreshIcons) MathApp.refreshIcons();
       if(calcState.step >= 4){
         calcState.step = 0;
         renderCalcView(true);

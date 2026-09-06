@@ -64,26 +64,26 @@
     </div>
 
     <div class="audio-bar">
-      <button class="toggle-pill" id="toggle-theme" type="button" aria-pressed="false">🌙 深色模式</button>
-      <button class="toggle-pill" id="toggle-sound" type="button" aria-pressed="true">🔊 音效</button>
-      <button class="toggle-pill" id="toggle-voice" type="button" aria-pressed="true">🗣️ 語音</button>
-      <button class="toggle-pill thousand-pill" id="toggle-thousand" type="button" aria-pressed="false">📦 千位數：關閉</button>
+      <button class="toggle-pill" id="toggle-theme" type="button" aria-pressed="false"><i data-lucide="moon"></i><span>深色模式</span></button>
+      <button class="toggle-pill" id="toggle-sound" type="button" aria-pressed="true"><i data-lucide="volume-2"></i><span>音效</span></button>
+      <button class="toggle-pill" id="toggle-voice" type="button" aria-pressed="true"><i data-lucide="volume-1"></i><span>語音</span></button>
+      <button class="toggle-pill thousand-pill" id="toggle-thousand" type="button" aria-pressed="false"><i data-lucide="box"></i><span>千位數：關閉</span></button>
     </div>
 
     <!-- 主模組單元導覽列 (各學習單元入口) -->
     <nav class="main-nav-tabs" role="tablist" aria-label="學習單元切換">
       <button class="main-tab active" id="main-tab-learn" type="button" role="tab" aria-selected="true" aria-controls="panel-learn">
-        <span class="unit-badge">單元 1</span> 💡 位值探索
+        <span class="unit-badge">單元 1</span> <i data-lucide="lightbulb"></i>位值探索
       </button>
       <button class="main-tab" id="main-tab-calc" type="button" role="tab" aria-selected="false" aria-controls="panel-calc">
-        <span class="unit-badge">單元 2</span> ➕➖ 直式加減法
+        <span class="unit-badge">單元 2</span> <i data-lucide="calculator"></i>直式加減法
       </button>
     </nav>
   </header>
 
   <!-- 單元視覺過渡指示線 -->
   <div class="unit-boundary" aria-hidden="true">
-    <span class="unit-boundary-tag">📖 學習單元操作舞台</span>
+    <span class="unit-boundary-tag"><i data-lucide="sparkles"></i> 學習單元操作舞台</span>
   </div>
 
   <!-- ================= 單元 1：位值探索 (PLACE VALUE MODULE) ================= -->
@@ -91,8 +91,8 @@
     <!-- 單元內部子分頁切換列 -->
     <div class="unit-sub-nav">
       <div class="unit-sub-tabs" role="tablist" aria-label="位值探索單元子分頁">
-        <button class="unit-sub-tab active" id="subtab-pv-learn" type="button" role="tab" aria-selected="true" aria-controls="subpanel-pv-learn">🧱 積木製造機（概念探索）</button>
-        <button class="unit-sub-tab" id="subtab-pv-quiz" type="button" role="tab" aria-selected="false" aria-controls="subpanel-pv-quiz">🎯 位值挑戰測驗</button>
+        <button class="unit-sub-tab active" id="subtab-pv-learn" type="button" role="tab" aria-selected="true" aria-controls="subpanel-pv-learn"><i data-lucide="blocks"></i>積木製造機（概念探索）</button>
+        <button class="unit-sub-tab" id="subtab-pv-quiz" type="button" role="tab" aria-selected="false" aria-controls="subpanel-pv-quiz"><i data-lucide="target"></i>位值挑戰測驗</button>
       </div>
     </div>
 
@@ -152,7 +152,7 @@
 
         <div class="display-row">
           <div class="display" id="display"></div>
-          <button class="speaker-btn" id="speak-number-btn" type="button" aria-label="播放目前數字的唸法">🔊</button>
+          <button class="speaker-btn" id="speak-number-btn" type="button" aria-label="播放目前數字的唸法"><i data-lucide="volume-2"></i></button>
         </div>
         <div class="expand" id="expand"></div>
         <div class="toast" id="carry-toast"></div>
@@ -204,7 +204,7 @@
         </div>
 
         <div class="machine-foot">
-          <button class="ghost-btn" id="randomize">🎲 給我一個隨機數字</button>
+          <button class="ghost-btn" id="randomize"><i data-lucide="dices"></i> 給我一個隨機數字</button>
         </div>
       </section>
     </div><!-- /#subpanel-pv-learn -->
@@ -217,8 +217,8 @@
 
         <!-- 模式分頁切換器 -->
         <div class="mode-tabs" role="tablist" aria-label="挑戰模式切換">
-          <button class="mode-tab active" id="tab-practice" type="button" role="tab" aria-selected="true">📖 自由練習</button>
-          <button class="mode-tab" id="tab-selftest" type="button" role="tab" aria-selected="false">📝 自我測驗</button>
+          <button class="mode-tab active" id="tab-practice" type="button" role="tab" aria-selected="true"><i data-lucide="book-open"></i>自由練習</button>
+          <button class="mode-tab" id="tab-selftest" type="button" role="tab" aria-selected="false"><i data-lucide="file-text"></i>自我測驗</button>
         </div>
 
         <!-- 自由練習模式的計分列 -->
@@ -238,7 +238,7 @@
               <button type="button" class="chip active" data-count="5">5 題速測</button>
               <button type="button" class="chip" data-count="10">10 題完整測驗</button>
             </div>
-            <button class="primary-btn pulse-glow" id="start-selftest-btn" type="button">🚀 開始自我測驗</button>
+            <button class="primary-btn pulse-glow" id="start-selftest-btn" type="button"><i data-lucide="play"></i> 開始自我測驗</button>
           </div>
         </div>
 
@@ -259,7 +259,7 @@
           <div class="quiz-prompt">
             <div class="kicker" id="quiz-kicker">看數字，填出每個位置的個數</div>
             <div id="quiz-stage"></div>
-            <button class="ghost-btn small" id="speak-quiz-btn" type="button">🔊 再聽一次</button>
+            <button class="ghost-btn small" id="speak-quiz-btn" type="button"><i data-lucide="volume-2"></i> 再聽一次</button>
           </div>
 
           <div id="quiz-answer"></div>
@@ -283,8 +283,8 @@
           </div>
 
           <div class="quiz-actions">
-            <button class="primary-btn" id="check-btn">確認答案</button>
-            <button class="ghost-btn" id="next-btn" style="display:none;">下一題 →</button>
+            <button class="primary-btn" id="check-btn"><i data-lucide="check-circle-2"></i> 確認答案</button>
+            <button class="ghost-btn" id="next-btn" style="display:none;"><i data-lucide="arrow-right"></i> 下一題</button>
           </div>
 
           <div class="feedback" id="feedback"></div>
@@ -316,8 +316,8 @@
           <div class="result-review" id="result-review"></div>
 
           <div class="result-actions">
-            <button class="primary-btn" id="restart-selftest-btn" type="button">🔄 再測驗一次</button>
-            <button class="ghost-btn" id="back-practice-btn" type="button">📖 回到自由練習</button>
+            <button class="primary-btn" id="restart-selftest-btn" type="button"><i data-lucide="rotate-ccw"></i> 再測驗一次</button>
+            <button class="ghost-btn" id="back-practice-btn" type="button"><i data-lucide="book-open"></i> 回到自由練習</button>
           </div>
         </div>
       </section>
@@ -329,8 +329,8 @@
     <!-- 單元內部子分頁切換列 -->
     <div class="unit-sub-nav">
       <div class="unit-sub-tabs" role="tablist" aria-label="直式加減法單元子分頁">
-        <button class="unit-sub-tab active" id="subtab-calc-learn" type="button" role="tab" aria-selected="true" aria-controls="subpanel-calc-learn">🧱 算則演示操作台</button>
-        <button class="unit-sub-tab" id="subtab-calc-quiz" type="button" role="tab" aria-selected="false" aria-controls="subpanel-calc-quiz">🎯 直式挑戰測驗</button>
+        <button class="unit-sub-tab active" id="subtab-calc-learn" type="button" role="tab" aria-selected="true" aria-controls="subpanel-calc-learn"><i data-lucide="pencil"></i>算則演示操作台</button>
+        <button class="unit-sub-tab" id="subtab-calc-quiz" type="button" role="tab" aria-selected="false" aria-controls="subpanel-calc-quiz"><i data-lucide="trophy"></i>直式挑戰測驗</button>
       </div>
     </div>
 
@@ -343,8 +343,8 @@
 
           <!-- 運算類型切換：加法 vs 減法 -->
           <div class="calc-type-tabs" role="tablist" aria-label="加減法模式切換">
-            <button class="calc-type-btn active" id="btn-op-add" type="button" role="tab" aria-selected="true">➕ 直式加法（合體與進位）</button>
-            <button class="calc-type-btn" id="btn-op-sub" type="button" role="tab" aria-selected="false">➖ 直式減法（拿走與退位）</button>
+            <button class="calc-type-btn active" id="btn-op-add" type="button" role="tab" aria-selected="true"><i data-lucide="plus"></i> 直式加法（合體與進位）</button>
+            <button class="calc-type-btn" id="btn-op-sub" type="button" role="tab" aria-selected="false"><i data-lucide="minus"></i> 直式減法（拿走與退位）</button>
           </div>
 
           <!-- 題型快速挑選 Chip 列 -->
@@ -353,8 +353,8 @@
             <div class="preset-chips" id="preset-chips">
               <!-- 由 JavaScript 動態注入預設範例按鈕 -->
             </div>
-            <button class="ghost-btn small" id="calc-random-btn" type="button">🎲 隨機題目</button>
-            <button class="ghost-btn small" id="calc-custom-toggle-btn" type="button">✏️ 自訂算式</button>
+            <button class="ghost-btn small" id="calc-random-btn" type="button"><i data-lucide="dices"></i> 隨機題目</button>
+            <button class="ghost-btn small" id="calc-custom-toggle-btn" type="button"><i data-lucide="sliders"></i> 自訂算式</button>
           </div>
 
           <!-- 自訂算式抽屜 -->
@@ -437,7 +437,7 @@
             <div class="stepper-explanation" id="stepper-explanation">
               先將數字排整齊！個位對齊個位、十位對齊十位，同一種位置才能相加喔！
             </div>
-            <button class="speaker-btn small" id="calc-speak-btn" type="button" aria-label="朗讀目前步驟解說">🔊</button>
+            <button class="speaker-btn small" id="calc-speak-btn" type="button" aria-label="朗讀目前步驟解說"><i data-lucide="volume-2"></i></button>
           </div>
 
           <!-- 互動引導操作提示區（選項 A） -->
@@ -446,17 +446,17 @@
           </div>
 
           <div class="stepper-controls">
-            <button class="ghost-btn" id="step-prev-btn" type="button">◀ 上一步</button>
-            <button class="ghost-btn" id="step-replay-btn" type="button">🔄 重播本步</button>
-            <button class="ghost-btn" id="step-auto-btn" type="button">⏯ 自動演示</button>
-            <button class="primary-btn pulse-glow" id="step-next-btn" type="button">下一步 ▶</button>
+            <button class="ghost-btn" id="step-prev-btn" type="button"><i data-lucide="arrow-left"></i> 上一步</button>
+            <button class="ghost-btn" id="step-replay-btn" type="button"><i data-lucide="rotate-ccw"></i> 重播本步</button>
+            <button class="ghost-btn" id="step-auto-btn" type="button"><i data-lucide="play-circle"></i> 自動演示</button>
+            <button class="primary-btn pulse-glow" id="step-next-btn" type="button">下一步 <i data-lucide="arrow-right"></i></button>
           </div>
         </div>
 
         <!-- 核心概念小百科小卡 -->
         <div class="calc-concept-notes">
           <div class="concept-note-box">
-            <div class="note-icon">💡</div>
+            <div class="note-icon"><i data-lucide="lightbulb"></i></div>
             <div class="note-content">
               <h4 id="concept-note-title">直式小秘訣：為什麼一定要從個位先算？</h4>
               <p id="concept-note-text">
@@ -476,8 +476,8 @@
 
         <!-- 模式切換器 (自由練習 vs 自我測驗) -->
         <div class="mode-tabs" role="tablist" aria-label="直式挑戰模式切換">
-          <button class="mode-tab active" id="cq-tab-practice" type="button" role="tab" aria-selected="true">📖 自由練習</button>
-          <button class="mode-tab" id="cq-tab-selftest" type="button" role="tab" aria-selected="false">📝 自我測驗</button>
+          <button class="mode-tab active" id="cq-tab-practice" type="button" role="tab" aria-selected="true"><i data-lucide="book-open"></i>自由練習</button>
+          <button class="mode-tab" id="cq-tab-selftest" type="button" role="tab" aria-selected="false"><i data-lucide="file-text"></i>自我測驗</button>
         </div>
 
         <!-- 題型難度過濾列 (自由練習專用) -->
@@ -501,7 +501,7 @@
         <!-- 自我測驗模式：設定與開始卡片 -->
         <div class="selftest-panel" id="cq-selftest-setup-panel" style="display: none;">
           <div class="selftest-setup-card">
-            <div class="setup-icon">🏆</div>
+            <div class="setup-icon"><i data-lucide="trophy"></i></div>
             <h3>直式加減法自我評量挑戰</h3>
             <p>包含不進退位、進位加法、退位借位與百位混合題型，測驗你的直式算則實力！</p>
             <div class="selftest-options">
@@ -509,7 +509,7 @@
               <button type="button" class="chip active" data-count="5">5 題速測</button>
               <button type="button" class="chip" data-count="10">10 題完整測驗</button>
             </div>
-            <button class="primary-btn pulse-glow" id="cq-start-selftest-btn" type="button">🚀 開始直式測驗</button>
+            <button class="primary-btn pulse-glow" id="cq-start-selftest-btn" type="button"><i data-lucide="play"></i> 開始直式測驗</button>
           </div>
         </div>
 
@@ -531,7 +531,7 @@
           <div class="cq-prompt-row">
             <span class="cq-badge" id="cq-type-badge">進位加法</span>
             <span class="cq-hint-text" id="cq-prompt-text">由個位開始算起，滿十記得進位喔！</span>
-            <button class="ghost-btn small" id="cq-speak-btn" type="button">🔊 朗讀題目</button>
+            <button class="ghost-btn small" id="cq-speak-btn" type="button"><i data-lucide="volume-2"></i> 朗讀題目</button>
           </div>
 
           <!-- 直式答題筆記板 (Vertical Notebook) -->
@@ -563,9 +563,9 @@
 
           <!-- 操作按鈕 -->
           <div class="quiz-actions">
-            <button class="ghost-btn" id="cq-helper-toggle-btn" type="button">🧱 展開積木小幫手</button>
-            <button class="primary-btn" id="cq-check-btn" type="button">確認答案</button>
-            <button class="ghost-btn" id="cq-next-btn" style="display:none;" type="button">下一題 →</button>
+            <button class="ghost-btn" id="cq-helper-toggle-btn" type="button"><i data-lucide="blocks"></i> 展開積木小幫手</button>
+            <button class="primary-btn" id="cq-check-btn" type="button"><i data-lucide="check-circle-2"></i> 確認答案</button>
+            <button class="ghost-btn" id="cq-next-btn" style="display:none;" type="button">下一題 <i data-lucide="arrow-right"></i></button>
           </div>
 
           <!-- 積木小幫手抽屜 (視覺化動態輔助) -->
@@ -609,8 +609,8 @@
           <div class="result-review" id="cq-result-review"></div>
 
           <div class="result-actions">
-            <button class="primary-btn" id="cq-restart-selftest-btn" type="button">🔄 再測驗一次</button>
-            <button class="ghost-btn" id="cq-back-practice-btn" type="button">📖 回到自由練習</button>
+            <button class="primary-btn" id="cq-restart-selftest-btn" type="button"><i data-lucide="rotate-ccw"></i> 再測驗一次</button>
+            <button class="ghost-btn" id="cq-back-practice-btn" type="button"><i data-lucide="book-open"></i> 回到自由練習</button>
           </div>
         </div>
       </section>
@@ -620,7 +620,7 @@
   <footer class="footer-wrap">
     <p>用積木的方式，把數字拆開來看，數學也可以這麼好玩 ✏️</p>
     <div class="sys-tools">
-      <button class="ghost-btn small diag-trigger-btn" id="open-diagnostics-btn" type="button">🧪 系統自我檢測 (Self-Test)</button>
+      <button class="ghost-btn small diag-trigger-btn" id="open-diagnostics-btn" type="button"><i data-lucide="activity"></i> 系統自我檢測 (Self-Test)</button>
     </div>
   </footer>
 </div>
@@ -630,7 +630,7 @@
   <div class="modal-dialog">
     <div class="modal-head">
       <div class="modal-title-group">
-        <span class="diag-icon">🧪</span>
+        <span class="diag-icon"><i data-lucide="activity"></i></span>
         <h3 id="diag-title">系統功能自我檢測 (System Diagnostics)</h3>
       </div>
       <button class="close-modal-btn" id="close-diagnostics-btn" type="button" aria-label="關閉檢測視窗">✕</button>
@@ -649,7 +649,7 @@
     </div>
 
     <div class="modal-foot">
-      <button class="primary-btn" id="run-diagnostics-btn" type="button">▶ 執行自檢測試</button>
+      <button class="primary-btn" id="run-diagnostics-btn" type="button"><i data-lucide="play"></i> 執行自檢測試</button>
       <button class="ghost-btn" id="dismiss-diagnostics-btn" type="button">關閉</button>
     </div>
   </div>
@@ -659,6 +659,8 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.2/anime.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/interactjs@1.10.17/dist/interact.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/two.js/0.8.14/two.min.js"></script>
+<script src="https://unpkg.com/lucide@latest"></script>
+<script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
 
 <!-- 模組化應用腳本（相容本機雙擊開啟） -->
 <script defer src="js/core.js?v=20260906h"></script>

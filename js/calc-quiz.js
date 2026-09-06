@@ -497,7 +497,12 @@
       cqEls.feedback.className = 'feedback correct';
 
       cqEls.checkBtn.style.display = 'none';
+      var isLastQ = currentMode === 'selftest' && (selfTestState.index + 1) >= selfTestConfig.total;
+      cqEls.nextBtn.innerHTML = isLastQ 
+        ? '查看測驗成果 <i data-lucide="trophy"></i>' 
+        : '下一題 <i data-lucide="arrow-right"></i>';
       cqEls.nextBtn.style.display = 'inline-block';
+      if(MathApp.refreshIcons) MathApp.refreshIcons();
 
       if(MathApp.sfx) MathApp.sfx('correct');
       if(MathApp.utils && typeof MathApp.utils.launchConfetti === 'function'){
@@ -581,7 +586,12 @@
       } else {
         isAnswered = true;
         cqEls.checkBtn.style.display = 'none';
+        var isLastQErr = (selfTestState.index + 1) >= selfTestConfig.total;
+        cqEls.nextBtn.innerHTML = isLastQErr 
+          ? '查看測驗成果 <i data-lucide="trophy"></i>' 
+          : '下一題 <i data-lucide="arrow-right"></i>';
         cqEls.nextBtn.style.display = 'inline-block';
+        if(MathApp.refreshIcons) MathApp.refreshIcons();
         selfTestState.history.push({
           summary: currentQ.a + (op === 'add' ? ' + ' : ' − ') + currentQ.b + ' = ' + userTotal + '（正確為 ' + correctTotal + '）',
           ok: false
@@ -745,6 +755,10 @@
     cqEls.resultReview.innerHTML = reviewHtml;
 
     if(MathApp.sfx) MathApp.sfx(scorePct >= 60 ? 'correct' : 'click');
+    if(scorePct >= 60 && MathApp.utils && typeof MathApp.utils.launchConfetti === 'function'){
+      MathApp.utils.launchConfetti(scorePct >= 80);
+    }
+    if(MathApp.refreshIcons) MathApp.refreshIcons();
   }
 
   /* 朗讀當前題目 */
@@ -805,7 +819,10 @@
     if(cqEls.helperToggleBtn){
       cqEls.helperToggleBtn.addEventListener('click', function(){
         var isOpen = cqEls.helperDrawer.classList.toggle('open');
-        cqEls.helperToggleBtn.textContent = isOpen ? '🔼 收合積木小幫手' : '🧱 展開積木小幫手';
+        cqEls.helperToggleBtn.innerHTML = isOpen 
+          ? '<i data-lucide="chevron-up"></i> 收合積木小幫手' 
+          : '<i data-lucide="blocks"></i> 展開積木小幫手';
+        if(MathApp.refreshIcons) MathApp.refreshIcons();
         if(MathApp.sfx) MathApp.sfx('click');
       });
     }

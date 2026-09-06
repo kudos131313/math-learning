@@ -199,9 +199,11 @@
           '<span class="review-badge ' + badgeCls + '">' + badgeText + '</span>' +
         '</div>';
     });
-    quizEls.resultReview.innerHTML = reviewHtml;
-
     MathApp.sfx(scorePct >= 60 ? 'correct' : 'click');
+    if(scorePct >= 60 && MathApp.utils && typeof MathApp.utils.launchConfetti === 'function'){
+      MathApp.utils.launchConfetti(scorePct >= 80);
+    }
+    if(MathApp.refreshIcons) MathApp.refreshIcons();
   }
 
   /* 出題邏輯 */
@@ -388,8 +390,11 @@
       });
 
       var isLast = (selfTestState.index + 1) >= selfTestConfig.total;
-      quizEls.nextBtn.textContent = isLast ? '查看測驗成果 🏆' : '下一題 →';
+      quizEls.nextBtn.innerHTML = isLast 
+        ? '查看測驗成果 <i data-lucide="trophy"></i>' 
+        : '下一題 <i data-lucide="arrow-right"></i>';
       quizEls.nextBtn.style.display = 'inline-block';
+      if(MathApp.refreshIcons) MathApp.refreshIcons();
 
       if(allOk){
         var goodMsg2 = MathApp.utils.goodMsgs[MathApp.randInt(0, MathApp.utils.goodMsgs.length - 1)];

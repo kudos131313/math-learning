@@ -25,6 +25,9 @@
     if(MathApp.diagnostics && typeof MathApp.diagnostics.init === 'function'){
       MathApp.diagnostics.init();
     }
+    if(MathApp.refreshIcons){
+      MathApp.refreshIcons();
+    }
 
     console.log('🚀 數字積木屋（模組化架構）初始化完成！');
   }

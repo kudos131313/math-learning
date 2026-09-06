@@ -45,7 +45,10 @@
     document.documentElement.setAttribute('data-theme', isDark ? 'dark' : 'light');
     if(themeToggleBtn){
       themeToggleBtn.setAttribute('aria-pressed', String(isDark));
-      themeToggleBtn.textContent = isDark ? '☀️ 淺色模式' : '🌙 深色模式';
+      themeToggleBtn.innerHTML = isDark 
+        ? '<i data-lucide="sun"></i><span>淺色模式</span>' 
+        : '<i data-lucide="moon"></i><span>深色模式</span>';
+      if(MathApp.refreshIcons) MathApp.refreshIcons();
     }
   }
 
@@ -73,7 +76,10 @@
     thousandEnabled = enabled;
     if(thousandToggleBtn){
       thousandToggleBtn.setAttribute('aria-pressed', String(enabled));
-      thousandToggleBtn.textContent = enabled ? '📦 千位數：開啟' : '📦 千位數：關閉';
+      thousandToggleBtn.innerHTML = enabled 
+        ? '<i data-lucide="box"></i><span>千位數：開啟</span>' 
+        : '<i data-lucide="box"></i><span>千位數：關閉</span>';
+      if(MathApp.refreshIcons) MathApp.refreshIcons();
     }
     document.body.classList.toggle('thousand-mode', enabled);
 

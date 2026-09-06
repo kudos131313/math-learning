@@ -86,7 +86,10 @@
     soundToggleBtn.addEventListener('click', function(){
       soundOn = !soundOn;
       soundToggleBtn.setAttribute('aria-pressed', String(soundOn));
-      soundToggleBtn.textContent = soundOn ? '🔊 音效' : '🔈 音效（關）';
+      soundToggleBtn.innerHTML = soundOn 
+        ? '<i data-lucide="volume-2"></i><span>音效</span>' 
+        : '<i data-lucide="volume-x"></i><span>音效（關）</span>';
+      if(MathApp.refreshIcons) MathApp.refreshIcons();
       if(soundOn) sfx('click');
     });
   }
@@ -95,7 +98,10 @@
     voiceToggleBtn.addEventListener('click', function(){
       voiceOn = !voiceOn;
       voiceToggleBtn.setAttribute('aria-pressed', String(voiceOn));
-      voiceToggleBtn.textContent = voiceOn ? '🗣️ 語音' : '🔇 語音（關）';
+      voiceToggleBtn.innerHTML = voiceOn 
+        ? '<i data-lucide="volume-1"></i><span>語音</span>' 
+        : '<i data-lucide="mic-off"></i><span>語音（關）</span>';
+      if(MathApp.refreshIcons) MathApp.refreshIcons();
       if(!voiceOn && 'speechSynthesis' in window) window.speechSynthesis.cancel();
     });
   }

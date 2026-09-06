@@ -60,10 +60,39 @@
   var goodMsgs = ['答對了，太棒了！', '沒錯，就是這樣！', '完全正確，繼續加油！', '答對囉，你抓到訣竅了！'];
   var badMsgs  = ['再想想看，你可以的！', '有點小誤會，看看正確答案吧！', '差一點點，繼續挑戰！'];
 
-  /* 彩帶粒子動畫 (Confetti) */
-  var CONFETTI_COLORS = ['#e8604c','#2e9e82','#ec9a1e','#2b6ef2','#f57cdc','#a259f7'];
-  function launchConfetti(){
+  /* 彩帶粒子動畫 (Canvas Confetti / DOM Fallback) */
+  var CONFETTI_COLORS = ['#e8604c','#2e9e82','#ec9a1e','#2b6ef2','#f57cdc','#a259f7','#fbbf24'];
+  function launchConfetti(isGrand){
     if(prefersReduced) return;
+    if(typeof window.confetti === 'function'){
+      var count = isGrand ? 100 : 55;
+      window.confetti({
+        particleCount: count,
+        spread: isGrand ? 90 : 65,
+        origin: { y: 0.65 },
+        colors: CONFETTI_COLORS,
+        disableForReducedMotion: true
+      });
+      if(isGrand){
+        setTimeout(function(){
+          window.confetti({
+            particleCount: 45,
+            angle: 60,
+            spread: 55,
+            origin: { x: 0, y: 0.7 },
+            colors: CONFETTI_COLORS
+          });
+          window.confetti({
+            particleCount: 45,
+            angle: 120,
+            spread: 55,
+            origin: { x: 1, y: 0.7 },
+            colors: CONFETTI_COLORS
+          });
+        }, 200);
+      }
+      return;
+    }
     var count = 42;
     for(var i = 0; i < count; i++){
       (function(){
@@ -88,6 +117,13 @@
         document.body.appendChild(piece);
         setTimeout(function(){ piece.remove(); }, (dur + 0.35) * 1000);
       })();
+    }
+  }
+
+  /* 向量圖標動態刷新 (Lucide) */
+  function refreshIcons(){
+    if(typeof window.lucide !== 'undefined' && typeof window.lucide.createIcons === 'function'){
+      window.lucide.createIcons();
     }
   }
 
@@ -242,6 +278,7 @@
     formatTime: formatTime,
     numberToChinese: numberToChinese,
     launchConfetti: launchConfetti,
+    refreshIcons: refreshIcons,
     showToast: showToast,
     goodMsgs: goodMsgs,
     badMsgs: badMsgs,
@@ -263,5 +300,6 @@
   MathApp.numberToChinese = numberToChinese;
   MathApp.renderBlocks = renderBlocks;
   MathApp.renderGroupedBlocksHtml = renderGroupedBlocksHtml;
+  MathApp.refreshIcons = refreshIcons;
 
 })();

@@ -230,7 +230,7 @@
     },
     {
       id: 'external_libs',
-      name: '外部函式庫載入與動態環境檢驗 (Anime.js / Interact.js / Two.js)',
+      name: '外部函式庫載入與動態環境檢驗 (Anime.js / Interact.js / Two.js / Lucide / Confetti)',
       run: function(){
         var reports = [];
         if(typeof window.anime !== 'undefined'){
@@ -249,6 +249,18 @@
           reports.push('Two.js 向量畫布引擎就緒');
         } else {
           reports.push('Two.js 離線環境（SVG 原生引擎運作中）');
+        }
+
+        if(typeof window.lucide !== 'undefined'){
+          reports.push('Lucide Icons 向量圖標庫就緒');
+        } else {
+          reports.push('Lucide Icons 未載入');
+        }
+
+        if(typeof window.confetti !== 'undefined'){
+          reports.push('Canvas-confetti 禮砲粒子引擎就緒');
+        } else {
+          reports.push('Canvas-confetti 未載入（DOM 降級模式運作中）');
         }
 
         return reports.join('，');
