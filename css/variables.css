@@ -11,6 +11,15 @@
   --surface: #ffffff;
   --surface-dim: #f1ede4;
   --shadow-ink: #332b22;
+  /* ---------- 全站 UI 與互動主色 (UI BRAND & ACTIONS) ---------- */
+  --brand-coral: #e8604c;
+  --brand-amber: #ec9a1e;
+  --brand-amber-dark: #a5670f;
+  --brand-amber-soft: #fbe8c6;
+  --good: #2e9e82;
+  --bad: #e8604c;
+
+  /* ---------- 國小課本位值教具專屬色 (BLOCKS & PLACE-VALUES) ---------- */
   --th-color: #7c3aed;
   --th-color-dark: #5b21b6;
   --th-soft: #ede9fe;
@@ -26,8 +35,6 @@
   --o-color: #64748b;
   --o-color-dark: #334155;
   --o-soft: #e2e8f0;
-  --good: #16a34a;
-  --bad: #ef4444;
   --radius-card: 22px;
   --shadow-hard: 5px 5px 0 var(--line-strong, rgba(51,43,34,.12));
 }
@@ -105,7 +112,7 @@ a, button{ font-family: inherit; }
   color: var(--ink);
   line-height: 1.25;
 }
-.site-header-hub h1 span{ color: var(--h-color); }
+.site-header-hub h1 span{ color: var(--brand-coral, #e8604c); }
 .site-header-hub p{
   color: var(--ink-soft);
   font-size: 13.5px;

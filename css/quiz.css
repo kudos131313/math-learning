@@ -21,7 +21,7 @@ section.quiz .sub{ text-align:center; color: var(--ink-soft); font-size:13.5px; 
   font-size: 13.5px;
   font-weight:700;
 }
-.score-pill em{ font-style:normal; color: var(--o-color-dark); }
+.score-pill em{ font-style:normal; color: var(--brand-amber-dark, #a5670f); }
 
 .quiz-card{
   background: var(--card);
@@ -131,7 +131,7 @@ section.quiz .sub{ text-align:center; color: var(--ink-soft); font-size:13.5px; 
   transition: transform .06s ease, box-shadow .06s ease, background .12s ease;
 }
 .num-key:hover{
-  background: color-mix(in srgb, var(--surface) 70%, var(--o-color) 30%);
+  background: color-mix(in srgb, var(--surface) 70%, var(--brand-amber, #ec9a1e) 30%);
   transform: translate(-1px, -1px);
   box-shadow: 3.5px 3.5px 0 var(--shadow-ink);
 }
@@ -190,7 +190,7 @@ section.quiz .sub{ text-align:center; color: var(--ink-soft); font-size:13.5px; 
 
 .quiz-actions{ display:flex; justify-content:center; gap: 16px; flex-wrap:wrap; }
 .primary-btn{
-  background: var(--o-color);
+  background: var(--brand-amber, #ec9a1e);
   border: 2px solid var(--ink);
   border-radius: 999px;
   padding: 14px 30px;
@@ -341,9 +341,9 @@ section.quiz .sub{ text-align:center; color: var(--ink-soft); font-size:13.5px; 
   transition: all .12s ease;
 }
 .chip.active{
-  background: var(--o-soft);
-  color: var(--o-color-dark);
-  border-color: var(--o-color);
+  background: var(--brand-amber-soft, #fbe8c6);
+  color: var(--brand-amber-dark, #a5670f);
+  border-color: var(--brand-amber, #ec9a1e);
   box-shadow: 3px 3px 0 var(--shadow-ink);
 }
 .pulse-glow{
@@ -395,7 +395,7 @@ section.quiz .sub{ text-align:center; color: var(--ink-soft); font-size:13.5px; 
 }
 .progress-fill{
   height: 100%;
-  background: linear-gradient(90deg, var(--t-color), var(--o-color));
+  background: linear-gradient(90deg, var(--good, #2e9e82), var(--brand-amber, #ec9a1e));
   width: 0%;
   transition: width .35s ease;
 }
@@ -451,8 +451,8 @@ section.quiz .sub{ text-align:center; color: var(--ink-soft); font-size:13.5px; 
   line-height: 1.1;
   color: var(--ink);
 }
-.stat-box:nth-child(1) .stat-num{ color: var(--o-color); }
-.stat-box:nth-child(2) .stat-num{ color: var(--t-color); }
+.stat-box:nth-child(1) .stat-num{ color: var(--brand-amber, #ec9a1e); }
+.stat-box:nth-child(2) .stat-num{ color: var(--brand-coral, #e8604c); }
 .stat-lbl{
   font-size: 12px;
   font-weight: 700;

@@ -622,7 +622,7 @@
   transform: translateY(-2px);
 }
 .prompt-btn.borrow-btn{
-  background: var(--h-color);
+  background: var(--bad, #e8604c);
 }
 
 @media (max-width: 680px){
