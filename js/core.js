@@ -37,37 +37,6 @@
     });
   };
 
-  /* ---------------- 主題切換 (THEME) ---------------- */
-  var themeToggleBtn = document.getElementById('toggle-theme');
-  var prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
-
-  function applyTheme(isDark){
-    document.documentElement.setAttribute('data-theme', isDark ? 'dark' : 'light');
-    if(themeToggleBtn){
-      themeToggleBtn.setAttribute('aria-pressed', String(isDark));
-      themeToggleBtn.innerHTML = isDark 
-        ? '<i data-lucide="sun"></i><span>淺色模式</span>' 
-        : '<i data-lucide="moon"></i><span>深色模式</span>';
-      if(MathApp.refreshIcons) MathApp.refreshIcons();
-    }
-  }
-
-  function toggleTheme(){
-    var isDark = document.documentElement.getAttribute('data-theme') === 'dark';
-    applyTheme(!isDark);
-    if(MathApp.sfx) MathApp.sfx('click');
-  }
-
-  if(themeToggleBtn){
-    themeToggleBtn.addEventListener('click', toggleTheme);
-  }
-  applyTheme(prefersDark);
-
-  MathApp.theme = {
-    applyTheme: applyTheme,
-    toggleTheme: toggleTheme
-  };
-
   /* ---------------- 千位數模式開關 (THOUSAND MODE) ---------------- */
   var thousandEnabled = false;
   var thousandToggleBtn = document.getElementById('toggle-thousand');

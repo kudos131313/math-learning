@@ -29,31 +29,6 @@
   --shadow-hard: 5px 5px 0 var(--line-strong, rgba(51,43,34,.12));
 }
 
-html[data-theme="dark"]{
-  --bg: #201b16;
-  --line: rgba(255,247,232,.055);
-  --ink: #f3ece0;
-  --ink-soft: #b9ac97;
-  --card: #2c2620;
-  --surface: #362f27;
-  --surface-dim: #241f1a;
-  --shadow-ink: #0c0a07;
-  --th-color: #9c88ff;
-  --th-color-dark: #c8befe;
-  --th-soft: rgba(156,136,255,.16);
-  --h-color: #ff8065;
-  --h-color-dark: #ffb9a6;
-  --h-soft: rgba(255,128,101,.16);
-  --t-color: #48c4a3;
-  --t-color-dark: #a6ecd8;
-  --t-soft: rgba(72,196,163,.14);
-  --o-color: #f3ab3d;
-  --o-color-dark: #ffd699;
-  --o-soft: rgba(243,171,61,.16);
-  --good: #48c4a3;
-  --bad: #ff8065;
-}
-
 *{ box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
 
 html{ scroll-behavior: smooth; touch-action: manipulation; }
@@ -221,11 +196,6 @@ a, button{ font-family: inherit; }
   color: #fff;
   border-color: var(--ink);
 }
-[data-theme="dark"] .main-tab.active .unit-badge{
-  background: var(--h-color);
-  color: #fff;
-  border-color: var(--h-color);
-}
 .main-tab:active{
   transform: translate(1.5px, 1.5px);
 }
@@ -315,9 +285,6 @@ a, button{ font-family: inherit; }
 .unit-sub-tab:hover{
   color: var(--ink);
   background: rgba(0, 0, 0, 0.04);
-}
-[data-theme="dark"] .unit-sub-tab:hover{
-  background: rgba(255, 255, 255, 0.08);
 }
 .unit-sub-tab.active{
   background: var(--card);

@@ -148,9 +148,7 @@ section.quiz .sub{ text-align:center; color: var(--ink-soft); font-size:13.5px; 
   background: var(--good);
   color: #ffffff;
 }
-html[data-theme="dark"] .num-key.enter-key{
-  color: #1a2c25;
-}
+
 
 .quiz-actions{ display:flex; justify-content:center; gap: 16px; flex-wrap:wrap; }
 .primary-btn{

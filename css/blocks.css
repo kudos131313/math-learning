@@ -95,10 +95,7 @@
   flex-wrap: wrap;
   transition: all .2s ease;
 }
-html[data-theme="dark"] .blk-group-5{
-  background: rgba(255,255,255,.045);
-  border-color: rgba(255,255,255,.16);
-}
+
 .quiz-blocks .grp .row{
   display: flex;
   flex-wrap: wrap;
