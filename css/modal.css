@@ -147,3 +147,148 @@
   gap: 10px;
   background: var(--surface);
 }
+
+/* ================= 語音清單與切換面板 (VOICE LIST MODAL) ================= */
+.modal-dialog-wide{
+  max-width: 660px;
+}
+.voice-modal-toolbar{
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 14px;
+  flex-wrap: wrap;
+}
+.voice-filter-group{
+  display: inline-flex;
+  background: var(--surface-dim);
+  border: 1.5px solid var(--ink);
+  border-radius: 999px;
+  padding: 2px;
+}
+.voice-filter-btn{
+  background: transparent;
+  border: none;
+  border-radius: 999px;
+  padding: 4px 12px;
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--ink-soft);
+  cursor: pointer;
+  transition: all .15s ease;
+}
+.voice-filter-btn.active{
+  background: var(--card);
+  color: var(--ink);
+  border: 1px solid var(--ink);
+  box-shadow: 1px 1px 0 var(--shadow-ink);
+}
+.voice-item-list{
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-height: 48vh;
+  overflow-y: auto;
+  padding-right: 4px;
+}
+.voice-card-item{
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 14px;
+  background: var(--surface);
+  border: 1.5px solid var(--ink);
+  border-radius: 12px;
+  box-shadow: 1.5px 1.5px 0 var(--shadow-ink);
+  transition: all .15s ease;
+}
+.voice-card-item:hover{
+  background: #fff;
+  transform: translateY(-1px);
+}
+.voice-card-item.selected{
+  background: rgba(43,110,242,.08);
+  border-color: #2b6ef2;
+  box-shadow: 2px 2px 0 rgba(43,110,242,.35);
+}
+.voice-card-info{
+  flex: 1;
+  min-width: 0;
+}
+.voice-card-title-row{
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 3px;
+}
+.voice-card-name{
+  font-weight: 800;
+  color: var(--ink);
+  font-size: 14px;
+  word-break: break-all;
+}
+.voice-card-tag{
+  font-size: 11px;
+  font-weight: 800;
+  padding: 1px 7px;
+  border-radius: 999px;
+  border: 1px solid var(--ink);
+  white-space: nowrap;
+}
+.voice-card-tag.current{
+  background: #22c55e;
+  color: #fff;
+  border-color: #15803d;
+}
+.voice-card-tag.lang{
+  background: var(--surface-dim);
+  color: var(--ink-soft);
+  border-color: var(--ink-soft);
+}
+.voice-card-tag.pref{
+  background: #e0e7ff;
+  color: #3730a3;
+  border-color: #6366f1;
+}
+.voice-card-sub{
+  font-size: 12px;
+  color: var(--ink-soft);
+}
+.voice-card-actions{
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+.voice-card-btn{
+  padding: 5px 11px;
+  font-size: 12px;
+  font-weight: 700;
+  border-radius: 8px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+.voice-empty-tip{
+  text-align: center;
+  padding: 30px 16px;
+  color: var(--ink-soft);
+  font-size: 14px;
+}
+
+@media (max-width: 600px){
+  .voice-card-item{
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+  .voice-card-actions{
+    width: 100%;
+    justify-content: flex-end;
+  }
+}
+

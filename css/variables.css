@@ -398,7 +398,7 @@ body.thousand-mode .columns{
   padding: 8px 18px;
   min-height: auto;
   font-size: 13px;
-  margin-top: 12px;
+  margin: 0;
 }
 
 

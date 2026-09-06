@@ -8,7 +8,7 @@
 <link href="https://fonts.googleapis.com/css2?family=ZCOOL+KuaiLe&family=Baloo+2:wght@500;700;800&family=Noto+Sans+TC:wght@400;500;700;900&display=swap" rel="stylesheet">
 <link rel="icon" href="favicon.ico" type="image/x-icon">
 <link rel="shortcut icon" href="favicon.ico" type="image/x-icon">
-<link rel="stylesheet" href="style.css?v=20260906i">
+<link rel="stylesheet" href="style.css?v=20260906j">
 </head>
 <body>
 
@@ -760,6 +760,22 @@
   </div><!-- /#panel-calc -->
 
   <footer class="footer-wrap">
+    <!-- 頁尾語音狀態卡片（方便在 iPad 或行動裝置即時檢視調用語音） -->
+    <div class="voice-status-card" id="voice-status-card">
+      <div class="voice-status-main">
+        <span class="voice-status-pill"><i data-lucide="speech"></i> 語音引擎</span>
+        <span class="voice-status-text">目前調用語音：<strong id="voice-status-name">偵測中...</strong></span>
+      </div>
+      <div class="voice-status-actions">
+        <button class="ghost-btn small voice-test-btn" id="voice-test-btn" type="button" title="點擊試聽此語音">
+          <i data-lucide="volume-2"></i> 試聽語音
+        </button>
+        <button class="ghost-btn small voice-list-btn" id="open-voice-modal-btn" type="button" title="查看可用語音清單與切換">
+          <i data-lucide="list"></i> 語音清單
+        </button>
+      </div>
+    </div>
+
     <p>用積木的方式，把數字拆開來看，數學也可以這麼好玩 ✏️</p>
     <div class="sys-tools">
       <button class="ghost-btn small diag-trigger-btn" id="open-diagnostics-btn" type="button"><i data-lucide="activity"></i> 系統自我檢測 (Self-Test)</button>
@@ -797,6 +813,44 @@
   </div>
 </div>
 
+<!-- ================= 系統可用語音清單面板 (VOICE LIST MODAL) ================= -->
+<div class="modal-backdrop" id="voice-list-modal" style="display: none;" role="dialog" aria-modal="true" aria-labelledby="voice-modal-title">
+  <div class="modal-dialog modal-dialog-wide">
+    <div class="modal-head">
+      <div class="modal-title-group">
+        <span class="diag-icon"><i data-lucide="speech"></i></span>
+        <h3 id="voice-modal-title">系統可用語音清單</h3>
+      </div>
+      <button class="close-modal-btn" id="close-voice-modal-btn" type="button" aria-label="關閉語音面板">✕</button>
+    </div>
+
+    <div class="modal-body">
+      <p class="diag-desc">此清單由您目前裝置（iPad / 電腦 / 手機）的瀏覽器語音引擎提供。您可以試聽並指定偏好的朗讀聲音：</p>
+      
+      <div class="voice-modal-toolbar">
+        <div class="voice-filter-group" role="tablist" aria-label="語音語言篩選">
+          <button type="button" class="voice-filter-btn active" id="filter-voice-zh">中文語音</button>
+          <button type="button" class="voice-filter-btn" id="filter-voice-all">全部語音</button>
+        </div>
+        <button type="button" class="ghost-btn small" id="rescan-voices-btn" title="重新載入裝置語音資料庫">
+          <i data-lucide="rotate-cw"></i> 重新掃描
+        </button>
+      </div>
+
+      <div class="voice-item-list" id="voice-item-list">
+        <!-- 語音項目動態注入 -->
+      </div>
+    </div>
+
+    <div class="modal-foot">
+      <button class="ghost-btn small" id="reset-voice-pref-btn" type="button" title="清除自訂設定，恢復系統自動最佳推薦">
+        <i data-lucide="sparkles"></i> 恢復系統最佳推薦
+      </button>
+      <button class="primary-btn" id="dismiss-voice-modal-btn" type="button">完成</button>
+    </div>
+  </div>
+</div>
+
 <!-- 外部輔助函式庫（支援 CDN 載入與本機自動降級） -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.2/anime.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/interactjs@1.10.17/dist/interact.min.js"></script>
@@ -806,7 +860,7 @@
 
 <!-- 模組化應用腳本（相容本機雙擊開啟） -->
 <script defer src="js/core.js?v=20260906h"></script>
-<script defer src="js/audio.js?v=20260906k"></script>
+<script defer src="js/audio.js?v=20260906m"></script>
 <script defer src="js/utils.js?v=20260906h"></script>
 <script defer src="js/learn.js?v=20260906h"></script>
 <script defer src="js/quiz.js?v=20260906h"></script>
