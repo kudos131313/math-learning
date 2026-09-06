@@ -818,7 +818,7 @@
   quizEls.backPracticeBtn.addEventListener('click', function(){ switchMode('practice'); });
 
   /* 出題邏輯 */
-  function newRound(){
+  function newRound(silent){
     quizEls.feedback.textContent = '';
     quizEls.feedback.className = 'feedback';
     quizEls.nextBtn.style.display = 'none';
@@ -896,7 +896,9 @@
       setActiveInput(currentInputs[0]);
     }
 
-    speak(currentPromptSpeech);
+    if(!silent){
+      speak(currentPromptSpeech);
+    }
   }
 
   document.getElementById('speak-quiz-btn').addEventListener('click', function(){
@@ -1149,7 +1151,8 @@
   quizEls.checkBtn.addEventListener('click', checkAnswer);
   quizEls.nextBtn.addEventListener('click', handleNext);
 
-  newRound();
+  // 初始出題（靜音，剛進入頁面時不觸發語音）
+  newRound(true);
 
   /* Tab Slider 初始化 */
   (function initTabSlider(){

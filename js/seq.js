@@ -234,18 +234,20 @@
   }
 
   /* 設定目前數字 */
-  function setNumber(newVal, playVoice){
+  function setNumber(newVal, playVoice, silent){
     var bounded = Math.max(0, Math.min(9999, newVal));
     var oldVal = currentNum;
     currentNum = bounded;
     renderTrain();
     updateInspectAndBlocks();
 
-    // 音效
-    if(isCrossBoundary(currentNum, step)){
-      if(MathApp.sfx) MathApp.sfx('chime');
-    } else {
-      if(MathApp.sfx) MathApp.sfx('tick');
+    // 音效（非靜音模式才播放）
+    if(!silent){
+      if(isCrossBoundary(currentNum, step)){
+        if(MathApp.sfx) MathApp.sfx('chime');
+      } else {
+        if(MathApp.sfx) MathApp.sfx('tick');
+      }
     }
 
     // 語音播報
@@ -355,8 +357,8 @@
       }
     }
 
-    // 預設渲染
-    setNumber(189);
+    // 預設渲染（靜音模式，頁面載入時不發出聲音）
+    setNumber(189, false, true);
     console.log('🚂 數的規律與跳數列車模組 (seq.js) 已就緒！');
   }
 

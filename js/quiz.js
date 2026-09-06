@@ -204,8 +204,8 @@
     if(MathApp.refreshIcons) MathApp.refreshIcons();
   }
 
-  /* 出題邏輯 */
-  function newRound(){
+  /* 出題邏輯（silent 為 true 時不出聲朗讀，用於初始載入與模式切換） */
+  function newRound(silent){
     quizEls.feedback.textContent = '';
     quizEls.feedback.className = 'feedback';
     quizEls.nextBtn.style.display = 'none';
@@ -287,7 +287,10 @@
       setActiveInput(currentInputs[0]);
     }
 
-    MathApp.speak(currentPromptSpeech);
+    // 只有在非靜音模式下才自動朗讀題目語音
+    if(!silent && MathApp.speak){
+      MathApp.speak(currentPromptSpeech);
+    }
   }
 
   function markField(input, ok){
@@ -583,9 +586,9 @@
       });
     })();
 
-    // 監聽千位數模式變更事件：重新出題以適應位數
+    // 監聽千位數模式變更事件：重新出題以適應位數（靜音出題，不打擾使用者）
     MathApp.on('thousandChange', function(){
-      newRound();
+      newRound(true);
     });
 
     // 監聽主分頁切換至 quiz 時聚焦輸入框
@@ -608,7 +611,8 @@
       }
     });
 
-    newRound();
+    // 初始出題：傳入 true 靜音出題，確保剛進入頁面時不會自動觸發語音
+    newRound(true);
   }
 
   MathApp.quiz = {

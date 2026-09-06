@@ -419,7 +419,7 @@
   }
 
   /* 設定測驗模式 */
-  function setMode(mode){
+  function setMode(mode, silent){
     currentMode = mode;
     document.querySelectorAll('.level-pill').forEach(function(pill){
       var m = pill.getAttribute('data-mode');
@@ -432,7 +432,7 @@
     } else {
       loadQuestion(generateRandomQuestion(currentMode));
     }
-    if(MathApp.sfx) MathApp.sfx('click');
+    if(!silent && MathApp.sfx) MathApp.sfx('click');
   }
 
   /* 初始化模組 */
@@ -492,8 +492,8 @@
     var closeHelperBtn = document.getElementById('close-seq-helper-btn');
     if(closeHelperBtn) closeHelperBtn.addEventListener('click', closeBlockHelper);
 
-    // 預設載入考卷真題第 1 題
-    setMode('paper');
+    // 預設載入考卷真題第 1 題（靜音模式，頁面載入時不發出點擊音效）
+    setMode('paper', true);
     console.log('📝 規律神探測驗模組 (seq-quiz.js) 已就緒！');
   }
 
