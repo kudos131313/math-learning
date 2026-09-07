@@ -7,25 +7,25 @@
  */
 
 /* 1. 色彩變數、字型、深淺色主題與全域佈局 */
-@import url('css/variables.css');
+@import url('css/variables.css?v=20260908e');
 
 /* 2. 擬真 3D 積木元件 (個/十/百/千立體塊) 與分組框架 */
-@import url('css/blocks.css');
+@import url('css/blocks.css?v=20260908e');
 
 /* 3. 數字製造機與位值探索舞台面板 */
-@import url('css/learn.css');
+@import url('css/learn.css?v=20260908e');
 
 /* 4. 挑戰測驗題卡、虛擬數字鍵盤與自測成果卡 */
-@import url('css/quiz.css');
+@import url('css/quiz.css?v=20260908e');
 
 /* 4.5 數的規律與跳數列車舞台、考卷題卡與視覺小幫手 */
-@import url('css/seq.css');
+@import url('css/seq.css?v=20260908e');
 
 /* 5. 直式加減法概念學習教室舞台與算則板 */
-@import url('css/calc.css');
+@import url('css/calc.css?v=20260908e');
 
 /* 6. 直式挑戰測驗題卡、筆記本答題板與積木小幫手 */
-@import url('css/calc-quiz.css');
+@import url('css/calc-quiz.css?v=20260908e');
 
 /* 7. 系統自我檢測彈窗 (Modal) 與浮動提示 (Toast) */
-@import url('css/modal.css');
+@import url('css/modal.css?v=20260908e');
