@@ -338,8 +338,12 @@
     var isHSlashed = false;
 
     if(d.op === 'sub'){
-      // 十位劃線：個位向十位借位 (step >= 2)
+      // 十位劃線：
+      // 1. 個位向十位借位 (step >= 2)
+      // 2. 一般十位向百位借位合併取代 (如 120 - 30，step >= 3)
       if(d.needsBorrow_o && step >= 2){
+        isTSlashed = true;
+      } else if(d.needsBorrow_t && step >= 3){
         isTSlashed = true;
       }
       // 百位劃線：
@@ -588,8 +592,10 @@
           subExpText = '接著算十位：看著十位頭頂沒被劃掉的 <em>9</em> 條十。<em>9 − ' + d.b_t + ' ＝ ' + d.ans_t + '</em>，在十位寫上 <em>' + d.ans_t + '</em>！';
           subExpSpeak = '接著算十位：十位剩下 9 條十，9 減 ' + d.b_t + ' 等於 ' + d.ans_t + '，在十位寫上 ' + d.ans_t + '！';
         } else if(d.needsBorrow_t){
-          subExpText = '接著算十位：百位劃掉記 <em>' + d.borrowed_h + '</em>，十位向百位借 10 條，頭頂記 <em>' + d.effective_t + '</em>。<em>' + d.effective_t + ' − ' + d.b_t + ' ＝ ' + d.ans_t + '</em>，在十位寫上 <em>' + d.ans_t + '</em>！';
-          subExpSpeak = '接著算十位：百位借出 1 剩下 ' + d.borrowed_h + '，十位頭頂記 ' + d.effective_t + '，減 ' + d.b_t + ' 等於 ' + d.ans_t + '，寫上 ' + d.ans_t + '！';
+          var tMarkDesc = d.needsBorrow_o ? ('劃掉合併記 <em>' + d.effective_t + '</em>') : ('劃掉改記 <em>' + d.effective_t + '</em>');
+          var tMarkSpeak = d.needsBorrow_o ? ('十位劃掉合併記 ' + d.effective_t) : ('十位劃掉改記 ' + d.effective_t);
+          subExpText = '接著算十位：百位劃掉記 <em>' + d.borrowed_h + '</em>，十位' + tMarkDesc + '。<em>' + d.effective_t + ' − ' + d.b_t + ' ＝ ' + d.ans_t + '</em>，在十位寫上 <em>' + d.ans_t + '</em>！';
+          subExpSpeak = '接著算十位：百位借出 1 剩下 ' + d.borrowed_h + '，' + tMarkSpeak + '，' + d.effective_t + ' 減 ' + d.b_t + ' 等於 ' + d.ans_t + '，寫上 ' + d.ans_t + '！';
         } else if(d.needsBorrow_o){
           subExpText = '接著算十位：看著十位頭頂劃掉後剩餘的 <em>' + d.borrowed_t + '</em> 條。<em>' + d.borrowed_t + ' − ' + d.b_t + ' ＝ ' + d.ans_t + '</em>，在十位寫上 <em>' + d.ans_t + '</em>！';
           subExpSpeak = '接著算十位：十位借出 1 條剩下 ' + d.borrowed_t + ' 條，' + d.borrowed_t + ' 減 ' + d.b_t + ' 等於 ' + d.ans_t + '，在十位寫上 ' + d.ans_t + '！';

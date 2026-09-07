@@ -383,10 +383,11 @@
           markH.textContent = '' + remH;
           markH.className = 'cq-mark-slot rem-mark';
         }
-        // 十位向百位借 10：若十位已被個位借走 1 剩餘 (a_t - 1)，與借來的 10 合併顯示 (例如 142 顯示 13，避免學生誤算 10 - 5)
+        // 十位向百位借 10：方案 A 原數字同步劃斜線，頭頂顯示合併後的總數 (例如 120 - 30 顯示 12)
+        var wasTSlashedBeforeH = numT && numT.classList.contains('is-slashed');
+        if(numT) numT.classList.add('is-slashed');
         if(markT){
-          var isTSlashed = numT && numT.classList.contains('is-slashed');
-          var totalT = isTSlashed ? ((d.a_t - 1) + 10) : (d.a_t + 10);
+          var totalT = wasTSlashedBeforeH ? ((d.a_t - 1) + 10) : (d.a_t + 10);
           markT.textContent = '' + totalT;
           markT.className = 'cq-mark-slot rem-mark';
         }
@@ -398,13 +399,16 @@
           markH.textContent = '';
           markH.className = 'cq-mark-slot';
         }
-        // 如果十位先前已經被個位劃線借走了，恢復顯示十位借走後的剩餘數
-        if(numT && numT.classList.contains('is-slashed')){
+        var isBorrowO = d.a_o < d.b_o;
+        if(isBorrowO){
+          // 如果十位先前已經被個位劃線借走了，維持十位劃線並顯示借走後的剩餘數
           if(markT){
             markT.textContent = '' + (d.a_t - 1);
             markT.className = 'cq-mark-slot rem-mark';
           }
         } else {
+          // 若個位沒有借位，取消百位借位時，十位恢復未劃線
+          if(numT) numT.classList.remove('is-slashed');
           if(markT){
             markT.textContent = '';
             markT.className = 'cq-mark-slot';
