@@ -61,7 +61,7 @@
     }
   ];
 
-  var currentMode = 'count1'; // 'count1', 'count10', 'mix'
+  var currentMode = 'count1'; // 'count1', 'count10', 'count5', 'count2', 'mystery', 'mix', 'paper'
   var paperExamIndex = 0;
   var currentQuestion = null;
   var userInputs = {}; // { blankIndex: "字串" }
@@ -76,16 +76,24 @@
   var blockHelperModalEl = null;
   var scoreStatsEl = null;
 
+  // P4: 盲猜步長 DOM 引用
+  var mysteryCardEl = null;
+  var mysteryTitleEl = null;
+  var mysteryOptionsEl = null;
+  var isMysteryStepSolved = true;
+
   var correctCount = 0;
   var totalTried = 0;
 
-  /* 生成動態隨機題目 */
+  /* 生成動態隨機題目 (P4 深度擴展) */
   function generateRandomQuestion(mode){
     var length = 6;
     var step = 1;
     var start = 100;
     var title = '';
     var ruleDesc = '';
+    var isMystery = (mode === 'mystery');
+    var mysteryOptions = [];
 
     if(mode === 'count1'){
       // ±1 題型，特別挑選跨百或整十
@@ -104,12 +112,41 @@
       start = isBackward10 ? baseHundred + 10 + onesDigit : baseHundred - 20 + onesDigit;
       title = (isBackward10 ? '10 個 10 個倒數挑戰' : '10 個 10 個數挑戰') + '（跨百進退位）';
       ruleDesc = '規律是每次 ' + (step > 0 ? '增加 10' : '減少 10') + '，注意十位滿十進一或向百位借一！';
+    } else if(mode === 'count5'){
+      // P4: 5個5個數
+      var isBackward5 = Math.random() > 0.4;
+      step = isBackward5 ? -5 : 5;
+      start = 120 + Math.floor(Math.random() * 20) * 5;
+      title = (isBackward5 ? '5 個 5 個倒數挑戰' : '5 個 5 個數挑戰') + '（鐘面分針與錢幣）';
+      ruleDesc = '規律是每次 ' + (step > 0 ? '增加 5' : '減少 5') + '，觀察個位在「0」與「5」之間規律跳動！';
+    } else if(mode === 'count2'){
+      // P4: 2個2個數
+      var isBackward2 = Math.random() > 0.4;
+      step = isBackward2 ? -2 : 2;
+      var isEven = Math.random() > 0.3;
+      start = 100 + Math.floor(Math.random() * 40) * 2 + (isEven ? 0 : 1);
+      title = (isBackward2 ? '2 個 2 個倒數挑戰' : '2 個 2 個數挑戰') + '（雙數步伐）';
+      ruleDesc = '規律是每次 ' + (step > 0 ? '增加 2' : '減少 2') + '，注意個位數字的規律步伐！';
+    } else if(mode === 'mystery'){
+      // P4: 盲猜步長神探題
+      var stepChoices = [10, -10, 5, -5, 2, -2];
+      step = stepChoices[Math.floor(Math.random() * stepChoices.length)];
+      var baseM = 100 + Math.floor(Math.random() * 15) * 10;
+      start = step < 0 ? baseM + 60 : baseM;
+      title = '🕵️ 盲猜步長神探題（先猜規則，再解密！）';
+      ruleDesc = '仔細觀察第 1 格與第 2 格的差距，推理出隱藏的跳數步長！';
+
+      // 候選選項生成（包含正確答案與干擾項）
+      var pool = [10, -10, 5, -5, 2, -2, 1, -1];
+      var dist = pool.filter(function(x){ return x !== step; });
+      dist.sort(function(){ return Math.random() - 0.5; });
+      mysteryOptions = [step, dist[0], dist[1], dist[2]].sort(function(){ return Math.random() - 0.5; });
     } else if(mode === 'mix'){
       // 綜合跳數
-      var stepChoices = [100, -100, 5, -5, 2, -2];
-      step = stepChoices[Math.floor(Math.random() * stepChoices.length)];
+      var allSteps = [10, -10, 1, -1, 5, -5, 2, -2, 100, -100];
+      step = allSteps[Math.floor(Math.random() * allSteps.length)];
       var base = Math.floor(Math.random() * 5) * 100 + 100;
-      start = step < 0 ? base + 400 : base;
+      start = step < 0 ? base + 200 : base;
       title = '百數神探大挑戰（跳數步長：' + (step > 0 ? '+' : '') + step + '）';
       ruleDesc = '仔細觀察前後數字的關係，找出跳數的節奏！';
     }
@@ -119,16 +156,25 @@
       numbers.push(start + i * step);
     }
 
-    // 挑選 2 到 3 個空格
+    // 挑選空格
     var blanks = [];
-    var blankCount = 2;
-    while(blanks.length < blankCount){
-      var idx = Math.floor(Math.random() * length);
-      if(blanks.indexOf(idx) === -1){
-        blanks.push(idx);
+    if(isMystery){
+      // 盲猜模式：第 0, 1 格必須已知，空格安排在第 2~5 格
+      blanks = [2, 4];
+    } else {
+      // 首格未知倒推題比重強化 (約 35% 機率將 0 納入挖空)
+      var pickFirst = Math.random() < 0.35;
+      if(pickFirst){
+        blanks.push(0);
       }
+      while(blanks.length < 2){
+        var idx = Math.floor(Math.random() * length);
+        if(blanks.indexOf(idx) === -1){
+          blanks.push(idx);
+        }
+      }
+      blanks.sort(function(a, b){ return a - b; });
     }
-    blanks.sort(function(a, b){ return a - b; });
 
     return {
       id: 'rnd-' + Date.now(),
@@ -136,7 +182,9 @@
       ruleDesc: ruleDesc,
       step: step,
       numbers: numbers,
-      blanks: blanks
+      blanks: blanks,
+      isMystery: isMystery,
+      mysteryOptions: mysteryOptions
     };
   }
 
@@ -150,6 +198,49 @@
 
     // 關閉提示框
     if(detectiveCardEl) detectiveCardEl.style.display = 'none';
+
+    // P4: 盲猜步長互動區渲染
+    if(mysteryCardEl){
+      if(q.isMystery){
+        isMysteryStepSolved = false;
+        mysteryCardEl.style.display = 'flex';
+        if(mysteryTitleEl){
+          mysteryTitleEl.innerHTML = '🕵️ <b>步驟 1</b>：請觀察前兩格（' + q.numbers[0] + ' ➔ ' + q.numbers[1] + '），猜猜看跳數規則是？';
+        }
+        if(mysteryOptionsEl){
+          var optsHtml = '';
+          q.mysteryOptions.forEach(function(opt){
+            var sign = opt > 0 ? '＋' : '－';
+            optsHtml += '<button class="mystery-btn" type="button" data-step="' + opt + '">' + sign + Math.abs(opt) + '</button>';
+          });
+          mysteryOptionsEl.innerHTML = optsHtml;
+
+          // 綁定選項點擊事件
+          mysteryOptionsEl.querySelectorAll('.mystery-btn').forEach(function(btn){
+            btn.addEventListener('click', function(){
+              var chosen = parseInt(btn.getAttribute('data-step'), 10);
+              if(chosen === q.step){
+                isMysteryStepSolved = true;
+                btn.classList.add('selected');
+                mysteryTitleEl.innerHTML = '🎉 <b>太神了！猜對了！</b> 規則就是每次「' + (q.step > 0 ? '增加 ' : '減少 ') + Math.abs(q.step) + '」，請填入空格吧！';
+                if(MathApp.sfx) MathApp.sfx('chime');
+                if(MathApp.utils && MathApp.utils.showToast){
+                  MathApp.utils.showToast('🎯 識破規律！現在請在下方填入空格答案！');
+                }
+              } else {
+                if(MathApp.sfx) MathApp.sfx('wrong');
+                if(MathApp.utils && MathApp.utils.showToast){
+                  MathApp.utils.showToast('💡 差一點點！用 ' + q.numbers[1] + ' 減去 ' + q.numbers[0] + ' 算算看相差多少？');
+                }
+              }
+            });
+          });
+        }
+      } else {
+        isMysteryStepSolved = true;
+        mysteryCardEl.style.display = 'none';
+      }
+    }
 
     // 預設將焦點設在第一個空白格
     if(q.blanks && q.blanks.length > 0){
@@ -253,6 +344,16 @@
   /* 檢查答案 */
   function checkAnswers(){
     if(!currentQuestion) return;
+
+    // P4: 盲猜題目防呆：若尚未猜中步長，提醒先猜步長
+    if(currentQuestion.isMystery && !isMysteryStepSolved){
+      if(MathApp.utils && MathApp.utils.showToast){
+        MathApp.utils.showToast('🕵️ 請先點擊上方步驟 1，猜出跳數規律步長喔！');
+      }
+      if(MathApp.sfx) MathApp.sfx('wrong');
+      return;
+    }
+
     var blanks = currentQuestion.blanks;
     var allFilled = true;
     var allCorrect = true;
@@ -335,6 +436,13 @@
   /* 顯示完整解答 */
   function revealAnswers(){
     if(!currentQuestion) return;
+    if(currentQuestion.isMystery){
+      isMysteryStepSolved = true;
+      if(mysteryOptionsEl){
+        var correctBtn = mysteryOptionsEl.querySelector('.mystery-btn[data-step="' + currentQuestion.step + '"]');
+        if(correctBtn) correctBtn.classList.add('selected');
+      }
+    }
     currentQuestion.blanks.forEach(function(idx){
       userInputs[idx] = String(currentQuestion.numbers[idx]);
     });
@@ -366,6 +474,12 @@
       tipText = '看這裡：從 <b>' + exA + '</b> 到 <b>' + exB + '</b> 是 <b>' + dirText + '</b>！<br/>';
     }
     tipText += currentQuestion.ruleDesc;
+
+    // P4: 若首格為空格，額外提供反推逆運算口訣
+    if(currentQuestion.blanks && currentQuestion.blanks.indexOf(0) !== -1){
+      var revText = step > 0 ? ('倒退減去 ' + absStep) : ('反向加上 ' + absStep);
+      tipText += '<br/><span style="color:#b45309; font-weight:800;">🧭 反推指針：第 1 格最左邊也是空格！往右是「' + dirText + '」，那麼往左反推回前一個數字時，就必須「' + revText + '」喔！</span>';
+    }
 
     if(detectiveTitleEl) detectiveTitleEl.textContent = '🕵️ 規律神探分析報告：' + dirText;
     if(detectiveBodyEl) detectiveBodyEl.innerHTML = tipText;
@@ -443,6 +557,11 @@
     detectiveTitleEl = document.getElementById('detective-msg-title');
     detectiveBodyEl = document.getElementById('detective-msg-body');
     scoreStatsEl = document.getElementById('paper-score-stats');
+
+    // P4: 快取盲猜步長 DOM
+    mysteryCardEl = document.getElementById('seq-mystery-card');
+    mysteryTitleEl = document.getElementById('seq-mystery-title');
+    mysteryOptionsEl = document.getElementById('seq-mystery-options');
 
     // 關卡模式按鈕
     document.querySelectorAll('.level-pill').forEach(function(btn){

@@ -8,7 +8,7 @@
 <link href="https://fonts.googleapis.com/css2?family=ZCOOL+KuaiLe&family=Baloo+2:wght@500;700;800&family=Noto+Sans+TC:wght@400;500;700;900&display=swap" rel="stylesheet">
 <link rel="icon" href="favicon.ico" type="image/x-icon">
 <link rel="shortcut icon" href="favicon.ico" type="image/x-icon">
-<link rel="stylesheet" href="style.css?v=20260907d">
+<link rel="stylesheet" href="style.css?v=20260908d">
 </head>
 <body>
 
@@ -398,7 +398,7 @@
         <!-- 動態列車車廂軌道 -->
         <div class="seq-train-stage">
           <div class="seq-train-track" id="seq-train-track">
-            <!-- 由 JavaScript 動態注入 7 節車廂 -->
+            <!-- 由 JavaScript 動態注入 7 節車廂與跳數連接符 -->
           </div>
         </div>
 
@@ -411,8 +411,8 @@
 
         <!-- 規律透視與積木同步展示卡 -->
         <div class="seq-inspect-card">
-          <div class="seq-tip-banner">
-            <div class="seq-tip-icon">💡</div>
+          <div class="seq-tip-banner" id="seq-tip-banner">
+            <div class="seq-tip-icon" id="seq-tip-icon">💡</div>
             <div class="seq-tip-content">
               <div class="seq-tip-title" id="seq-tip-title">規律透視分析中...</div>
               <div class="seq-tip-body" id="seq-tip-body">觀察前後數字的變化，找出哪一個位數在跳步！</div>
@@ -438,6 +438,38 @@
             </div>
           </div>
         </div>
+
+        <!-- P3: 百數表二維空間地圖聯動模組 -->
+        <div class="hundred-chart-section" id="hundred-chart-section">
+          <div class="chart-header-row">
+            <div class="chart-title-group">
+              <i data-lucide="grid"></i>
+              <span>百數表空間地圖（二維座標透視）</span>
+            </div>
+            <div class="chart-range-pills" id="chart-range-pills">
+              <button class="chart-range-btn" type="button" data-range="1">1 ~ 100</button>
+              <button class="chart-range-btn active" type="button" data-range="101">101 ~ 200</button>
+              <button class="chart-range-btn" type="button" data-range="201">201 ~ 300</button>
+              <button class="chart-range-btn" type="button" data-range="901">901 ~ 1000</button>
+            </div>
+            <button class="chart-toggle-btn" id="chart-toggle-btn" type="button">
+              <i data-lucide="chevron-up"></i><span id="chart-toggle-text">收合地圖</span>
+            </button>
+          </div>
+
+          <!-- 十字指針口訣指南 -->
+          <div class="chart-compass-bar">
+            <span class="compass-chip">➡️ <b>向右＋1</b>（個位增 1）</span>
+            <span class="compass-chip">⬅️ <b>向左－1</b>（個位減 1）</span>
+            <span class="compass-chip">⬇️ <b>向下＋10</b>（十位增 1，個位完全相同！）</span>
+            <span class="compass-chip">⬆️ <b>向上－10</b>（十位減 1，個位完全相同！）</span>
+          </div>
+
+          <!-- 10x10 網格容器 -->
+          <div class="hundred-chart-grid-wrap" id="hundred-chart-wrap">
+            <div class="hundred-chart-grid" id="hundred-chart-grid"></div>
+          </div>
+        </div>
       </section>
     </div><!-- /#subpanel-seq-learn -->
 
@@ -448,6 +480,9 @@
         <div class="seq-level-selector">
           <button class="level-pill active" type="button" data-mode="count1"><i data-lucide="target"></i> 1個1個數（跨十跨百）</button>
           <button class="level-pill" type="button" data-mode="count10"><i data-lucide="zap"></i> 10個10個數（跨百進退位）</button>
+          <button class="level-pill" type="button" data-mode="count5"><i data-lucide="clock"></i> 5個5個數（時鐘與錢幣）</button>
+          <button class="level-pill" type="button" data-mode="count2"><i data-lucide="footprints"></i> 2個2個數（雙數跳步）</button>
+          <button class="level-pill" type="button" data-mode="mystery"><i data-lucide="help-circle"></i> 盲猜步長神探題</button>
           <button class="level-pill" type="button" data-mode="mix"><i data-lucide="dices"></i> 百數神探大挑戰</button>
         </div>
 
@@ -456,6 +491,12 @@
           <div class="paper-meta-row">
             <div class="paper-title" id="paper-title-text"><i data-lucide="award"></i> 規律神探挑戰</div>
             <div class="paper-stats" id="paper-score-stats">累積答對：0 題 / 總作答：0 次</div>
+          </div>
+
+          <!-- 盲猜步長互動區 (P4) -->
+          <div class="mystery-card" id="seq-mystery-card" style="display: none;">
+            <div class="mystery-title" id="seq-mystery-title">🕵️ 步驟 1：請觀察已知數字前後變化，猜猜看每次是跳多少？</div>
+            <div class="mystery-options" id="seq-mystery-options"></div>
           </div>
 
           <!-- 考卷方格排版 -->
@@ -899,8 +940,8 @@
 <script defer src="js/utils.js?v=20260906l"></script>
 <script defer src="js/learn.js?v=20260906i"></script>
 <script defer src="js/quiz.js?v=20260907d"></script>
-<script defer src="js/seq.js?v=20260906l"></script>
-<script defer src="js/seq-quiz.js?v=20260907d"></script>
+<script defer src="js/seq.js?v=20260908c"></script>
+<script defer src="js/seq-quiz.js?v=20260908a"></script>
 <script defer src="js/calc.js?v=20260907e"></script>
 <script defer src="js/calc-quiz.js?v=20260907d"></script>
 <script defer src="js/diagnostics.js?v=20260906i"></script>

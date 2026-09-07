@@ -16,6 +16,7 @@
 
   // DOM 元素引用快取
   var trackEl = null;
+  var tipBannerEl = null;
   var tipTitleEl = null;
   var tipBodyEl = null;
   var blocksHEl = null;
@@ -26,14 +27,21 @@
   var countOEl = null;
   var startInputEl = null;
   var playBtnEl = null;
+  var chartGridEl = null;
+  var chartWrapEl = null;
+  var chartToggleBtn = null;
+  var chartToggleText = null;
+
+  var currentChartRange = 101; // 百數表區間起始 (1, 101, 201, 901)
+  var isChartCollapsed = false;
 
   /* 判斷數字是否處於跨百或跨十臨界點 */
   function isCrossBoundary(num, curStep){
     if(num < 0 || num > 9999) return false;
     var absStep = Math.abs(curStep);
-    var h = Math.floor(num / 100);
     var rem = num % 100;
-    // 跨百偵測
+    // 跨百或跨千偵測
+    if(num >= 1000) return true;
     if(absStep === 10){
       if(rem === 9 || rem === 99 || rem === 0 || rem === 5 || rem === 95) return true;
     }
@@ -73,6 +81,7 @@
         if((targetPlace === 'h' || (targetPlace === 't' && val % 100 < 15)) && isCurrent) isChanging = true;
       } else if(placeIndexFromRight >= 3){
         placeClass = 'digit-th';
+        if(val >= 1000 && isCurrent) isChanging = true;
       }
 
       var pulsClass = isChanging ? ' digit-pulsing' : '';
@@ -81,16 +90,28 @@
     return html;
   }
 
-  /* 渲染 7 節車廂 */
+  /* 渲染 5 節車廂與中間的跳數連接符 (避免捲軸，完美自適應) */
   function renderTrain(){
     if(!trackEl) return;
     var html = '';
-    var offsets = [-3, -2, -1, 0, 1, 2, 3];
+    var offsets = [-2, -1, 0, 1, 2];
 
-    offsets.forEach(function(offset){
+    offsets.forEach(function(offset, idx){
       var val = currentNum + offset * step;
       var isCurrent = (offset === 0);
       var cross = isCrossBoundary(val, step);
+
+      // P1: 在相鄰兩節車廂之間加入跳數連接符與步長箭頭
+      if(idx > 0){
+        var absStep = Math.abs(step);
+        var sign = step > 0 ? '+' : '−';
+        var arrow = step > 0 ? '→' : '←';
+        var stepTxt = sign + absStep;
+        html += '<div class="train-step-connector" title="相鄰車廂跳數間隔 ' + stepTxt + '">';
+        html += '  <div class="train-connector-line"></div>';
+        html += '  <div class="train-step-pill' + (step < 0 ? ' neg' : '') + '">' + arrow + ' ' + stepTxt + '</div>';
+        html += '</div>';
+      }
 
       var carClass = 'train-car';
       if(isCurrent) carClass += ' current';
@@ -102,7 +123,9 @@
 
       var badgeHtml = '';
       if(cross){
-        if(step === 10 || step === -10){
+        if(val >= 1000) {
+          badgeHtml = '<span class="cross-badge">👑 跨千大關！</span>';
+        } else if(step === 10 || step === -10){
           if(val >= 200 && val <= 209) badgeHtml = '<span class="cross-badge">🌟 跨百關鍵！</span>';
           else if(val >= 190 && val <= 199) badgeHtml = '<span class="cross-badge">⚡ 滿十準備！</span>';
           else if(val >= 100 && val <= 109) badgeHtml = '<span class="cross-badge">🚀 進入三位數！</span>';
@@ -150,7 +173,10 @@
     var curT = Math.floor((Math.max(0, num) % 100) / 10);
     var curO = Math.max(0, num) % 10;
 
-    if(absStep === 10){
+    if(num >= 1000){
+      title = '👑 晉升四位數：跨過一千大關！';
+      body = '三位數滿千了！10 個百合成了 1 個大立方體千格方塊，百位、十位與個位都歸零，寫作 <b>' + num + '</b>！';
+    } else if(absStep === 10){
       if(isForward){
         // 加 10 跨百經典 (如 199 -> 209, 189 -> 199)
         if(prevT === 9 && curT === 0){
@@ -201,6 +227,12 @@
           body = '就像排隊點名一樣，每次多 1 個顆粒，由 ' + prev + ' 前進到 ' + num + '！';
         }
       }
+    } else if(absStep === 5){
+      title = '⏱️ 5 個 5 個數：鐘面分針與 5 元硬幣節奏！';
+      body = '觀察個位：每次跳 5，個位只會在「0」和「5」之間規律交替喔！';
+    } else if(absStep === 2){
+      title = '👣 2 個 2 個數：雙數與單數的步伐！';
+      body = '每次跳 2，個位每次加 2（2、4、6、8、0），十位只有在個位滿十時才進一步！';
     } else if(absStep === 100){
       title = '💯 百數大跳躍：只有「百位」大步跨！';
       body = '每次跳 100，十位與個位完全不動，只有百位從 ' + prevH + ' 變成 ' + curH + '！';
@@ -210,7 +242,65 @@
       body = '自訂跳數規律：' + dirText + '！觀察前後車廂的數字變化，看看個位、十位或百位有什麼節奏！';
     }
 
-    return { title: title, body: body };
+    return { isTrap: false, title: title, body: body };
+  }
+
+  /* P3: 渲染 10x10 百數表二維地圖 */
+  function renderHundredChart(){
+    if(!chartGridEl) return;
+
+    // 自動判斷目前百數表區間
+    var autoRange = 101;
+    if(currentNum <= 100) autoRange = 1;
+    else if(currentNum <= 200) autoRange = 101;
+    else if(currentNum <= 300) autoRange = 201;
+    else if(currentNum >= 900) autoRange = 901;
+    else {
+      autoRange = Math.floor((currentNum - 1) / 100) * 100 + 1;
+    }
+
+    // 若使用者未強制鎖定區間，則自動跟隨
+    currentChartRange = autoRange;
+
+    // 同步區間按鈕外觀
+    var rangeBtns = document.querySelectorAll('.chart-range-btn');
+    rangeBtns.forEach(function(btn){
+      var r = parseInt(btn.getAttribute('data-range'), 10);
+      btn.classList.toggle('active', r === currentChartRange);
+    });
+
+    // 收集當前 5 節車廂的數字集合
+    var trainVals = {};
+    for(var offset = -2; offset <= 2; offset++){
+      trainVals[currentNum + offset * step] = true;
+    }
+
+    var html = '';
+    for(var i = 0; i < 100; i++){
+      var val = currentChartRange + i;
+      var isCurrent = (val === currentNum);
+      var isTrail = !!trainVals[val] && !isCurrent;
+
+      var cls = 'chart-cell';
+      if(isCurrent) cls += ' cell-current';
+      else if(isTrail) cls += ' cell-trail';
+
+      var displayContent = isCurrent ? ('🚂 ' + val) : String(val);
+      html += '<div class="' + cls + '" data-val="' + val + '" role="button" tabindex="0" title="點擊讓列車開往 ' + val + '">' + displayContent + '</div>';
+    }
+
+    chartGridEl.innerHTML = html;
+
+    // 為百數表格子綁定點擊事件
+    var cells = chartGridEl.querySelectorAll('.chart-cell');
+    cells.forEach(function(cell){
+      cell.addEventListener('click', function(){
+        var v = parseInt(cell.getAttribute('data-val'), 10);
+        if(!isNaN(v)){
+          setNumber(v, true);
+        }
+      });
+    });
   }
 
   /* 更新位值積木與解說 */
@@ -232,12 +322,14 @@
     if(tipBodyEl) tipBodyEl.innerHTML = info.body;
 
     if(startInputEl) startInputEl.value = currentNum;
+
+    // 同步更新百數表
+    renderHundredChart();
   }
 
   /* 設定目前數字 */
   function setNumber(newVal, playVoice, silent){
     var bounded = Math.max(0, Math.min(9999, newVal));
-    var oldVal = currentNum;
     currentNum = bounded;
     renderTrain();
     updateInspectAndBlocks();
@@ -299,11 +391,14 @@
   function setStep(newStep, isCustom){
     if(typeof newStep !== 'number' || isNaN(newStep) || newStep === 0) return;
     step = newStep;
+
     // 依據新步長選取合適的起點範例，讓孩子立刻看到亮點！
     if(step === 10) setNumber(189);
     else if(step === -10) setNumber(205);
     else if(step === -1) setNumber(201);
     else if(step === 1) setNumber(198);
+    else if(step === 5) setNumber(165);
+    else if(step === 2) setNumber(102);
     else {
       setNumber(currentNum);
     }
@@ -329,6 +424,7 @@
   /* 初始化模組 */
   function init(){
     trackEl = document.getElementById('seq-train-track');
+    tipBannerEl = document.getElementById('seq-tip-banner');
     tipTitleEl = document.getElementById('seq-tip-title');
     tipBodyEl = document.getElementById('seq-tip-body');
     blocksHEl = document.getElementById('seq-blocks-h');
@@ -340,6 +436,11 @@
     startInputEl = document.getElementById('seq-start-input');
     playBtnEl = document.getElementById('seq-play-btn');
 
+    chartGridEl = document.getElementById('hundred-chart-grid');
+    chartWrapEl = document.getElementById('hundred-chart-wrap');
+    chartToggleBtn = document.getElementById('chart-toggle-btn');
+    chartToggleText = document.getElementById('chart-toggle-text');
+
     // 步長按鈕
     document.querySelectorAll('.step-pill[data-step]').forEach(function(btn){
       btn.addEventListener('click', function(){
@@ -347,6 +448,34 @@
         if(!isNaN(s)) setStep(s, false);
       });
     });
+
+    // P3: 百數表區間切換按鈕綁定
+    document.querySelectorAll('.chart-range-btn').forEach(function(btn){
+      btn.addEventListener('click', function(){
+        var r = parseInt(btn.getAttribute('data-range'), 10);
+        if(!isNaN(r)){
+          currentChartRange = r;
+          renderHundredChart();
+          if(MathApp.sfx) MathApp.sfx('click');
+        }
+      });
+    });
+
+    // P3: 百數表收合/展開切換
+    if(chartToggleBtn && chartWrapEl){
+      chartToggleBtn.addEventListener('click', function(){
+        isChartCollapsed = !isChartCollapsed;
+        chartWrapEl.style.display = isChartCollapsed ? 'none' : 'block';
+        if(chartToggleText){
+          chartToggleText.textContent = isChartCollapsed ? '展開地圖' : '收合地圖';
+        }
+        var icon = chartToggleBtn.querySelector('i');
+        if(icon){
+          icon.setAttribute('data-lucide', isChartCollapsed ? 'chevron-down' : 'chevron-up');
+          if(MathApp.refreshIcons) MathApp.refreshIcons();
+        }
+      });
+    }
 
     // 自訂跳數步長
     var customInputEl = document.getElementById('seq-custom-step-input');
@@ -382,20 +511,24 @@
     if(startInputEl){
       startInputEl.addEventListener('change', function(){
         var val = parseInt(startInputEl.value, 10);
-        if(!isNaN(val)) setNumber(val, true);
+        if(!isNaN(val)){
+          setNumber(val, true);
+        }
       });
       var applyBtn = document.getElementById('seq-apply-start-btn');
       if(applyBtn){
         applyBtn.addEventListener('click', function(){
           var val = parseInt(startInputEl.value, 10);
-          if(!isNaN(val)) setNumber(val, true);
+          if(!isNaN(val)){
+            setNumber(val, true);
+          }
         });
       }
     }
 
     // 預設渲染（靜音模式，頁面載入時不發出聲音）
     setNumber(189, false, true);
-    console.log('🚂 數的規律與跳數列車模組 (seq.js) 已就緒！');
+    console.log('🚂 數的規律與跳數列車模組 (seq.js) 升級版已就緒！');
   }
 
   MathApp.seq = {
@@ -409,3 +542,4 @@
   };
 
 })();
+

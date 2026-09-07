@@ -209,31 +209,34 @@
 .seq-train-stage {
   position: relative;
   margin: 20px 0 28px;
-  padding: 18px 8px 10px;
+  padding: 24px 10px 14px;
   background: linear-gradient(180deg, #f1f5f9 0%, #e2e8f0 100%);
   border-radius: 20px;
   border: 2px dashed #94a3b8;
-  overflow-x: auto;
-  -webkit-overflow-scrolling: touch;
+  overflow: hidden; /* 徹底移除水平捲軸 */
+  box-sizing: border-box;
 }
 
 .seq-train-track {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 12px;
-  min-width: 620px;
-  padding: 10px 14px 20px;
+  gap: clamp(4px, 1vw, 10px);
+  width: 100%;
+  min-width: 0;
+  padding: 12px 4px 18px;
+  box-sizing: border-box;
 }
 
-/* 車廂單元卡片 */
+/* 車廂單元卡片 (彈性自適應，不超出不換行無捲軸) */
 .train-car {
-  flex: 0 0 auto;
-  width: 106px;
+  flex: 1 1 0;
+  min-width: 0;
+  max-width: 124px;
   background: #ffffff;
   border: 2px solid #64748b;
   border-radius: 16px;
-  padding: 12px 6px 10px;
+  padding: 10px 4px 8px;
   text-align: center;
   box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
   position: relative;
@@ -268,12 +271,15 @@
   text-transform: uppercase;
   letter-spacing: 0.5px;
   margin-bottom: 4px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 /* 車廂內的大數字 (分位拆解顯示) */
 .train-car-num {
   font-family: 'Baloo 2', 'Noto Sans TC', sans-serif;
-  font-size: 28px;
+  font-size: clamp(20px, 3.2vw, 30px);
   font-weight: 800;
   line-height: 1.1;
   display: flex;
@@ -306,11 +312,12 @@
 
 /* 當前聚焦車廂 (中央主焦點) */
 .train-car.current {
-  width: 126px;
+  flex: 1.25 1 0;
+  max-width: 154px;
   border: 3px solid #2563eb;
   background: #eff6ff;
   box-shadow: 0 10px 25px -3px rgba(37, 99, 235, 0.35);
-  transform: translateY(-8px) scale(1.08);
+  transform: translateY(-8px) scale(1.06);
   z-index: 5;
 }
 
@@ -320,7 +327,7 @@
 }
 
 .train-car.current .train-car-num {
-  font-size: 34px;
+  font-size: clamp(24px, 3.8vw, 36px);
 }
 
 /* 跨百進退位特殊高光車廂 */
@@ -844,28 +851,317 @@
   transform: translateY(-2px);
 }
 
-/* 響應式優化 */
+/* ---------- P1: 車廂間跳數動態連接符與弧箭頭標籤 ---------- */
+.train-step-connector {
+  flex: 0 0 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  width: clamp(24px, 3.4vw, 36px);
+  z-index: 3;
+  user-select: none;
+}
+
+.train-connector-line {
+  position: absolute;
+  top: 50%;
+  left: -4px;
+  right: -4px;
+  height: 2px;
+  background: #94a3b8;
+  border-top: 2px dashed #cbd5e1;
+  z-index: 1;
+}
+
+.train-step-pill {
+  position: relative;
+  z-index: 2;
+  background: #ffffff;
+  border: 1.5px solid #3b82f6;
+  border-radius: 12px;
+  padding: 2px 7px;
+  font-family: 'Baloo 2', 'Noto Sans TC', sans-serif;
+  font-size: 12px;
+  font-weight: 800;
+  color: #1d4ed8;
+  box-shadow: 0 2px 5px rgba(37, 99, 235, 0.2);
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  white-space: nowrap;
+  animation: pulseConnector 2s infinite ease-in-out;
+  cursor: help;
+  transition: transform 0.18s ease;
+}
+
+.train-step-pill:hover {
+  transform: scale(1.12);
+  background: #eff6ff;
+  border-color: #1d4ed8;
+}
+
+.train-step-pill.neg {
+  border-color: #ea580c;
+  color: #c2410c;
+  box-shadow: 0 2px 5px rgba(234, 88, 12, 0.2);
+}
+
+@keyframes pulseConnector {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-2px); }
+}
+
+/* ---------- P3: 百數表空間地圖 (HUNDRED CHART) ---------- */
+.hundred-chart-section {
+  background: #ffffff;
+  border: 1.5px solid #cbd5e1;
+  border-radius: 18px;
+  padding: 16px 18px;
+  margin-top: 24px;
+}
+
+.chart-header-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 14px;
+}
+
+.chart-title-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 800;
+  font-size: 16px;
+  color: var(--ink);
+}
+
+.chart-toggle-btn {
+  background: #f1f5f9;
+  border: 1.5px solid #cbd5e1;
+  border-radius: 12px;
+  padding: 6px 14px;
+  font-size: 13px;
+  font-weight: 700;
+  color: #334155;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.16s ease;
+}
+
+.chart-toggle-btn:hover {
+  background: #e2e8f0;
+  color: #0f172a;
+}
+
+.chart-range-pills {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.chart-range-btn {
+  background: #f8fafc;
+  border: 1.5px solid #cbd5e1;
+  border-radius: 14px;
+  padding: 4px 10px;
+  font-size: 12px;
+  font-weight: 700;
+  color: #475569;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.chart-range-btn.active {
+  background: #0284c7;
+  border-color: #0369a1;
+  color: #ffffff;
+}
+
+/* 十字方位指針 */
+.chart-compass-bar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 14px;
+  padding: 8px 12px;
+  background: #f0fdf4;
+  border: 1px solid #bbf7d0;
+  border-radius: 12px;
+  margin-bottom: 14px;
+  font-size: 12.5px;
+  font-weight: 700;
+  color: #166534;
+}
+
+.compass-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+/* 10x10 百數表格子 (無捲軸、邊界無溢出) */
+.hundred-chart-grid-wrap {
+  overflow: hidden; /* 徹底移除捲軸 */
+  padding: 6px 4px;
+  box-sizing: border-box;
+}
+
+.hundred-chart-grid {
+  display: grid;
+  grid-template-columns: repeat(10, 1fr);
+  gap: 4px;
+  min-width: 0;
+  max-width: 680px;
+  margin: 0 auto;
+  box-sizing: border-box;
+}
+
+.chart-cell {
+  aspect-ratio: 1;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Baloo 2', 'Noto Sans TC', sans-serif;
+  font-size: 14px;
+  font-weight: 700;
+  color: #475569;
+  cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
+  position: relative;
+  box-sizing: border-box;
+}
+
+.chart-cell:hover {
+  background: #dbeafe;
+  border-color: #3b82f6;
+  color: #1d4ed8;
+  box-shadow: 0 2px 6px rgba(37, 99, 235, 0.2);
+  z-index: 2;
+}
+
+/* 焦點格子：使用純光暈與框線高亮，完全不使用 scale 避免產生捲軸 */
+.chart-cell.cell-current {
+  background: #fef08a !important;
+  border: 2.5px solid #ca8a04 !important;
+  color: #713f12 !important;
+  font-size: 15px;
+  font-weight: 900;
+  box-shadow: inset 0 0 0 1px #ca8a04, 0 0 10px rgba(234, 179, 8, 0.5);
+  z-index: 3;
+}
+
+.chart-cell.cell-trail {
+  background: #e0f2fe;
+  border-color: #7dd3fc;
+  color: #0369a1;
+  font-weight: 800;
+}
+
+/* ---------- P4: 規律盲猜模式與生活跳數擴展 ---------- */
+.mystery-card {
+  background: #f0fdfa;
+  border: 1.5px dashed #0d9488;
+  border-radius: 14px;
+  padding: 12px 16px;
+  margin-bottom: 16px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  text-align: center;
+}
+
+.mystery-title {
+  font-size: 14px;
+  font-weight: 800;
+  color: #0f766e;
+}
+
+.mystery-options {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.mystery-btn {
+  background: #ffffff;
+  border: 1.5px solid #14b8a6;
+  border-radius: 16px;
+  padding: 6px 14px;
+  font-size: 13.5px;
+  font-weight: 800;
+  color: #0f766e;
+  cursor: pointer;
+  transition: all 0.16s ease;
+}
+
+.mystery-btn:hover {
+  background: #ccfbf1;
+  transform: translateY(-1px);
+}
+
+.mystery-btn.selected {
+  background: #0d9488;
+  color: #ffffff;
+  border-color: #0f766e;
+}
+
+/* 響應式優化 (全解析度無捲軸設計) */
 @media (max-width: 680px) {
   .seq-train-track {
-    min-width: 540px;
-    gap: 8px;
+    min-width: 0;
+    width: 100%;
+    gap: 3px;
+    padding: 8px 2px 14px;
+  }
+  .train-step-connector {
+    width: 22px;
+  }
+  .train-step-pill {
+    padding: 1px 3px;
+    font-size: 10px;
+    border-radius: 8px;
   }
   .train-car {
-    width: 88px;
-    padding: 10px 4px 8px;
+    max-width: 82px;
+    padding: 6px 2px 5px;
+    border-radius: 12px;
+  }
+  .train-car-role {
+    font-size: 9.5px;
   }
   .train-car-num {
-    font-size: 22px;
+    font-size: 18px;
   }
   .train-car.current {
-    width: 104px;
+    max-width: 96px;
   }
   .train-car.current .train-car-num {
-    font-size: 26px;
-  }
-  .paper-slot {
-    min-width: 64px;
-    height: 56px;
     font-size: 22px;
   }
+  .paper-slot {
+    min-width: 52px;
+    height: 48px;
+    font-size: 19px;
+  }
+  .hundred-chart-grid {
+    min-width: 320px;
+    gap: 2px;
+  }
+  .chart-cell {
+    font-size: 11px;
+  }
 }
+
