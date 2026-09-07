@@ -207,20 +207,108 @@
   }
 
   /* 渲染具體積木群組 (百位、十位與個位) */
-  function createBlockColGroupHtml(title, kind, count, titleClass, extraWrapClass){
-    var html = '<div class="block-col-group" data-place="' + kind + '">';
+  /* 支援劃掉扣除 (slashedCount) 與進位標示 (carriedCount) 的具體積木渲染器 */
+  function renderCustomBlocksHtml(kind, count, slashedCount, carriedCount){
+    if(count <= 0) return '';
+    slashedCount = Math.min(count, Math.max(0, slashedCount || 0));
+    carriedCount = Math.min(count, Math.max(0, carriedCount || 0));
+
+    var slashStartIdx = count - slashedCount;
+    var carryStartIdx = count - carriedCount;
+
+    var html = '';
+    var totalRendered = 0;
+    while(totalRendered < count){
+      var gSize = Math.min(5, count - totalRendered);
+      html += '<div class="blk-group-5" aria-label="' + gSize + '個積木">';
+      for(var i = 0; i < gSize; i++){
+        var idx = totalRendered + i;
+        var isSlashed = (idx >= slashStartIdx);
+        var isCarried = (!isSlashed && idx >= carryStartIdx);
+
+        var extraClasses = '';
+        if(isSlashed) extraClasses += ' blk-slash-crossed';
+        if(isCarried) extraClasses += ' blk-carried';
+
+        var cls = kind === 'th' ? 'blk-th' : kind === 'h' ? 'blk-h' : kind === 't' ? 'blk-t' : 'blk-o';
+        html += '<span class="blk ' + cls + extraClasses + '" data-kind="' + kind + '">';
+        if(isCarried){
+          html += '<span class="carried-tag-pill">✨ 進位＋1</span>';
+        }
+        html += MathApp.utils.getBlockSvg(kind);
+        html += '</span>';
+      }
+      html += '</div>';
+      totalRendered += gSize;
+    }
+    return html;
+  }
+
+  /* 渲染具體積木群組 (百位、十位與個位，支援跨欄焦點高亮、滿十收納框、劃掉扣除與進位標示) */
+  function createBlockColGroupHtml(title, kind, count, titleClass, extraWrapClass, isColActive, hasTenFrame, slashedCount, carriedCount){
+    var activeClass = isColActive ? (' active-col-group col-focus-' + kind) : '';
+    var html = '<div class="block-col-group' + activeClass + '" data-place="' + kind + '">';
     html += '<span class="block-col-title ' + (titleClass || '') + '">' + title + ' (' + count + ')</span>';
     html += '<div class="block-items-wrap ' + (extraWrapClass || '') + '" data-place="' + kind + '">';
     if(count === 0){
       html += '<span style="font-size:12px;color:var(--ink-soft);padding:4px;">0 (無積木)</span>';
+    } else if(hasTenFrame && count >= 10){
+      // 滿十收納框：前 10 顆整齊包覆在金色虛線收納盒中，剩餘的排在外面
+      html += '<div class="blk-ten-frame-box" id="calc-ten-frame-box">';
+      html += '<span class="ten-frame-badge">✨ 滿10進1</span>';
+      html += renderCustomBlocksHtml(kind, 10, 0, 0);
+      html += '</div>';
+      if(count > 10){
+        html += renderCustomBlocksHtml(kind, count - 10, slashedCount, carriedCount);
+      }
     } else {
-      html += MathApp.utils.renderGroupedBlocksHtml(kind, count);
+      html += renderCustomBlocksHtml(kind, count, slashedCount, carriedCount);
     }
     html += '</div></div>';
     return html;
   }
 
-  /* 加法：滿十聚攏 ➔ 轉化為長條 ➔ 拋物線飛向下方的合計結果欄十位 */
+  /* 減法：成對劃紅斜線打叉動態 (劃掉扣除法，積木保持在畫面上不消失) */
+  function playDeductSlashAnimation(place, deductCount, onDone){
+    if(prefersReduced || typeof window.anime === 'undefined' || deductCount <= 0){
+      if(onDone) onDone();
+      return;
+    }
+    var wrapA = calcEls.blocksContainerA ? calcEls.blocksContainerA.querySelector('.block-items-wrap[data-place="' + place + '"]') : null;
+    var wrapB = calcEls.blocksContainerB ? calcEls.blocksContainerB.querySelector('.block-items-wrap[data-place="' + place + '"]') : null;
+    if(!wrapA){ if(onDone) onDone(); return; }
+
+    var itemsA = wrapA.querySelectorAll('.blk');
+    var itemsB = wrapB ? wrapB.querySelectorAll('.blk') : [];
+
+    // 選取被減數 A 最後 deductCount 個元素，以及減數 B 的 deductCount 個元素
+    var toSlashA = [];
+    var startIdxA = Math.max(0, itemsA.length - deductCount);
+    for(var i = startIdxA; i < itemsA.length; i++){
+      toSlashA.push(itemsA[i]);
+    }
+
+    var toSlashB = [];
+    for(var j = 0; j < Math.min(deductCount, itemsB.length); j++){
+      toSlashB.push(itemsB[j]);
+    }
+
+    var allToSlash = toSlashA.concat(toSlashB);
+    if(allToSlash.length === 0){ if(onDone) onDone(); return; }
+
+    // 依序劃上紅斜線，不消失，保持在畫面上！
+    allToSlash.forEach(function(el, idx){
+      setTimeout(function(){
+        el.classList.add('blk-slash-crossed');
+        if(MathApp.sfx && idx === 0) MathApp.sfx('click');
+        if(idx === allToSlash.length - 1 && onDone){
+          setTimeout(onDone, 300);
+        }
+      }, idx * 45);
+    });
+  }
+
+  /* 加法：滿十浮現 Ten-Frame 收納框 ➔ 10 顆小方塊整齊收納 ➔ 合體轉化為長條十 ➔ 拋物線飛向下方的合計結果欄十位 */
   function playBlockCarryAnimation(d, onComplete){
     if(prefersReduced || typeof window.anime === 'undefined'){
       if(onComplete) onComplete();
@@ -248,6 +336,28 @@
     var centerX = (rectA.left + rectA.width / 2 + rectB.left + rectB.width / 2) / 2;
     var centerY = (rectA.top + rectB.top + rectB.height) / 2;
 
+    // 建立金色虛線 Ten-Frame 滿十收納框
+    var tenFrame = document.createElement('div');
+    tenFrame.className = 'blk-ten-frame-box blk-anim-flyer';
+    tenFrame.style.position = 'fixed';
+    tenFrame.style.left = centerX + 'px';
+    tenFrame.style.top = centerY + 'px';
+    tenFrame.style.transform = 'translate(-50%, -50%) scale(0.6)';
+    tenFrame.style.opacity = '0';
+    tenFrame.style.zIndex = '99997';
+    tenFrame.style.pointerEvents = 'none';
+    tenFrame.innerHTML = '<span class="ten-frame-badge">✨ 滿10進1</span>';
+    document.body.appendChild(tenFrame);
+
+    // 收納框縮放浮現
+    window.anime({
+      targets: tenFrame,
+      scale: [0.5, 1],
+      opacity: [0, 1],
+      duration: 260,
+      easing: 'easeOutBack'
+    });
+
     var oSvg = MathApp.utils.getBlockSvg('o');
     var shards = [];
     for(var i = 0; i < 10; i++){
@@ -255,7 +365,7 @@
       s.className = 'blk-split-shard';
       s.innerHTML = oSvg;
       var angle = (i / 10) * Math.PI * 2;
-      var dist = 32 + (i % 3) * 8;
+      var dist = 42 + (i % 3) * 10;
       var initX = centerX + Math.cos(angle) * dist;
       var initY = centerY + Math.sin(angle) * dist;
       s.style.left = initX + 'px';
@@ -264,19 +374,32 @@
       shards.push(s);
     }
 
+    // 10 顆小方塊整齊聚攏吸入 Ten-Frame 收納盒中心
     window.anime({
       targets: shards,
       left: centerX + 'px',
       top: centerY + 'px',
-      scale: [1, 0.35],
-      opacity: [1, 0.7],
-      duration: 380,
-      easing: 'easeInBack',
+      scale: [1, 0.45],
+      opacity: [1, 0.85],
+      duration: 420,
+      easing: 'easeInOutCubic',
       complete: function(){
         shards.forEach(function(el){ el.remove(); });
 
         if(MathApp.sfx) MathApp.sfx('pop');
         spawnCalcBurst(centerX, centerY, '#fbbf24');
+
+        // 收納框緊縮合體
+        window.anime({
+          targets: tenFrame,
+          scale: [1, 0.2],
+          opacity: [1, 0],
+          duration: 220,
+          easing: 'easeInQuad',
+          complete: function(){
+            tenFrame.remove();
+          }
+        });
 
         var flyer = document.createElement('div');
         flyer.className = 'blk-anim-flyer';
@@ -495,18 +618,30 @@
     var dispB_t = d.b_t;
     var dispB_o = d.b_o;
 
+    var slashA_h = 0;
+    var slashA_t = 0;
+    var slashA_o = 0;
+
+    var slashB_h = 0;
+    var slashB_t = 0;
+    var slashB_o = 0;
+
     if(calcState.op === 'sub'){
       if(step === 2){
         if(d.isAcrossZeroBorrow){
           dispA_h = Math.max(0, d.a_h - 1);
           dispA_t = 9;
           dispA_o = d.effective_o;
-          labelA_text = '被減數 ' + d.a + '（百位退位拆借：十位留 9 條、個位變 ' + d.effective_o + ' 顆）';
+          labelA_text = '被減數 ' + d.a + '（百位退位拆借：十位留 9 條、個位變 ' + d.effective_o + ' 顆，劃掉 ' + d.b_o + ' 顆）';
         } else if(d.needsBorrow_o){
           dispA_t = d.borrowed_t;
           dispA_o = d.effective_o;
-          labelA_text = '被減數 ' + d.a + '（借一拆十：十位借 1 留 ' + d.borrowed_t + ' 條、個位變 ' + d.effective_o + ' 顆）';
+          labelA_text = '被減數 ' + d.a + '（借一拆十：十位借 1 留 ' + d.borrowed_t + ' 條、個位變 ' + d.effective_o + ' 顆，劃掉 ' + d.b_o + ' 顆）';
+        } else {
+          labelA_text = '被減數 ' + d.a + '（個位有 ' + d.a_o + ' 顆，劃掉 ' + d.b_o + ' 顆，剩 ' + d.ans_o + ' 顆）';
         }
+        slashA_o = d.b_o;
+        slashB_o = dispB_o; // 減數個位同步維持劃掉
       } else if(step >= 3){
         if(d.isAcrossZeroBorrow){
           dispA_h = Math.max(0, d.a_h - 1);
@@ -516,43 +651,57 @@
           dispA_h = Math.max(0, d.a_h - 1);
           dispA_t = d.effective_t;
           dispA_o = d.effective_o;
-          labelA_text = '被減數 ' + d.a + '（十位向百位借 1，十位現有 ' + d.effective_t + ' 條）';
         } else if(d.needsBorrow_o){
           dispA_t = d.borrowed_t;
           dispA_o = d.effective_o;
         }
+        slashA_o = d.b_o;
+        slashA_t = d.b_t;
+        slashB_o = dispB_o; // 減數個位同步維持劃掉
+        slashB_t = dispB_t; // 減數十位同步維持劃掉
+        if(step >= 4 && d.b_h > 0){
+          slashA_h = d.b_h;
+          slashB_h = dispB_h; // 減數百位同步維持劃掉
+        }
+        labelA_text = '被減數 ' + d.a + '（扣除積木已劃紅斜線，未劃掉的即為相減結果）';
       }
     }
 
-    calcEls.labelBlockA.textContent = labelA_text;
+    if(calcEls.labelBlockA){
+      calcEls.labelBlockA.textContent = labelA_text;
+    }
 
-    // 渲染 A 積木
+    // 判斷當前聚焦的位值欄位 (Cross-Highlighting)
+    var activePlace = '';
+    if(step === 1 || step === 2){
+      activePlace = 'o'; // 個位焦點
+    } else if(step === 3){
+      activePlace = 't'; // 十位焦點
+    } else if(step === 4 && (d.a_h > 0 || d.b_h > 0 || d.ans_h > 0)){
+      activePlace = 'h'; // 百位焦點
+    }
+
+    // 渲染 A 積木 (支援滿十收納框、焦點高亮與減法紅斜線劃掉)
     var htmlA = '';
-    if(dispA_h > 0) htmlA += createBlockColGroupHtml('百位', 'h', dispA_h, 'h-title');
-    htmlA += createBlockColGroupHtml('十位', 't', dispA_t, 't-title');
-    htmlA += createBlockColGroupHtml('個位', 'o', dispA_o, 'o-title');
+    if(dispA_h > 0) htmlA += createBlockColGroupHtml('百位', 'h', dispA_h, 'h-title', '', (activePlace === 'h'), false, slashA_h, 0);
+    htmlA += createBlockColGroupHtml('十位', 't', dispA_t, 't-title', '', (activePlace === 't'), false, slashA_t, 0);
+    htmlA += createBlockColGroupHtml('個位', 'o', dispA_o, 'o-title', '', (activePlace === 'o'), (calcState.op === 'add' && step === 1 && d.needsCarry), slashA_o, 0);
     calcEls.blocksContainerA.innerHTML = htmlA;
 
-    // 渲染 B 積木 (減數保持原始數值)
+    // 渲染 B 積木 (減法時，已扣除的欄位維持被劃掉的樣子)
     var htmlB = '';
-    if(dispB_h > 0) htmlB += createBlockColGroupHtml('百位', 'h', dispB_h, 'h-title');
-    htmlB += createBlockColGroupHtml('十位', 't', dispB_t, 't-title');
-    htmlB += createBlockColGroupHtml('個位', 'o', dispB_o, 'o-title');
+    if(dispB_h > 0) htmlB += createBlockColGroupHtml('百位', 'h', dispB_h, 'h-title', '', (activePlace === 'h'), false, slashB_h, 0);
+    htmlB += createBlockColGroupHtml('十位', 't', dispB_t, 't-title', '', (activePlace === 't'), false, slashB_t, 0);
+    htmlB += createBlockColGroupHtml('個位', 'o', dispB_o, 'o-title', '', (activePlace === 'o'), false, slashB_o, 0);
     calcEls.blocksContainerB.innerHTML = htmlB;
 
     // 在 Step 1 標記即將聚合或借位的積木
     if(step === 1){
-      if(calcState.op === 'add' && d.needsCarry){
-        // 加法滿十：在個位積木前 10 顆加上金色聚合光暈
-        var blkOs = calcEls.blocksStage.querySelectorAll('.block-items-wrap[data-place="o"] .svg-blk-o');
-        for(var i = 0; i < Math.min(10, blkOs.length); i++){
-          blkOs[i].classList.add('blk-gather-target');
-        }
-      } else if(calcState.op === 'sub' && d.needsBorrow_o){
+      if(calcState.op === 'sub' && d.needsBorrow_o){
         // 減法借位：十位最後 1 條長條加上藍色鎖定浮起光暈
         var wrapT = calcEls.blocksContainerA.querySelector('.block-items-wrap[data-place="t"]');
         if(wrapT){
-          var blkTs = wrapT.querySelectorAll('.svg-blk-t');
+          var blkTs = wrapT.querySelectorAll('.svg-blk-t, .blk-t');
           if(blkTs.length > 0){
             blkTs[blkTs.length - 1].classList.add('blk-borrow-source');
           }
@@ -560,7 +709,7 @@
         if(d.isAcrossZeroBorrow){
           var wrapH = calcEls.blocksContainerA.querySelector('.block-items-wrap[data-place="h"]');
           if(wrapH){
-            var blkHs = wrapH.querySelectorAll('.svg-blk-h');
+            var blkHs = wrapH.querySelectorAll('.svg-blk-h, .blk-h');
             if(blkHs.length > 0) blkHs[blkHs.length - 1].classList.add('blk-borrow-source');
           }
         }
@@ -577,26 +726,30 @@
         calcEls.labelBlockResult.textContent = '合計進度（個位已算好：' + d.ans_o + (d.needsCarry ? '，進位 1 條十' : '') + '）';
         var htmlResStep2 = '';
         if(d.needsCarry){
-          htmlResStep2 += createBlockColGroupHtml('十位 (進位)', 't', 1, 't-title');
+          htmlResStep2 += createBlockColGroupHtml('十位 (進位)', 't', 1, 't-title', '', (activePlace === 't'), false, 0, 1);
         }
-        htmlResStep2 += createBlockColGroupHtml('個位', 'o', d.ans_o, 'o-title');
+        htmlResStep2 += createBlockColGroupHtml('個位', 'o', d.ans_o, 'o-title', '', (activePlace === 'o'));
         calcEls.blocksContainerResult.innerHTML = htmlResStep2;
       } else if(step === 3){
-        // Step 3：十位計算完畢，累積至「合計結果欄」
+        // Step 3：十位計算完畢，累積至「合計結果欄」（十位若有進位，其中 1 條標記為進位得來）
         calcEls.rowResult.style.display = 'block';
-        calcEls.labelBlockResult.textContent = '合計進度（十位已算好：' + d.ans_t + '）';
+        calcEls.labelBlockResult.textContent = '合計進度（十位已算好：' + d.ans_t + (d.needsCarry ? '，含進位的 1 條十' : '') + '）';
         var htmlResStep3 = '';
-        if(d.ans_h > 0) htmlResStep3 += createBlockColGroupHtml('百位', 'h', d.ans_h, 'h-title');
-        htmlResStep3 += createBlockColGroupHtml('十位', 't', d.ans_t, 't-title');
-        htmlResStep3 += createBlockColGroupHtml('個位', 'o', d.ans_o, 'o-title');
+        if(d.ans_h > 0){
+          htmlResStep3 += createBlockColGroupHtml('百位', 'h', d.ans_h, 'h-title', '', (activePlace === 'h'), false, 0, (d.carry_t > 0 ? 1 : 0));
+        }
+        htmlResStep3 += createBlockColGroupHtml('十位', 't', d.ans_t, 't-title', '', (activePlace === 't'), false, 0, (d.needsCarry ? 1 : 0));
+        htmlResStep3 += createBlockColGroupHtml('個位', 'o', d.ans_o, 'o-title', '', false);
         calcEls.blocksContainerResult.innerHTML = htmlResStep3;
       } else if(step >= 4){
-        // Step 4：全部完成
+        // Step 4：全部完成（十位長條中，清楚標記 1 條是進位得來的）
         calcEls.rowResult.style.display = 'block';
-        calcEls.labelBlockResult.textContent = '合計最終積木 (結果 ' + d.total + ')';
+        calcEls.labelBlockResult.textContent = '合計最終積木 (結果 ' + d.total + (d.needsCarry ? '，其中 1 條十為滿十進位得來' : '') + ')';
         var htmlResStep4 = '';
-        if(d.ans_h > 0) htmlResStep4 += createBlockColGroupHtml('百位', 'h', d.ans_h, 'h-title');
-        htmlResStep4 += createBlockColGroupHtml('十位', 't', d.ans_t, 't-title');
+        if(d.ans_h > 0){
+          htmlResStep4 += createBlockColGroupHtml('百位', 'h', d.ans_h, 'h-title', '', false, false, 0, (d.carry_t > 0 ? 1 : 0));
+        }
+        htmlResStep4 += createBlockColGroupHtml('十位', 't', d.ans_t, 't-title', '', false, false, 0, (d.needsCarry ? 1 : 0));
         htmlResStep4 += createBlockColGroupHtml('個位', 'o', d.ans_o, 'o-title');
         calcEls.blocksContainerResult.innerHTML = htmlResStep4;
       }
@@ -605,15 +758,15 @@
       if(step === 2){
         calcEls.rowResult.style.display = 'block';
         calcEls.labelBlockResult.textContent = '相減進度（個位剩餘：' + d.ans_o + '）';
-        var htmlSubStep2 = createBlockColGroupHtml('個位', 'o', d.ans_o, 'o-title');
+        var htmlSubStep2 = createBlockColGroupHtml('個位', 'o', d.ans_o, 'o-title', '', (activePlace === 'o'));
         calcEls.blocksContainerResult.innerHTML = htmlSubStep2;
       } else if(step === 3){
         calcEls.rowResult.style.display = 'block';
         calcEls.labelBlockResult.textContent = '相減進度（十位剩餘：' + d.ans_t + '）';
         var htmlSubStep3 = '';
-        if(d.ans_h > 0) htmlSubStep3 += createBlockColGroupHtml('百位', 'h', d.ans_h, 'h-title');
-        htmlSubStep3 += createBlockColGroupHtml('十位', 't', d.ans_t, 't-title');
-        htmlSubStep3 += createBlockColGroupHtml('個位', 'o', d.ans_o, 'o-title');
+        if(d.ans_h > 0) htmlSubStep3 += createBlockColGroupHtml('百位', 'h', d.ans_h, 'h-title', '', (activePlace === 'h'));
+        htmlSubStep3 += createBlockColGroupHtml('十位', 't', d.ans_t, 't-title', '', (activePlace === 't'));
+        htmlSubStep3 += createBlockColGroupHtml('個位', 'o', d.ans_o, 'o-title', '', false);
         calcEls.blocksContainerResult.innerHTML = htmlSubStep3;
       } else if(step >= 4){
         calcEls.rowResult.style.display = 'block';
@@ -633,7 +786,8 @@
 
     var opSymbol = d.op === 'add' ? '＋' : '−';
     var hasH = (d.a_h > 0 || d.b_h > 0 || (d.op === 'add' && d.ans_h > 0));
-    var showCarry = (d.op === 'add' && d.needsCarry && step >= 2);
+    var showCarryT = (d.op === 'add' && d.carry_o > 0 && step >= 2);
+    var showCarryH = (d.op === 'add' && d.carry_t > 0 && step >= 3);
     var showBorrow = (d.op === 'sub' && (d.needsBorrow_o || d.needsBorrow_t) && step >= 2);
 
     // 判斷當前高亮欄位
@@ -674,8 +828,13 @@
     var mark_h = '';
     var mark_t = '';
     var mark_o = '';
-    if(showCarry){
-      mark_t = '<span class="vm-carry-badge" title="滿十進一">1</span>';
+    if(d.op === 'add'){
+      if(showCarryH){
+        mark_h = '<span class="vm-carry-badge" title="十位滿十進一">1</span>';
+      }
+      if(showCarryT){
+        mark_t = '<span class="vm-carry-badge" title="個位滿十進一">1</span>';
+      }
     } else if(showBorrow){
       // 個位借入的 10
       if(d.needsBorrow_o && step >= 2){
@@ -780,6 +939,33 @@
 
     html += '</div></div>';
     calcEls.verticalBoard.innerHTML = html;
+    bindVerticalMathBoardHover();
+  }
+
+  /* 直式算則滑鼠懸停反向高亮左側具體積木 (Cross-Hover) */
+  function bindVerticalMathBoardHover(){
+    if(!calcEls.verticalBoard) return;
+    var cells = calcEls.verticalBoard.querySelectorAll('.vm-cell-o, .vm-cell-t, .vm-cell-h');
+    cells.forEach(function(cell){
+      var place = '';
+      if(cell.classList.contains('vm-cell-o')) place = 'o';
+      else if(cell.classList.contains('vm-cell-t')) place = 't';
+      else if(cell.classList.contains('vm-cell-h')) place = 'h';
+      if(!place) return;
+
+      cell.addEventListener('mouseenter', function(){
+        var targetGroups = document.querySelectorAll('.block-col-group[data-place="' + place + '"]');
+        targetGroups.forEach(function(grp){
+          grp.classList.add('blk-hover-highlight');
+        });
+      });
+      cell.addEventListener('mouseleave', function(){
+        var targetGroups = document.querySelectorAll('.block-col-group[data-place="' + place + '"]');
+        targetGroups.forEach(function(grp){
+          grp.classList.remove('blk-hover-highlight');
+        });
+      });
+    });
   }
 
   /* 步驟文案與語音解說生成器 */
@@ -799,7 +985,7 @@
             text: '先算個位：' + d.a_o + ' ＋ ' + d.b_o + ' ＝ <em>' + d.o_sum + '</em>。超過 9 顆了！個位放不下，必須把 <em>10 個一捆成 1 條十</em>！',
             speak: '先算個位：' + d.a_o + ' 加 ' + d.b_o + ' 等於 ' + d.o_sum + '。超過 9 個了！必須滿十進一喔！',
             showPrompt: true,
-            promptBtn: '✨ 點擊把 10 顆珠子捆成 1 條十！'
+            promptBtn: '✨ 點擊把 10 顆積木捆成 1 條十！'
           };
         } else {
           return {
@@ -843,7 +1029,7 @@
         if(d.needsCarry){
           return {
             pill: '第 2 步 (進位)：滿十進一到十位',
-            text: '10 顆珠子聚合成 1 條十，送給十位！直式十位上方寫一個<em>金色小 1</em>，個位留下 <em>' + d.ans_o + '</em> 顆！',
+            text: '10 顆積木聚合成 1 條十，送給十位！直式十位上方寫一個<em>金色小 1</em>，個位留下 <em>' + d.ans_o + '</em> 顆！',
             speak: '滿十進一！十位頭上寫一個小小的 1，個位寫 ' + d.ans_o + '！',
             showPrompt: false,
             sound: 'carry'
@@ -868,7 +1054,7 @@
         } else if(d.needsBorrow_o){
           return {
             pill: '第 2 步 (借位)：借一拆十到個位',
-            text: '向十位借 1 條十，十位劃掉記上剩餘的 <em>' + d.borrowed_t + '</em>；拆成 10 顆珠子到個位，個位變成 <em>' + d.effective_o + '</em> 顆，' + d.effective_o + ' − ' + d.b_o + ' ＝ <em>' + d.ans_o + '</em>！',
+            text: '向十位借 1 條十，十位劃掉記上剩餘的 <em>' + d.borrowed_t + '</em>；拆成 10 顆積木到個位，個位變成 <em>' + d.effective_o + '</em> 顆，' + d.effective_o + ' − ' + d.b_o + ' ＝ <em>' + d.ans_o + '</em>！',
             speak: '借一拆十！十位劃掉記 ' + d.borrowed_t + '，個位現在有 ' + d.effective_o + ' 個，減 ' + d.b_o + ' 等於 ' + d.ans_o + '！',
             showPrompt: false,
             sound: 'borrow'
@@ -884,12 +1070,13 @@
       }
     } else if(step === 3){
       if(d.op === 'add'){
-        var expText = d.needsCarry
-          ? '接著算十位：別忘了頭上的小 1 喔！<em>1 ＋ ' + d.a_t + ' ＋ ' + d.b_t + ' ＝ ' + d.t_sum + '</em>。在十位寫上 <em>' + d.ans_t + '</em>！'
-          : '接著算十位：' + d.a_t + ' ＋ ' + d.b_t + ' ＝ <em>' + d.ans_t + '</em>。在十位寫上 <em>' + d.ans_t + '</em>！';
-        var expSpeak = d.needsCarry
-          ? '接著算十位：進位的小 1 加上 ' + d.a_t + ' 再加 ' + d.b_t + ' 等於 ' + d.ans_t + '，寫上 ' + d.ans_t + '！'
-          : '接著算十位：' + d.a_t + ' 加 ' + d.b_t + ' 等於 ' + d.ans_t + '，寫上 ' + d.ans_t + '！';
+        var carryTNote = d.carry_t > 0 ? ('，滿十向百位進 1（百位頭上記上金色小 1）！') : '！';
+        var expText = d.carry_o > 0
+          ? '接著算十位：別忘了頭上的小 1 喔！<em>1 ＋ ' + d.a_t + ' ＋ ' + d.b_t + ' ＝ ' + d.t_sum + '</em>。在十位寫上 <em>' + d.ans_t + '</em>' + carryTNote
+          : '接著算十位：' + d.a_t + ' ＋ ' + d.b_t + ' ＝ <em>' + d.t_sum + '</em>。在十位寫上 <em>' + d.ans_t + '</em>' + carryTNote;
+        var expSpeak = d.carry_o > 0
+          ? '接著算十位：進位的小 1 加上 ' + d.a_t + ' 再加 ' + d.b_t + ' 等於 ' + d.t_sum + '，在十位寫上 ' + d.ans_t + (d.carry_t > 0 ? '，滿十進一到百位！' : '！')
+          : '接著算十位：' + d.a_t + ' 加 ' + d.b_t + ' 等於 ' + d.t_sum + '，在十位寫上 ' + d.ans_t + (d.carry_t > 0 ? '，滿十進一到百位！' : '！');
         return {
           pill: '第 3 步 / 共 4 步：再算十位',
           text: expText,
@@ -983,12 +1170,24 @@
     // 動畫時間軸：使用 Anime.js 進行進位飛躍、借位劃線與答案彈跳
     animateVerticalStep(d, step);
 
-    // 左側積木操作台動態演繹 (加法進位聚攏飛渡、減法借一拆十分裂)
+    // 左側積木操作台動態演繹 (加法進位聚攏飛渡、減法借一拆十分裂與成對劃掉扣除)
     if(step === 2){
       if(calcState.op === 'add' && d.needsCarry){
         playBlockCarryAnimation(d);
-      } else if(calcState.op === 'sub' && d.needsBorrow_o){
-        playBlockBorrowAnimation(d);
+      } else if(calcState.op === 'sub'){
+        if(d.needsBorrow_o){
+          playBlockBorrowAnimation(d, function(){
+            if(d.b_o > 0){
+              playDeductSlashAnimation('o', d.b_o);
+            }
+          });
+        } else if(d.b_o > 0){
+          playDeductSlashAnimation('o', d.b_o);
+        }
+      }
+    } else if(step === 3){
+      if(calcState.op === 'sub' && d.b_t > 0){
+        playDeductSlashAnimation('t', d.b_t);
       }
     }
 
@@ -1007,20 +1206,27 @@
   function animateVerticalStep(d, step){
     if(prefersReduced || typeof window.anime === 'undefined') return;
 
-    // 1. 加法進位：滿十進一弧線飛躍
-    if(step === 2 && d.op === 'add' && d.needsCarry){
-      var carryBadge = document.querySelector('.vm-carry-badge');
-      var cellO = document.querySelector('.vm-cell-o .vm-num-box');
-      if(carryBadge && cellO){
+    // 1. 加法進位：滿十進一弧線飛躍 (Step 2 個位進十位，Step 3 十位進百位)
+    if(d.op === 'add'){
+      var carryBadge = null;
+      var startCell = null;
+      if(step === 2 && d.carry_o > 0){
+        carryBadge = document.querySelector('.vm-cell-t .vm-carry-badge');
+        startCell = document.querySelector('.vm-cell-o .vm-num-box');
+      } else if(step === 3 && d.carry_t > 0){
+        carryBadge = document.querySelector('.vm-cell-h .vm-carry-badge');
+        startCell = document.querySelector('.vm-cell-t .vm-num-box');
+      }
+      if(carryBadge && startCell){
         var rBadge = carryBadge.getBoundingClientRect();
-        var rO = cellO.getBoundingClientRect();
+        var rStart = startCell.getBoundingClientRect();
 
         var flyer = document.createElement('div');
         flyer.className = 'anime-carry-flyer';
         flyer.textContent = '1';
         flyer.style.position = 'fixed';
-        flyer.style.left = rO.left + 'px';
-        flyer.style.top = rO.top + 'px';
+        flyer.style.left = rStart.left + 'px';
+        flyer.style.top = rStart.top + 'px';
         flyer.style.zIndex = '9999';
         flyer.style.pointerEvents = 'none';
         document.body.appendChild(flyer);
@@ -1031,7 +1237,7 @@
           targets: flyer,
           left: rBadge.left + 'px',
           top: [
-            { value: (rO.top - 46) + 'px', duration: 320, easing: 'easeOutQuad' },
+            { value: (rStart.top - 46) + 'px', duration: 320, easing: 'easeOutQuad' },
             { value: rBadge.top + 'px', duration: 380, easing: 'easeInQuad' }
           ],
           scale: [1.8, 1],

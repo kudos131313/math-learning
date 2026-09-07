@@ -854,5 +854,141 @@
   user-select: none !important;
 }
 
+/* ---------- 跨欄位同頻焦點高亮 (Cross-Highlighting) ---------- */
+.block-col-group{
+  transition: all .28s cubic-bezier(0.3, 0.8, 0.2, 1);
+  padding: 4px 6px;
+  border-radius: 10px;
+}
+.block-col-group.active-col-group{
+  background: rgba(255, 255, 255, 0.95);
+  transform: translateY(-2px);
+}
+.block-col-group.active-col-group.col-focus-o{
+  box-shadow: 0 0 0 2.5px #f59e0b, 0 6px 16px rgba(245, 158, 11, 0.22);
+}
+.block-col-group.active-col-group.col-focus-t{
+  box-shadow: 0 0 0 2.5px #10b981, 0 6px 16px rgba(16, 185, 129, 0.22);
+}
+.block-col-group.active-col-group.col-focus-h{
+  box-shadow: 0 0 0 2.5px #3b82f6, 0 6px 16px rgba(59, 130, 246, 0.22);
+}
+
+/* 滑鼠 Hover 右側直式數字格時，左側積木欄位浮起呼應 */
+.block-col-group.blk-hover-highlight{
+  transform: translateY(-4px) scale(1.05) !important;
+  box-shadow: 0 0 0 3px #6366f1, 0 8px 20px rgba(99, 102, 241, 0.3) !important;
+  z-index: 20;
+}
+
+/* ---------- 加法滿十收納框 (Ten-Frame 集合圈) ---------- */
+.blk-ten-frame-box{
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  padding: 12px 10px 8px;
+  border: 2.5px dashed #f59e0b;
+  border-radius: 12px;
+  background: rgba(254, 243, 199, 0.6);
+  box-shadow: 0 0 16px rgba(245, 158, 11, 0.35);
+  position: relative;
+  margin: 6px 0 2px;
+  animation: blkTenFramePulse 1.2s infinite alternate ease-in-out;
+}
+
+@keyframes blkTenFramePulse{
+  0% { transform: scale(1); box-shadow: 0 0 12px rgba(245, 158, 11, 0.3); }
+  100% { transform: scale(1.02); box-shadow: 0 0 22px rgba(245, 158, 11, 0.6); }
+}
+
+.ten-frame-badge{
+  position: absolute;
+  top: -12px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: linear-gradient(135deg, #f59e0b, #d97706);
+  color: #fff;
+  font-size: 12px;
+  font-weight: 900;
+  padding: 2px 10px;
+  border-radius: 999px;
+  border: 1.5px solid #ffffff;
+  box-shadow: 0 2px 8px rgba(245, 158, 11, 0.6);
+  letter-spacing: 0.5px;
+  white-space: nowrap !important;
+  user-select: none;
+  pointer-events: none;
+  z-index: 30;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  line-height: 1.2;
+}
+
+/* ---------- 減法「劃掉扣除」紅斜線打叉效果（積木不消失，保留在畫面上） ---------- */
+.blk-slash-crossed{
+  position: relative !important;
+  display: inline-block;
+  opacity: 0.45;
+  filter: grayscale(0.25);
+  transition: opacity 0.25s ease, filter 0.25s ease;
+}
+.blk-slash-crossed::after{
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: -12%;
+  width: 124%;
+  height: 3.5px;
+  background: #ef4444;
+  border-radius: 999px;
+  transform: translateY(-50%) rotate(-30deg);
+  box-shadow: 0 0 8px rgba(239, 68, 68, 0.9);
+  animation: blkSlashSlash 0.28s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+  z-index: 15;
+}
+
+@keyframes blkSlashSlash{
+  0% { transform: translateY(-50%) rotate(-30deg) scaleX(0); opacity: 0; }
+  100% { transform: translateY(-50%) rotate(-30deg) scaleX(1); opacity: 1; }
+}
+
+/* ---------- 加法進位長條特別標示 (Carried Block Highlight - 靜態清晰不晃動) ---------- */
+.blk-carried{
+  position: relative !important;
+  border-radius: 6px;
+  outline: 2.5px solid #f59e0b !important;
+  outline-offset: 2px;
+  box-shadow: 0 0 10px rgba(245, 158, 11, 0.45) !important;
+  transform: none !important;
+}
+
+.carried-tag-pill{
+  position: absolute;
+  top: -12px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: linear-gradient(135deg, #fbbf24, #f59e0b);
+  color: #fff;
+  font-size: 11px;
+  font-weight: 900;
+  padding: 1.5px 7px;
+  border-radius: 999px;
+  border: 1px solid #ffffff;
+  box-shadow: 0 2px 5px rgba(245, 158, 11, 0.5);
+  white-space: nowrap !important;
+  letter-spacing: 0.5px;
+  z-index: 25;
+  pointer-events: none;
+  line-height: 1.2;
+}
+
+/* 確保積木容器頂部有合適餘裕，避免進位標籤遮擋到欄位標題 */
+.block-col-group .block-items-wrap{
+  margin-top: 6px;
+}
+
+
 
 
