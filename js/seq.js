@@ -246,10 +246,9 @@
   }
 
   /* P3: 渲染 10x10 百數表二維地圖 */
-  function renderHundredChart(){
+  function renderHundredChart(forcedRange){
     if(!chartGridEl) return;
 
-    // 自動判斷目前百數表區間
     var autoRange = 101;
     if(currentNum <= 100) autoRange = 1;
     else if(currentNum <= 200) autoRange = 101;
@@ -259,8 +258,8 @@
       autoRange = Math.floor((currentNum - 1) / 100) * 100 + 1;
     }
 
-    // 若使用者未強制鎖定區間，則自動跟隨
-    currentChartRange = autoRange;
+    // 若傳入指定區間則使用指定區間，否則自動跟隨列車位置
+    currentChartRange = (typeof forcedRange === 'number') ? forcedRange : autoRange;
 
     // 同步區間按鈕外觀
     var rangeBtns = document.querySelectorAll('.chart-range-btn');
@@ -454,9 +453,16 @@
       btn.addEventListener('click', function(){
         var r = parseInt(btn.getAttribute('data-range'), 10);
         if(!isNaN(r)){
-          currentChartRange = r;
-          renderHundredChart();
-          if(MathApp.sfx) MathApp.sfx('click');
+          var rangeMax = (r === 1) ? 100 : (r + 99);
+          var inRange = (currentNum >= r && currentNum <= rangeMax);
+          if(!inRange){
+            // 若當前數字不在所選區間，將列車開往該區間起點，連帶位值積木、解說、百數表全部同步切換
+            setNumber(r, true);
+          } else {
+            // 已在該區間內，確保百數表聚焦該區間
+            renderHundredChart(r);
+            if(MathApp.sfx) MathApp.sfx('click');
+          }
         }
       });
     });
