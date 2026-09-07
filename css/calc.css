@@ -287,31 +287,7 @@
   font-weight: 900;
 }
 
-/* 特寫動作盒 (進位聚合 / 借位拆解) */
-.calc-action-box{
-  background: linear-gradient(135deg, var(--surface) 0%, var(--surface-dim) 100%);
-  border: 2px dashed #2b6ef2;
-  border-radius: 16px;
-  padding: 14px 18px;
-  animation: bounceIn .3s ease-out;
-}
-.action-box-title{
-  font-size: 14px;
-  font-weight: 900;
-  color: #2b6ef2;
-  margin-bottom: 8px;
-}
-.action-box-content{
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  flex-wrap: wrap;
-}
-.action-transform-arrow{
-  font-size: 20px;
-  font-weight: 900;
-  color: #2b6ef2;
-}
+
 
 /* ---------- 右側：小學作業簿直式算則 (結構化極致穩定版) ---------- */
 .vertical-math-board{
@@ -768,5 +744,115 @@
   font-family: "Baloo 2", sans-serif;
   transform: translate(-50%, -50%);
 }
+
+/* ---------- 積木操作台即時物理級動態演繹 (Anime.js 動畫增強) ---------- */
+
+/* 1. 加法：滿十聚攏發光標記 */
+.blk-gather-target{
+  outline: 2.5px solid #f59e0b !important;
+  outline-offset: 2px;
+  box-shadow: 0 0 12px rgba(245, 158, 11, 0.75), 0 2px 6px rgba(0,0,0,0.15) !important;
+  animation: blkGatherPulse 0.6s infinite alternate ease-in-out;
+  position: relative;
+  z-index: 10;
+}
+
+@keyframes blkGatherPulse{
+  0% { transform: scale(1); filter: brightness(1); }
+  100% { transform: scale(1.15) translateY(-2px); filter: brightness(1.25); }
+}
+
+/* 2. 減法：借出來源積木鎖定浮起 */
+.blk-borrow-source{
+  outline: 3px solid #3b82f6 !important;
+  outline-offset: 3px;
+  box-shadow: 0 0 16px rgba(59, 130, 246, 0.8), 0 4px 8px rgba(0,0,0,0.2) !important;
+  animation: blkBorrowFloat 0.7s infinite alternate ease-in-out;
+  position: relative;
+  z-index: 12;
+}
+
+@keyframes blkBorrowFloat{
+  0% { transform: translateY(0) scale(1); }
+  100% { transform: translateY(-4px) scale(1.08); }
+}
+
+/* 3. 飛行中的積木元素 (Flyer) */
+.blk-anim-flyer{
+  position: fixed;
+  z-index: 99999;
+  pointer-events: none;
+  filter: drop-shadow(0 8px 20px rgba(0,0,0,0.28));
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transform-origin: center center;
+}
+
+/* 4. 裂解噴發小白方塊 (Shards) */
+.blk-split-shard{
+  position: fixed;
+  z-index: 99999;
+  pointer-events: none;
+  filter: drop-shadow(0 4px 8px rgba(0,0,0,0.2));
+  transform-origin: center center;
+}
+
+/* 5. 減法成對扣除消去動畫 */
+.blk-deducting{
+  position: relative;
+  pointer-events: none;
+}
+.blk-deducting::after{
+  content: '';
+  position: absolute;
+  top: 50%; left: -10%; width: 120%; height: 3px;
+  background: #ef4444;
+  border-radius: 2px;
+  transform: translateY(-50%) rotate(-25deg);
+  box-shadow: 0 0 6px rgba(239, 68, 68, 0.8);
+  animation: blkSlashLine 0.25s ease-out forwards;
+}
+
+@keyframes blkSlashLine{
+  0% { transform: translateY(-50%) rotate(-25deg) scaleX(0); }
+  100% { transform: translateY(-50%) rotate(-25deg) scaleX(1); }
+}
+
+.blk-deduct-flyout{
+  animation: blkDeductFlyout 0.65s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+}
+
+@keyframes blkDeductFlyout{
+  0% { opacity: 1; transform: scale(1) translateY(0); }
+  40% { opacity: 0.9; transform: scale(1.15) translateY(-8px) rotate(8deg); }
+  100% { opacity: 0; transform: scale(0.4) translateY(-36px) translateX(24px) rotate(20deg); }
+}
+
+/* 6. 落地爆破光芒 (Land Burst) */
+.blk-burst-glow{
+  position: fixed;
+  width: 46px;
+  height: 46px;
+  border-radius: 50%;
+  transform: translate(-50%, -50%) scale(0.2);
+  pointer-events: none;
+  z-index: 99998;
+  opacity: 0.9;
+  animation: blkBurstAnim 0.5s ease-out forwards;
+}
+
+@keyframes blkBurstAnim{
+  0% { transform: translate(-50%, -50%) scale(0.2); opacity: 0.95; }
+  60% { transform: translate(-50%, -50%) scale(1.5); opacity: 0.6; }
+  100% { transform: translate(-50%, -50%) scale(2.2); opacity: 0; }
+}
+
+/* 操作台鎖定遮罩（動畫播放中防狂點錯亂） */
+.calc-stage-animating{
+  pointer-events: none !important;
+  user-select: none !important;
+}
+
 
 
