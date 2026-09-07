@@ -101,35 +101,25 @@
       for(var u = 0; u < voices.length; u++){
         if((voices[u].voiceURI && voices[u].voiceURI === _userCustomVoiceURI) || voices[u].name === _userCustomVoiceURI){
           _cachedVoice = voices[u];
-          console.log('[語音] 使用者自訂指定語音命中 →', _cachedVoice.name);
           return _cachedVoice;
         }
       }
     }
-
-    console.group('[語音] 開始挑選最佳推薦語音');
-    console.log('可用語音清單（共 ' + voices.length + ' 個）：',
-      voices.map(function(v){ return v.name + ' [' + v.lang + ']'; }));
 
     // 1. 依偏好清單尋找
     for(var i = 0; i < VOICE_PREFS.length; i++){
       for(var j = 0; j < voices.length; j++){
         if(voices[j].name.indexOf(VOICE_PREFS[i]) !== -1){
           _cachedVoice = voices[j];
-          console.log('✅ 偏好清單命中（第 ' + (i+1) + ' 順位）→ ' + _cachedVoice.name + ' [' + _cachedVoice.lang + ']');
-          console.groupEnd();
           return _cachedVoice;
         }
       }
     }
-    console.log('⚠️ 偏好清單全部未命中，改用退而求其次策略');
 
     // 2. 退而求其次：任何 zh-TW 聲音
     for(var k = 0; k < voices.length; k++){
       if(voices[k].lang === 'zh-TW'){
         _cachedVoice = voices[k];
-        console.log('🔄 回退策略 zh-TW → ' + _cachedVoice.name);
-        console.groupEnd();
         return _cachedVoice;
       }
     }
@@ -137,15 +127,11 @@
     for(var m = 0; m < voices.length; m++){
       if(voices[m].lang && voices[m].lang.indexOf('zh') === 0){
         _cachedVoice = voices[m];
-        console.log('🔄 回退策略 zh → ' + _cachedVoice.name + ' [' + _cachedVoice.lang + ']');
-        console.groupEnd();
         return _cachedVoice;
       }
     }
 
     _cachedVoice = null; // 完全找不到，用瀏覽器預設
-    console.warn('❌ 找不到任何中文語音，將使用瀏覽器預設語音');
-    console.groupEnd();
     return null;
   }
 
@@ -212,7 +198,6 @@
   // 語音清單非同步載入時重置快取，讓下次 speak() 重新挑選
   if('speechSynthesis' in window){
     window.speechSynthesis.addEventListener('voiceschanged', function(){
-      console.log('[語音] voiceschanged 觸發，重置語音快取');
       _cachedVoice = undefined;
       updateVoiceStatusUI();
       if(voiceListModal && voiceListModal.style.display !== 'none'){
@@ -237,7 +222,6 @@
       u.volume = 0.95;
       var best = pickBestVoice();
       if(best) u.voice = best;
-      console.log('[語音] speak() → 語音：' + (best ? best.name : '瀏覽器預設') + '，內容：「' + clean + '」');
 
       // 更新頁尾狀態列並增加發聲動態反饋
       updateVoiceStatusUI();

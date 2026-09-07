@@ -233,7 +233,7 @@
         var cls = kind === 'th' ? 'blk-th' : kind === 'h' ? 'blk-h' : kind === 't' ? 'blk-t' : 'blk-o';
         html += '<span class="blk ' + cls + extraClasses + '" data-kind="' + kind + '">';
         if(isCarried){
-          html += '<span class="carried-tag-pill">✨ 進位＋1</span>';
+          html += '<span class="carried-tag-pill">進位＋1</span>';
         }
         html += MathApp.utils.getBlockSvg(kind);
         html += '</span>';
@@ -255,7 +255,7 @@
     } else if(hasTenFrame && count >= 10){
       // 滿十收納框：前 10 顆整齊包覆在金色虛線收納盒中，剩餘的排在外面
       html += '<div class="blk-ten-frame-box" id="calc-ten-frame-box">';
-      html += '<span class="ten-frame-badge">✨ 滿10進1</span>';
+      html += '<span class="ten-frame-badge">滿10進1</span>';
       html += renderCustomBlocksHtml(kind, 10, 0, 0);
       html += '</div>';
       if(count > 10){
@@ -336,22 +336,22 @@
     var centerX = (rectA.left + rectA.width / 2 + rectB.left + rectB.width / 2) / 2;
     var centerY = (rectA.top + rectB.top + rectB.height) / 2;
 
-    // 建立金色虛線 Ten-Frame 滿十收納框
-    var tenFrame = document.createElement('div');
-    tenFrame.className = 'blk-ten-frame-box blk-anim-flyer';
-    tenFrame.style.position = 'fixed';
-    tenFrame.style.left = centerX + 'px';
-    tenFrame.style.top = centerY + 'px';
-    tenFrame.style.transform = 'translate(-50%, -50%) scale(0.6)';
-    tenFrame.style.opacity = '0';
-    tenFrame.style.zIndex = '99997';
-    tenFrame.style.pointerEvents = 'none';
-    tenFrame.innerHTML = '<span class="ten-frame-badge">✨ 滿10進1</span>';
-    document.body.appendChild(tenFrame);
+    // 建立「滿10進1」動態提示膠囊標籤 (不帶空虛線外框)
+    var carryBadge = document.createElement('div');
+    carryBadge.className = 'ten-frame-badge blk-anim-flyer';
+    carryBadge.style.position = 'fixed';
+    carryBadge.style.left = centerX + 'px';
+    carryBadge.style.top = (centerY - 22) + 'px';
+    carryBadge.style.transform = 'translate(-50%, -50%) scale(0.6)';
+    carryBadge.style.opacity = '0';
+    carryBadge.style.zIndex = '99998';
+    carryBadge.style.pointerEvents = 'none';
+    carryBadge.textContent = '滿10進1';
+    document.body.appendChild(carryBadge);
 
-    // 收納框縮放浮現
+    // 提示標籤縮放浮現
     window.anime({
-      targets: tenFrame,
+      targets: carryBadge,
       scale: [0.5, 1],
       opacity: [0, 1],
       duration: 260,
@@ -374,7 +374,7 @@
       shards.push(s);
     }
 
-    // 10 顆小方塊整齊聚攏吸入 Ten-Frame 收納盒中心
+    // 10 顆小方塊整齊聚攏至中心
     window.anime({
       targets: shards,
       left: centerX + 'px',
@@ -389,15 +389,15 @@
         if(MathApp.sfx) MathApp.sfx('pop');
         spawnCalcBurst(centerX, centerY, '#fbbf24');
 
-        // 收納框緊縮合體
+        // 提示標籤緊縮合體
         window.anime({
-          targets: tenFrame,
+          targets: carryBadge,
           scale: [1, 0.2],
           opacity: [1, 0],
           duration: 220,
           easing: 'easeInQuad',
           complete: function(){
-            tenFrame.remove();
+            carryBadge.remove();
           }
         });
 
