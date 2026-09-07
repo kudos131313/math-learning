@@ -355,13 +355,7 @@
         var goodMsg = MathApp.utils.goodMsgs[MathApp.randInt(0, MathApp.utils.goodMsgs.length - 1)];
         quizEls.feedback.className = 'feedback good';
         quizEls.feedback.innerHTML = goodMsg + '<span class="explain">' + explainStr + '</span>';
-        if(typeof window.anime !== 'undefined'){
-          window.anime({ targets: quizEls.card, scale: [1, 1.025, 1], duration: 420, easing: 'easeOutElastic(1, .6)' });
-        } else {
-          quizEls.card.classList.remove('shake');
-          quizEls.card.classList.add('pulseGood');
-          setTimeout(function(){ quizEls.card.classList.remove('pulseGood'); }, 400);
-        }
+        quizEls.card.classList.remove('shake');
         MathApp.sfx('correct');
         MathApp.speak(goodMsg + '。' + explainStr);
         MathApp.utils.launchConfetti();
@@ -404,9 +398,7 @@
         var goodMsg2 = MathApp.utils.goodMsgs[MathApp.randInt(0, MathApp.utils.goodMsgs.length - 1)];
         quizEls.feedback.className = 'feedback good';
         quizEls.feedback.innerHTML = goodMsg2 + '<span class="explain">' + explainStr + '</span>';
-        if(typeof window.anime !== 'undefined'){
-          window.anime({ targets: quizEls.card, scale: [1, 1.025, 1], duration: 420, easing: 'easeOutElastic(1, .6)' });
-        }
+        quizEls.card.classList.remove('shake');
         MathApp.sfx('correct');
         MathApp.speak(goodMsg2);
         MathApp.utils.launchConfetti();
