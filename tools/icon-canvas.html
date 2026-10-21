@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="zh-Hant-TW">
+<head>
+<meta charset="UTF-8">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    width: 512px;
+    height: 512px;
+    overflow: hidden;
+    background: transparent;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  }
+  .icon-canvas {
+    width: 512px;
+    height: 512px;
+    position: relative;
+    overflow: hidden;
+    /* 背景漸層：活力天藍至深邃皇家藍，符合 iOS 滿版要求 */
+    background: linear-gradient(145deg, #38bdf8 0%, #2563eb 55%, #1e40af 100%);
+  }
+  /* 細微柔光質感 */
+  .glow-overlay {
+    position: absolute;
+    top: -60px;
+    left: -60px;
+    width: 320px;
+    height: 320px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(255,255,255,0.4) 0%, rgba(255,255,255,0) 70%);
+    pointer-events: none;
+  }
+  .glow-bottom {
+    position: absolute;
+    bottom: -80px;
+    right: -80px;
+    width: 340px;
+    height: 340px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(99, 102, 241, 0.45) 0%, rgba(99, 102, 241, 0) 70%);
+    pointer-events: none;
+  }
+</style>
+</head>
+<body>
+
+<div class="icon-canvas">
+  <div class="glow-overlay"></div>
+  <div class="glow-bottom"></div>
+
+  <svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+      <!-- 陰影濾鏡 -->
+      <filter id="shadow-main" x="-20%" y="-15%" width="140%" height="150%">
+        <feDropShadow dx="0" dy="18" stdDeviation="16" flood-color="#0f172a" flood-opacity="0.4" />
+      </filter>
+      <filter id="shadow-star" x="-30%" y="-30%" width="160%" height="160%">
+        <feDropShadow dx="0" dy="4" stdDeviation="6" flood-color="#ca8a04" flood-opacity="0.5" />
+      </filter>
+      <filter id="shadow-block" x="-20%" y="-20%" width="140%" height="140%">
+        <feDropShadow dx="0" dy="8" stdDeviation="8" flood-color="#0f172a" flood-opacity="0.3" />
+      </filter>
+
+      <!-- 屋頂漸層 (暖橘) -->
+      <linearGradient id="roof-grad" x1="120" y1="120" x2="390" y2="240" gradientUnits="userSpaceOnUse">
+        <stop offset="0%" stop-color="#fdba74"/>
+        <stop offset="30%" stop-color="#fb923c"/>
+        <stop offset="100%" stop-color="#ea580c"/>
+      </linearGradient>
+
+      <!-- 屋頂側光漸層 -->
+      <linearGradient id="roof-light" x1="256" y1="120" x2="256" y2="230" gradientUnits="userSpaceOnUse">
+        <stop offset="0%" stop-color="#ffffff" stop-opacity="0.8"/>
+        <stop offset="100%" stop-color="#ffffff" stop-opacity="0"/>
+      </linearGradient>
+
+      <!-- 房屋主體 (百位水藍積木) -->
+      <linearGradient id="house-grad" x1="150" y1="210" x2="360" y2="400" gradientUnits="userSpaceOnUse">
+        <stop offset="0%" stop-color="#ffffff"/>
+        <stop offset="15%" stop-color="#93c5fd"/>
+        <stop offset="70%" stop-color="#3b82f6"/>
+        <stop offset="100%" stop-color="#1d4ed8"/>
+      </linearGradient>
+
+      <!-- 十位積木條 (暖橘柱) -->
+      <linearGradient id="ten-grad" x1="330" y1="260" x2="390" y2="380" gradientUnits="userSpaceOnUse">
+        <stop offset="0%" stop-color="#ffedd5"/>
+        <stop offset="20%" stop-color="#fb923c"/>
+        <stop offset="100%" stop-color="#c2410c"/>
+      </linearGradient>
+
+      <!-- 個位積木小方塊 (白色微透光晶亮) -->
+      <linearGradient id="one-grad" x1="130" y1="320" x2="190" y2="380" gradientUnits="userSpaceOnUse">
+        <stop offset="0%" stop-color="#ffffff"/>
+        <stop offset="60%" stop-color="#f8fafc"/>
+        <stop offset="100%" stop-color="#cbd5e1"/>
+      </linearGradient>
+
+      <!-- 金星漸層 -->
+      <linearGradient id="star-grad" x1="360" y1="90" x2="400" y2="135" gradientUnits="userSpaceOnUse">
+        <stop offset="0%" stop-color="#fef08a"/>
+        <stop offset="50%" stop-color="#facc15"/>
+        <stop offset="100%" stop-color="#eab308"/>
+      </linearGradient>
+
+      <!-- 門面漸層 (溫馨黃光) -->
+      <linearGradient id="door-grad" x1="220" y1="290" x2="290" y2="395" gradientUnits="userSpaceOnUse">
+        <stop offset="0%" stop-color="#fef9c3"/>
+        <stop offset="50%" stop-color="#fef08a"/>
+        <stop offset="100%" stop-color="#fde047"/>
+      </linearGradient>
+    </defs>
+
+    <!-- 底部微投影 -->
+    <ellipse cx="256" cy="425" rx="160" ry="24" fill="#0f172a" fill-opacity="0.35" />
+
+    <!-- 房屋與積木組合群組 (帶整體立體陰影) -->
+    <g filter="url(#shadow-main)">
+      
+      <!-- 房屋本體（百位大方塊 220x190） -->
+      <rect x="146" y="210" width="220" height="185" rx="28" fill="url(#house-grad)"/>
+
+      <!-- 百位格線紋理 (象徵百格板 10x10) -->
+      <g stroke="#ffffff" stroke-opacity="0.25" stroke-width="2.5" stroke-linecap="round">
+        <line x1="201" y1="220" x2="201" y2="385" />
+        <line x1="256" y1="220" x2="256" y2="285" />
+        <line x1="311" y1="220" x2="311" y2="385" />
+        <line x1="156" y1="265" x2="356" y2="265" />
+        <line x1="156" y1="320" x2="356" y2="320" stroke-dasharray="8 6" />
+      </g>
+
+      <!-- 房屋屋頂 (三角形立體屋頂) -->
+      <path d="M 256 108 
+               C 264 108, 271 112, 276 118 
+               L 396 215 
+               C 404 221, 403 234, 393 238 
+               C 388 240, 381 239, 376 235 
+               L 256 138 
+               L 136 235 
+               C 131 239, 124 240, 119 238 
+               C 109 234, 108 221, 116 215 
+               L 236 118 
+               C 241 112, 248 108, 256 108 Z" 
+            fill="url(#roof-grad)" />
+
+      <!-- 屋頂高光邊線 -->
+      <path d="M 240 122 L 138 210" stroke="#ffffff" stroke-width="6" stroke-linecap="round" stroke-opacity="0.75" />
+      <path d="M 272 122 L 374 210" stroke="#ffffff" stroke-width="4" stroke-linecap="round" stroke-opacity="0.5" />
+
+      <!-- 房屋大門（拱門造型 溫馨黃光） -->
+      <path d="M 220 395 
+               L 220 320 
+               C 220 300, 292 300, 292 320 
+               L 292 395 Z" 
+            fill="url(#door-grad)" />
+      
+      <!-- 門框立體細部 -->
+      <path d="M 223 395 L 223 322 C 223 306, 289 306, 289 322 L 289 395" 
+            stroke="#eab308" stroke-width="3" stroke-linecap="round" fill="none" />
+
+      <!-- 門上的數學符號裝飾 (立體 + 與 ×) -->
+      <path d="M 256 325 L 256 345 M 246 335 L 266 335" stroke="#ca8a04" stroke-width="4.5" stroke-linecap="round"/>
+      <circle cx="280" cy="358" r="4" fill="#ca8a04" />
+
+      <!-- 屋簷下圓形閣樓窗戶 (位值羅盤 / 時鐘感) -->
+      <circle cx="256" cy="180" r="22" fill="#ffffff" fill-opacity="0.9" />
+      <circle cx="256" cy="180" r="16" fill="#3b82f6" />
+      <path d="M 256 168 L 256 192 M 244 180 L 268 180" stroke="#ffffff" stroke-width="3" stroke-linecap="round" />
+
+      <!-- 右側：十位積木條 (立體直立棒，32x115) -->
+      <g filter="url(#shadow-block)">
+        <rect x="348" y="275" width="34" height="115" rx="10" fill="url(#ten-grad)" />
+        <rect x="348" y="275" width="34" height="115" rx="10" stroke="#ffffff" stroke-width="2" stroke-opacity="0.6" />
+        <!-- 十位積木的節點刻痕 (10等分感) -->
+        <line x1="351" y1="304" x2="379" y2="304" stroke="#ffffff" stroke-opacity="0.5" stroke-width="2" />
+        <line x1="351" y1="333" x2="379" y2="333" stroke="#ffffff" stroke-opacity="0.5" stroke-width="2" />
+        <line x1="351" y1="362" x2="379" y2="362" stroke="#ffffff" stroke-opacity="0.5" stroke-width="2" />
+      </g>
+
+      <!-- 左側：個位積木小方塊 (立體微旋轉立方體 38x38) -->
+      <g filter="url(#shadow-block)">
+        <rect x="126" y="342" width="44" height="44" rx="10" fill="url(#one-grad)" />
+        <rect x="126" y="342" width="44" height="44" rx="10" stroke="#ffffff" stroke-width="3" />
+        <text x="148" y="372" font-family="'Baloo 2', 'Noto Sans TC', sans-serif" font-size="24" font-weight="900" fill="#2563eb" text-anchor="middle">1</text>
+      </g>
+
+    </g>
+
+    <!-- 右上方閃耀金色小星星 (靈感、數學成就) -->
+    <g filter="url(#shadow-star)">
+      <path d="M 382 105 
+               L 392 128 
+               L 416 130 
+               L 398 146 
+               L 403 170 
+               L 382 157 
+               L 361 170 
+               L 366 146 
+               L 348 130 
+               L 372 128 Z" 
+            fill="url(#star-grad)" />
+      <!-- 小星星高光 -->
+      <circle cx="380" cy="125" r="4" fill="#ffffff" fill-opacity="0.9"/>
+    </g>
+
+    <!-- 左上方飄浮的可愛小星星 (微光) -->
+    <path d="M 125 150 L 130 162 L 142 164 L 133 172 L 135 184 L 125 178 L 115 184 L 117 172 L 108 164 L 120 162 Z" 
+          fill="#fef08a" opacity="0.85" />
+
+  </svg>
+</div>
+
+</body>
+</html>

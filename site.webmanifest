@@ -1,0 +1,33 @@
+{
+  "name": "數字積木屋：國小數學概念探索與運算思維教室",
+  "short_name": "數字積木屋",
+  "description": "動手操作具體積木，看懂數學背後的原理與運算思維！",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#eff6ff",
+  "theme_color": "#2563eb",
+  "icons": [
+    {
+      "src": "favicon-32x32.png",
+      "sizes": "32x32",
+      "type": "image/png"
+    },
+    {
+      "src": "apple-touch-icon.png",
+      "sizes": "180x180",
+      "type": "image/png"
+    },
+    {
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
