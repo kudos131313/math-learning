@@ -1,0 +1,841 @@
+@charset "UTF-8";
+/**
+ * ==========================================================================
+ * 單元 4：九九乘法表探索台與乘法挑戰測驗樣式 (MULTIPLICATION MODULE)
+ * ==========================================================================
+ */
+
+/* 擴充頂部主分頁列以完美容納 4 個單元按鈕 */
+.main-nav-tabs {
+  max-width: 880px;
+  flex-wrap: wrap;
+  border-radius: 26px;
+}
+
+/* ---------------- 探索台頂部標題與控制列 ---------------- */
+.mul-section {
+  background: var(--card);
+  border: 2.5px solid var(--ink);
+  border-radius: var(--radius-card);
+  padding: 26px 24px 32px;
+  box-shadow: 5px 5px 0 var(--shadow-ink);
+  margin-bottom: 28px;
+}
+
+.mul-header {
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.mul-header h2 {
+  font-size: clamp(22px, 3vw, 28px);
+  margin: 0 0 6px;
+  color: var(--ink);
+}
+
+.mul-header .sub {
+  font-size: 14.5px;
+  color: var(--ink-soft);
+  margin: 0 auto 16px;
+  max-width: 640px;
+}
+
+/* 1~9 段別快選按鈕列 */
+.mul-row-selector-bar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  background: var(--surface-dim);
+  border: 2px solid var(--ink);
+  border-radius: 18px;
+  padding: 10px 14px;
+  margin-bottom: 14px;
+  box-shadow: 2.5px 2.5px 0 var(--shadow-ink);
+}
+
+.mul-row-label {
+  font-size: 13.5px;
+  font-weight: 800;
+  color: var(--ink);
+  margin-right: 4px;
+}
+
+.mul-row-pills {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.mul-row-pill {
+  min-width: 48px;
+  min-height: 44px;
+  padding: 6px 13px;
+  border-radius: 12px;
+  border: 2px solid var(--ink);
+  background: var(--surface);
+  color: var(--ink);
+  font-family: "Baloo 2", "Noto Sans TC", sans-serif;
+  font-size: 15px;
+  font-weight: 800;
+  cursor: pointer;
+  box-shadow: 2px 2px 0 var(--shadow-ink);
+  transition: transform .08s ease, box-shadow .08s ease, background-color .15s ease;
+}
+
+.mul-row-pill:hover {
+  background: #fffbeb;
+}
+
+.mul-row-pill.active {
+  background: var(--brand-amber);
+  color: #fff;
+  border-color: var(--ink);
+  box-shadow: 2.5px 2.5px 0 var(--shadow-ink);
+}
+
+.mul-row-pill:active {
+  transform: translate(1.5px, 1.5px);
+  box-shadow: 0 0 0 var(--shadow-ink);
+}
+
+/* 探索台功能操作列（整段朗讀、交換律對照、遮蓋背誦模式） */
+.mul-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.mul-tool-btn {
+  min-height: 46px;
+  padding: 8px 16px;
+  border-radius: 999px;
+  border: 2px solid var(--ink);
+  background: var(--surface);
+  color: var(--ink);
+  font-size: 14px;
+  font-weight: 800;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  box-shadow: 2.5px 2.5px 0 var(--shadow-ink);
+  transition: transform .08s ease, box-shadow .08s ease, background-color .15s ease;
+}
+
+.mul-tool-btn:hover {
+  background: var(--surface-dim);
+}
+
+.mul-tool-btn:active {
+  transform: translate(1.5px, 1.5px);
+  box-shadow: 0 0 0 var(--shadow-ink);
+}
+
+.mul-tool-btn.active-mode {
+  background: #fef3c7;
+  border-color: var(--brand-amber-dark);
+  color: #92400e;
+}
+
+.mul-tool-btn.playing {
+  background: #dcfce7;
+  border-color: #166534;
+  color: #166534;
+}
+
+/* ---------------- 雙欄核心舞台 (左側 9x9 百寶格 + 右側具體積木與口訣) ---------------- */
+.mul-dual-stage {
+  display: grid;
+  grid-template-columns: 1.05fr 1fr;
+  gap: 22px;
+  align-items: start;
+  margin-top: 18px;
+}
+
+.mul-stage-card {
+  background: var(--surface);
+  border: 2.5px solid var(--ink);
+  border-radius: 20px;
+  padding: 18px 18px 20px;
+  box-shadow: 4px 4px 0 var(--shadow-ink);
+}
+
+.mul-card-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 12px;
+  flex-wrap: wrap;
+}
+
+.mul-card-title {
+  font-size: 16.5px;
+  font-weight: 900;
+  color: var(--ink);
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* 被乘數 a 與乘數 b 實體加減調整器 */
+.mul-stepper-bar {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  gap: 8px;
+  background: var(--surface-dim);
+  border: 2px solid var(--ink);
+  border-radius: 16px;
+  padding: 10px 12px;
+  margin-bottom: 14px;
+}
+
+.mul-factor-ctrl {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+.mul-factor-tag {
+  font-size: 12px;
+  font-weight: 800;
+  padding: 2px 10px;
+  border-radius: 999px;
+  border: 1.5px solid var(--ink);
+}
+
+.mul-factor-tag.tag-a {
+  background: #dbeafe;
+  color: #1e40af;
+}
+
+.mul-factor-tag.tag-b {
+  background: #ffedd5;
+  color: #9a3412;
+}
+
+.mul-factor-btns {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.mul-step-btn {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  border: 2px solid var(--ink);
+  background: var(--surface);
+  color: var(--ink);
+  font-size: 22px;
+  font-weight: 900;
+  cursor: pointer;
+  box-shadow: 2px 2px 0 var(--shadow-ink);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform .08s ease, box-shadow .08s ease;
+}
+
+.mul-step-btn:active {
+  transform: translate(1.5px, 1.5px);
+  box-shadow: 0 0 0 var(--shadow-ink);
+}
+
+.mul-step-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+.mul-factor-val {
+  font-family: "Baloo 2", sans-serif;
+  font-size: 28px;
+  font-weight: 800;
+  min-width: 32px;
+  text-align: center;
+  line-height: 1;
+}
+
+.mul-factor-val.val-a { color: var(--h-color-dark); }
+.mul-factor-val.val-b { color: var(--t-color-dark); }
+
+.mul-op-cross {
+  font-size: 24px;
+  font-weight: 900;
+  color: var(--ink-soft);
+}
+
+/* 9x9 互動矩陣網格 */
+.mul-grid-wrap {
+  overflow-x: auto;
+  padding: 2px;
+}
+
+.mul-grid-table {
+  display: grid;
+  grid-template-columns: 38px repeat(9, minmax(36px, 1fr));
+  gap: 4px;
+  width: 100%;
+  user-select: none;
+}
+
+.mul-cell {
+  min-height: 42px;
+  border-radius: 9px;
+  border: 1.5px solid rgba(51, 43, 34, 0.22);
+  background: var(--card);
+  color: var(--ink);
+  font-family: "Baloo 2", "Noto Sans TC", sans-serif;
+  font-size: 16px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: transform .08s ease, background-color .14s ease, border-color .14s ease, box-shadow .14s ease;
+  position: relative;
+  padding: 0;
+}
+
+.mul-cell.mul-corner {
+  background: var(--ink);
+  color: #fff;
+  font-weight: 900;
+  font-size: 15px;
+  cursor: default;
+}
+
+.mul-cell.mul-th-col {
+  background: #ffedd5;
+  color: #9a3412;
+  border-color: #fdba74;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.mul-cell.mul-th-row {
+  background: #dbeafe;
+  color: #1e40af;
+  border-color: #93c5fd;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.mul-cell.mul-th-row.active-header {
+  background: #2563eb;
+  color: #fff;
+  border-color: var(--ink);
+  box-shadow: 1.5px 1.5px 0 var(--shadow-ink);
+}
+
+.mul-cell.mul-th-col.active-header {
+  background: #ea580c;
+  color: #fff;
+  border-color: var(--ink);
+  box-shadow: 1.5px 1.5px 0 var(--shadow-ink);
+}
+
+/* 左上角 a × b 方陣面積高亮 */
+.mul-cell.in-area {
+  background: #fef3c7;
+  border-color: #f59e0b;
+  color: #78350f;
+}
+
+/* 同列或同行十字輔助線淡高亮 */
+.mul-cell.in-cross {
+  background: #f8fafc;
+  border-color: #94a3b8;
+}
+
+/* 當前選中目標格 */
+.mul-cell.is-selected {
+  background: var(--brand-coral);
+  color: #fff !important;
+  border: 2px solid var(--ink);
+  box-shadow: 2.5px 2.5px 0 var(--shadow-ink);
+  transform: scale(1.06);
+  z-index: 2;
+  font-size: 18px;
+  font-weight: 900;
+}
+
+/* 遮蓋背誦模式下的問號格 */
+.mul-cell.is-masked {
+  background: #f1f5f9;
+  color: #64748b;
+  border-style: dashed;
+  font-weight: 900;
+}
+
+.mul-cell.is-masked.is-selected {
+  background: #fbbf24;
+  color: var(--ink) !important;
+  border-style: solid;
+}
+
+.mul-grid-legend {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 10px;
+  font-size: 12.5px;
+  color: var(--ink-soft);
+}
+
+.mul-legend-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-weight: 700;
+}
+
+.mul-legend-swatch {
+  width: 14px;
+  height: 14px;
+  border-radius: 4px;
+  border: 1.5px solid var(--ink);
+  display: inline-block;
+}
+
+/* ---------------- 右側：口訣英雄卡與雙模式具體表徵 ---------------- */
+.mul-hero-banner {
+  background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%);
+  border: 2.5px solid var(--ink);
+  border-radius: 18px;
+  padding: 14px 16px;
+  margin-bottom: 14px;
+  box-shadow: 3px 3px 0 var(--shadow-ink);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.mul-hero-main {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.mul-equation-big {
+  font-family: "Baloo 2", "Noto Sans TC", sans-serif;
+  font-size: clamp(28px, 3.6vw, 38px);
+  font-weight: 800;
+  line-height: 1.15;
+  color: var(--ink);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.mul-eq-a {
+  color: var(--h-color-dark);
+  background: #dbeafe;
+  padding: 1px 10px;
+  border-radius: 10px;
+  border: 2px solid var(--ink);
+}
+
+.mul-eq-b {
+  color: var(--t-color-dark);
+  background: #ffedd5;
+  padding: 1px 10px;
+  border-radius: 10px;
+  border: 2px solid var(--ink);
+}
+
+.mul-eq-ans {
+  background: var(--surface);
+  padding: 1px 12px;
+  border-radius: 10px;
+  border: 2px solid var(--ink);
+  box-shadow: 2px 2px 0 var(--shadow-ink);
+}
+
+.mul-mantra-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 4px;
+}
+
+.mul-mantra-pill {
+  background: var(--ink);
+  color: #fff;
+  font-size: 15px;
+  font-weight: 900;
+  padding: 4px 13px;
+  border-radius: 999px;
+  letter-spacing: 0.06em;
+}
+
+.mul-meaning-pill {
+  background: var(--surface);
+  border: 1.5px solid var(--ink);
+  color: var(--ink);
+  font-size: 13.5px;
+  font-weight: 800;
+  padding: 3px 11px;
+  border-radius: 999px;
+}
+
+/* 具體視覺表徵分區盒 */
+.mul-visual-box {
+  background: var(--card);
+  border: 2px solid var(--ink);
+  border-radius: 16px;
+  padding: 13px 14px;
+  margin-bottom: 12px;
+}
+
+.mul-visual-box:last-child {
+  margin-bottom: 0;
+}
+
+.mul-box-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 8px;
+  flex-wrap: wrap;
+}
+
+.mul-box-title {
+  font-size: 14px;
+  font-weight: 900;
+  color: var(--ink);
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.mul-box-sub {
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--ink-soft);
+}
+
+/* 1. 分組連加積木盒 (每組 a 個，共 b 組) */
+.mul-groups-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: stretch;
+  margin-bottom: 8px;
+}
+
+.mul-group-tray {
+  background: var(--surface);
+  border: 2px solid #93c5fd;
+  border-radius: 12px;
+  padding: 6px 8px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  min-width: 62px;
+  box-shadow: 2px 2px 0 rgba(37, 99, 235, 0.15);
+}
+
+.mul-group-tray-head {
+  font-size: 11px;
+  font-weight: 800;
+  color: #1e40af;
+  background: #dbeafe;
+  padding: 1px 7px;
+  border-radius: 999px;
+}
+
+.mul-group-tray-blocks {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 3px;
+  justify-content: center;
+  max-width: 96px;
+}
+
+.mul-repeated-add-bar {
+  background: var(--surface-dim);
+  border-radius: 10px;
+  padding: 7px 11px;
+  font-size: 13.5px;
+  font-weight: 800;
+  color: var(--ink);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+/* 2. 方陣點陣與十進位合成對照列 */
+.mul-array-base10-split {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 14px;
+  align-items: center;
+}
+
+.mul-mini-array {
+  background: var(--surface);
+  border: 1.5px solid var(--ink);
+  border-radius: 12px;
+  padding: 8px 10px;
+  display: inline-flex;
+  flex-direction: column;
+  gap: 4px;
+  align-items: flex-start;
+}
+
+.mul-array-row {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.mul-array-dot {
+  width: 14px;
+  height: 14px;
+  border-radius: 4px;
+  background: #3b82f6;
+  border: 1.5px solid #1d4ed8;
+  display: inline-block;
+}
+
+.mul-array-row-sum {
+  font-family: "Baloo 2", sans-serif;
+  font-size: 11.5px;
+  font-weight: 800;
+  color: var(--t-color-dark);
+  margin-left: 5px;
+  min-width: 20px;
+}
+
+.mul-base10-box {
+  background: var(--surface);
+  border: 1.5px solid var(--ink);
+  border-radius: 12px;
+  padding: 10px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.mul-base10-blocks {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.mul-base10-col {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.mul-base10-tag {
+  font-size: 11.5px;
+  font-weight: 800;
+}
+
+.mul-base10-tag.t-tag { color: var(--t-color-dark); }
+.mul-base10-tag.o-tag { color: var(--o-color-dark); }
+
+/* ---------------- 子分頁 2：乘法挑戰測驗樣式 ---------------- */
+.mul-quiz-section .mq-filter-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  max-width: 760px;
+  margin: 0 auto 16px;
+  background: var(--surface-dim);
+  border: 2px solid var(--ink);
+  border-radius: 18px;
+  padding: 12px 16px;
+  box-shadow: 3px 3px 0 var(--shadow-ink);
+}
+
+.mq-filter-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.mq-filter-label {
+  font-size: 13px;
+  font-weight: 800;
+  color: var(--ink);
+}
+
+.mq-level-chips, .mq-table-chips {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.mq-chip {
+  min-height: 40px;
+  padding: 6px 13px;
+  border-radius: 999px;
+  border: 1.8px solid var(--ink);
+  background: var(--surface);
+  color: var(--ink);
+  font-size: 13.5px;
+  font-weight: 800;
+  cursor: pointer;
+  box-shadow: 2px 2px 0 var(--shadow-ink);
+  transition: transform .08s ease, background-color .15s ease;
+}
+
+.mq-chip.active {
+  background: var(--ink);
+  color: #fff;
+}
+
+.mq-table-chip {
+  min-width: 42px;
+  min-height: 38px;
+  padding: 4px 10px;
+  border-radius: 10px;
+  border: 1.8px solid var(--ink);
+  background: var(--surface);
+  color: var(--ink);
+  font-family: "Baloo 2", "Noto Sans TC", sans-serif;
+  font-size: 14px;
+  font-weight: 800;
+  cursor: pointer;
+  box-shadow: 1.5px 1.5px 0 var(--shadow-ink);
+}
+
+.mq-table-chip.active {
+  background: var(--brand-amber);
+  color: #fff;
+}
+
+/* 題目展示區 */
+.mq-question-stage {
+  background: var(--surface-dim);
+  border: 2.5px solid var(--ink);
+  border-radius: 20px;
+  padding: 20px 18px;
+  margin: 14px auto 18px;
+  max-width: 620px;
+  text-align: center;
+  box-shadow: inset 0 2px 4px rgba(0,0,0,0.04);
+}
+
+.mq-story-banner {
+  background: #fffbeb;
+  border: 2px solid #f59e0b;
+  border-radius: 14px;
+  padding: 10px 14px;
+  margin-bottom: 14px;
+  font-size: 15.5px;
+  font-weight: 800;
+  color: var(--ink);
+  line-height: 1.5;
+}
+
+.mq-equation-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  font-family: "Baloo 2", "Noto Sans TC", sans-serif;
+  font-size: clamp(32px, 5vw, 44px);
+  font-weight: 800;
+  color: var(--ink);
+}
+
+.mq-num-box {
+  background: var(--surface);
+  border: 2.5px solid var(--ink);
+  border-radius: 14px;
+  padding: 4px 16px;
+  min-width: 64px;
+  box-shadow: 2.5px 2.5px 0 var(--shadow-ink);
+}
+
+.mq-input-slot {
+  width: 92px;
+  height: 68px;
+  border: 3px solid var(--ink);
+  border-radius: 16px;
+  background: #fff;
+  font-family: "Baloo 2", sans-serif;
+  font-size: 34px;
+  font-weight: 800;
+  text-align: center;
+  color: var(--ink);
+  box-shadow: 3px 3px 0 var(--shadow-ink);
+  cursor: pointer;
+  outline: none;
+  transition: border-color .15s ease, background-color .15s ease, transform .1s ease;
+}
+
+.mq-input-slot.active-input {
+  border-color: #2563eb;
+  background: #eff6ff;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.22), 3px 3px 0 var(--shadow-ink);
+}
+
+.mq-input-slot.correct {
+  border-color: var(--good);
+  background: #ecfdf5;
+  color: #065f46;
+}
+
+.mq-input-slot.wrong {
+  border-color: var(--bad);
+  background: #fef2f2;
+  color: #991b1b;
+}
+
+/* 響應式適配 */
+@media (max-width: 920px) {
+  .mul-dual-stage {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 620px) {
+  .mul-section {
+    padding: 18px 14px 24px;
+  }
+  .mul-grid-table {
+    grid-template-columns: 30px repeat(9, minmax(28px, 1fr));
+    gap: 3px;
+  }
+  .mul-cell {
+    min-height: 36px;
+    font-size: 14px;
+  }
+  .mul-array-base10-split {
+    grid-template-columns: 1fr;
+  }
+  .mq-input-slot {
+    width: 78px;
+    height: 58px;
+    font-size: 28px;
+  }
+}

@@ -27,5 +27,8 @@
 /* 6. 直式挑戰測驗題卡、筆記本答題板與積木小幫手 */
 @import url('css/calc-quiz.css?v=20260908e');
 
+/* 6.5 九九乘法表探索台與乘法挑戰測驗 */
+@import url('css/mul.css?v=20261020a');
+
 /* 7. 系統自我檢測彈窗 (Modal) 與浮動提示 (Toast) */
 @import url('css/modal.css?v=20260908e');

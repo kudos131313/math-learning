@@ -28,6 +28,12 @@
     if(MathApp.calcQuiz && typeof MathApp.calcQuiz.init === 'function'){
       MathApp.calcQuiz.init();
     }
+    if(MathApp.mul && typeof MathApp.mul.init === 'function'){
+      MathApp.mul.init();
+    }
+    if(MathApp.mulQuiz && typeof MathApp.mulQuiz.init === 'function'){
+      MathApp.mulQuiz.init();
+    }
     if(MathApp.diagnostics && typeof MathApp.diagnostics.init === 'function'){
       MathApp.diagnostics.init();
     }

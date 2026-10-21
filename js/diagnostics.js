@@ -441,6 +441,79 @@
 
         return '已驗證基礎不進退位、個位進位加法、個位退位減法、進退百位題庫演算法皆完全合規';
       }
+    },
+    {
+      id: 'mul_table_and_quiz',
+      name: '單元 4：九九乘法口訣、交換律與題庫生成驗證 (Multiplication Module)',
+      run: function(){
+        if(!MathApp.mul || typeof MathApp.mul.getMantra !== 'function'){
+          throw new Error('未找到 MathApp.mul.getMantra 模組函式');
+        }
+        if(!MathApp.mulQuiz || typeof MathApp.mulQuiz.generateQuestion !== 'function'){
+          throw new Error('未找到 MathApp.mulQuiz.generateQuestion 模組函式');
+        }
+
+        // 1. 驗證臺灣國小九九乘法口訣規則
+        var mantraCases = [
+          { a: 2, b: 3, out: '二三得六' },
+          { a: 3, b: 2, out: '三二得六' },
+          { a: 2, b: 5, out: '二五得十' },
+          { a: 3, b: 4, out: '三四十二' },
+          { a: 7, b: 8, out: '七八五十六' },
+          { a: 9, b: 9, out: '九九八十一' }
+        ];
+        for(var i = 0; i < mantraCases.length; i++){
+          var mc = mantraCases[i];
+          var actual = MathApp.mul.getMantra(mc.a, mc.b);
+          if(actual !== mc.out){
+            throw new Error(mc.a + '×' + mc.b + ' 口訣預期「' + mc.out + '」，實際得到「' + actual + '」');
+          }
+        }
+
+        // 2. 驗證各關卡與單段自選題庫生成及答案驗證器
+        var levels = ['basic', 'mid', 'hard', 'concept', 'all'];
+        for(var l = 0; l < levels.length; l++){
+          var lv = levels[l];
+          for(var r = 0; r < 4; r++){
+            var q = MathApp.mulQuiz.generateQuestion(lv, 'all');
+            if(q.a * q.b !== q.product){
+              throw new Error('乘法題目乘積計算錯誤：' + q.a + '×' + q.b + '!=' + q.product);
+            }
+            if(lv === 'basic' && [1, 2, 5].indexOf(q.a) === -1){
+              throw new Error('入門段題目超出 [1,2,5] 範圍：' + q.a);
+            }
+            if(lv === 'mid' && [3, 4, 6].indexOf(q.a) === -1){
+              throw new Error('進階段題目超出 [3,4,6] 範圍：' + q.a);
+            }
+            if(lv === 'hard' && [7, 8, 9].indexOf(q.a) === -1){
+              throw new Error('挑戰段題目超出 [7,8,9] 範圍：' + q.a);
+            }
+            // 測試正確與錯誤答案判定
+            var correctMap = {};
+            var wrongMap = {};
+            q.slots.forEach(function(s){
+              correctMap[s.id] = String(s.expected);
+              wrongMap[s.id]   = String(s.expected + 1);
+            });
+            if(!MathApp.mulQuiz.validateQuestion(q, correctMap)){
+              throw new Error('乘法驗證器將正確答案誤判為錯');
+            }
+            if(MathApp.mulQuiz.validateQuestion(q, wrongMap)){
+              throw new Error('乘法驗證器將錯誤答案誤判為對');
+            }
+          }
+        }
+
+        // 3. 驗證單段自選過濾器 (例如專練 7 的乘法)
+        for(var t = 0; t < 4; t++){
+          var q7 = MathApp.mulQuiz.generateQuestion('all', '7');
+          if(q7.a !== 7){
+            throw new Error('指定 7 段專練卻產生 a=' + q7.a);
+          }
+        }
+
+        return '驗證通過 6 組臺灣課綱九九乘法口訣、5 大關卡與單段自選題庫及答案驗證器';
+      }
     }
   ];
 

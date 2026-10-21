@@ -73,13 +73,15 @@
     setMode: setThousandMode
   };
 
-  /* ---------------- 主分頁切換 (MAIN UNIT TABS: LEARN vs SEQ vs CALC) ---------------- */
+  /* ---------------- 主分頁切換 (MAIN UNIT TABS: LEARN vs SEQ vs CALC vs MUL) ---------------- */
   var mainTabLearn = document.getElementById('main-tab-learn');
   var mainTabSeq   = document.getElementById('main-tab-seq');
   var mainTabCalc  = document.getElementById('main-tab-calc');
+  var mainTabMul   = document.getElementById('main-tab-mul');
   var panelLearn   = document.getElementById('panel-learn');
   var panelSeq     = document.getElementById('panel-seq');
   var panelCalc    = document.getElementById('panel-calc');
+  var panelMul     = document.getElementById('panel-mul');
 
   function switchMainTab(tab){
     // 向前相容：若傳入 'quiz'，自動導流至位值探索的測驗子分頁
@@ -92,7 +94,8 @@
     var tabs = [
       { id: 'learn', btn: mainTabLearn, panel: panelLearn },
       { id: 'seq',   btn: mainTabSeq,   panel: panelSeq },
-      { id: 'calc',  btn: mainTabCalc,  panel: panelCalc }
+      { id: 'calc',  btn: mainTabCalc,  panel: panelCalc },
+      { id: 'mul',   btn: mainTabMul,   panel: panelMul }
     ];
 
     tabs.forEach(function(item){
@@ -117,6 +120,7 @@
   if(mainTabLearn) mainTabLearn.addEventListener('click', function(){ switchMainTab('learn'); });
   if(mainTabSeq)   mainTabSeq.addEventListener('click',   function(){ switchMainTab('seq'); });
   if(mainTabCalc)  mainTabCalc.addEventListener('click',  function(){ switchMainTab('calc'); });
+  if(mainTabMul)   mainTabMul.addEventListener('click',   function(){ switchMainTab('mul'); });
 
   /* ---------------- 單元內部子分頁切換 (UNIT SUB TABS) ---------------- */
   function switchSubTab(unit, subTab){
