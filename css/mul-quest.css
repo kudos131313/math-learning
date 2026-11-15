@@ -178,8 +178,9 @@
 }
 
 .mqst-hud-avatar {
-  width: 46px;
-  height: 46px;
+  width: 48px;
+  height: 48px;
+  padding: 0;
   border-radius: 50%;
   border: 2.5px solid var(--ink);
   background: #fce7f3;
@@ -187,12 +188,28 @@
   align-items: center;
   justify-content: center;
   overflow: hidden;
+  cursor: pointer;
   box-shadow: 2px 2px 0 var(--shadow-ink);
+  transition: transform .1s ease, box-shadow .1s ease;
+}
+
+.mqst-hud-avatar:hover {
+  transform: translateY(-1px) scale(1.04);
+}
+
+.mqst-hud-avatar:active {
+  transform: translateY(1px);
+  box-shadow: 1px 1px 0 var(--shadow-ink);
+}
+
+.mqst-hud-avatar:focus-visible {
+  outline: 3px solid #ec4899;
+  outline-offset: 2px;
 }
 
 .mqst-hud-avatar svg {
-  width: 40px;
-  height: 40px;
+  width: 42px;
+  height: 42px;
 }
 
 .mqst-hud-counters {
@@ -252,6 +269,26 @@
   box-shadow: 0 1px 0 var(--shadow-ink);
 }
 
+.mqst-hud-btn.wardrobe { background: #fce7f3; color: #9d174d; position: relative; }
+.mqst-hud-btn.wardrobe.has-new {
+  background: linear-gradient(180deg, #fbcfe8 0%, #f472b6 100%);
+  color: #500724;
+  border-color: #9d174d;
+}
+.mqst-hud-btn.wardrobe.has-new::after {
+  content: "NEW";
+  position: absolute;
+  top: -8px;
+  right: -6px;
+  padding: 1px 6px;
+  border-radius: 999px;
+  border: 1.5px solid var(--ink);
+  background: #fde047;
+  color: var(--ink);
+  font-size: 10px;
+  font-weight: 900;
+  line-height: 1.2;
+}
 .mqst-hud-btn.dex      { background: #ede9fe; color: #4c1d95; }
 .mqst-hud-btn.rescue   { background: #f1f5f9; color: var(--ink-soft); }
 .mqst-hud-btn.rescue.has-rescue { background: #fee2e2; color: #991b1b; border-color: #991b1b; }
@@ -319,6 +356,19 @@
   font-size: clamp(28px, 3.5vw, 44px);
   opacity: 0.78;
   pointer-events: none;
+}
+.mqst-cloud-btn {
+  background: transparent;
+  border: none;
+  padding: 6px 10px;
+  cursor: pointer;
+  pointer-events: auto;
+  z-index: 6;
+  line-height: 1;
+}
+.mqst-cloud-btn:focus-visible {
+  outline: 3px solid #fde047;
+  border-radius: 16px;
 }
 .mqst-cloud-1 { left: 18%; top: 7%; }
 .mqst-cloud-2 { left: 62%; top: 9%; }
@@ -399,6 +449,23 @@
   border-color: #9f1239;
 }
 
+.mqst-boss-sprite-tag {
+  position: absolute;
+  bottom: calc(100% + 5px);
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 2px 7px;
+  border-radius: 999px;
+  border: 1.5px solid #9f1239;
+  background: #fef08a;
+  color: #881337;
+  font-size: 10.5px;
+  font-weight: 900;
+  white-space: nowrap;
+  box-shadow: 1.5px 2px 0 rgba(51, 43, 34, 0.25);
+  pointer-events: none;
+}
+
 .mqst-map-node.is-current {
   background: linear-gradient(180deg, #fef08a 0%, #facc15 100%);
   box-shadow: 0 0 0 5px rgba(250, 204, 21, 0.5), 0 5px 0 var(--shadow-ink);
@@ -445,7 +512,7 @@
   pointer-events: none;
 }
 
-/* 粉紅小兔子地圖主角 */
+/* 粉紅小兔子地圖主角與守護精靈跟班 */
 .mqst-bunny-avatar {
   position: absolute;
   width: 66px;
@@ -456,7 +523,18 @@
   filter: drop-shadow(0 5px 0 rgba(51, 43, 34, 0.3));
 }
 
-.mqst-bunny-avatar svg {
+.mqst-partner-map-avatar {
+  position: absolute;
+  width: 46px;
+  height: 46px;
+  transform: translate(18%, -92%);
+  z-index: 11;
+  pointer-events: none;
+  filter: drop-shadow(0 4px 0 rgba(51, 43, 34, 0.25));
+}
+
+.mqst-bunny-avatar svg,
+.mqst-partner-map-avatar svg {
   width: 100%;
   height: 100%;
   display: block;
@@ -647,13 +725,94 @@
   padding: 0 12px 6px;
 }
 
+.mqst-hero-duo {
+  display: flex;
+  align-items: flex-end;
+  gap: 10px;
+}
+
 .mqst-hero-actor,
+.mqst-partner-actor,
 .mqst-enemy-actor {
   position: relative;
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 4px;
+}
+
+.mqst-partner-actor {
+  z-index: 5;
+}
+
+.mqst-partner-svg {
+  width: clamp(58px, 8vw, 76px);
+  height: clamp(58px, 8vw, 76px);
+  filter: drop-shadow(0 5px 0 rgba(51, 43, 34, 0.22));
+}
+
+.mqst-partner-svg svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+.mqst-partner-speech {
+  position: absolute;
+  bottom: calc(100% + 4px);
+  left: 50%;
+  transform: translateX(-35%);
+  background: #fefce8;
+  border: 2px solid var(--ink);
+  border-radius: 12px;
+  padding: 4px 9px;
+  font-size: 11.5px;
+  font-weight: 800;
+  color: var(--ink);
+  white-space: nowrap;
+  box-shadow: 2px 2px 0 rgba(51, 43, 34, 0.2);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.18s ease;
+}
+
+.mqst-partner-speech.visible {
+  opacity: 1;
+}
+
+.mqst-partner-label {
+  background: #ecfeff;
+  border-color: #0e7490;
+  color: #155e75;
+}
+
+.mqst-partner-skill-btn {
+  min-height: 44px;
+  padding: 6px 12px;
+  border-radius: 999px;
+  border: 2px solid var(--ink);
+  background: linear-gradient(135deg, #fde047 0%, #f59e0b 100%);
+  color: var(--ink);
+  font-size: 12px;
+  font-weight: 900;
+  cursor: pointer;
+  box-shadow: 2px 2px 0 var(--shadow-ink);
+  white-space: nowrap;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.mqst-partner-skill-btn:hover:not(:disabled) {
+  transform: translateY(-2px);
+}
+
+.mqst-partner-skill-btn:disabled {
+  background: #e5e7eb;
+  color: #6b7280;
+  border-color: #9ca3af;
+  box-shadow: none;
+  cursor: default;
 }
 
 .mqst-hero-aura {
@@ -693,7 +852,8 @@
   font-weight: 900;
 }
 
-.mqst-projectile {
+.mqst-projectile,
+.mqst-partner-projectile {
   position: absolute;
   left: 16%;
   bottom: 42%;
@@ -701,6 +861,12 @@
   pointer-events: none;
   opacity: 0;
   z-index: 9;
+}
+
+.mqst-partner-projectile {
+  left: 24%;
+  bottom: 34%;
+  font-size: 30px;
 }
 
 .mqst-enemy-hp-card {
@@ -875,11 +1041,22 @@
   color: #991b1b;
 }
 
-/* 下半部童趣遊戲控制台 */
+.mqst-stage-toast.hint {
+  background: #fef9c3;
+  border: 2px solid #d97706;
+  color: #92400e;
+}
+
+/* 下半部童趣遊戲控制台（固定最小高度，避免出題與攻擊切換時跳動） */
 .mqst-console-dock {
+  box-sizing: border-box;
   background: linear-gradient(180deg, #fef3c7 0%, #fde68a 100%);
   border-top: 3.5px solid var(--ink);
   padding: 12px 16px 14px;
+  min-height: 148px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   z-index: 15;
   flex-shrink: 0;
 }
@@ -888,6 +1065,7 @@
   display: grid;
   grid-template-columns: repeat(4, minmax(100px, 1fr));
   gap: 12px;
+  width: 100%;
   max-width: 680px;
   margin: 0 auto;
 }
@@ -929,20 +1107,28 @@
   opacity: 0.65;
 }
 
-/* 專屬彩色玩具數字鍵盤（6×2 寬屏佈局，不遮擋上方小兔子） */
+/* 專屬彩色玩具數字鍵盤（6×2 寬屏等高佈局，不遮擋上方小兔子） */
 .mqst-toy-keypad {
-  max-width: 720px;
+  width: 100%;
+  max-width: 740px;
   margin: 0 auto;
 }
 
 .mqst-toy-keys-grid {
   display: grid;
-  grid-template-columns: repeat(6, 1fr);
+  grid-template-columns: repeat(5, minmax(0, 1fr)) minmax(114px, 1.35fr);
+  grid-auto-rows: 54px;
   gap: 8px;
 }
 
 .mqst-toy-key {
+  box-sizing: border-box;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
   min-height: 54px;
+  padding: 0 8px;
   border-radius: 16px;
   border: 2.5px solid var(--ink);
   background: #ffffff;
@@ -950,6 +1136,8 @@
   font-family: "Baloo 2", "Noto Sans TC", sans-serif;
   font-size: 24px;
   font-weight: 900;
+  line-height: 1;
+  white-space: nowrap;
   cursor: pointer;
   box-shadow: 0 4px 0 var(--shadow-ink);
   transition: transform .08s ease, box-shadow .08s ease;
@@ -969,13 +1157,13 @@
 .mqst-toy-key.k-back {
   background: #fed7aa;
   color: #9a3412;
-  font-size: 16px;
+  font-size: clamp(13.5px, 1.4vw, 15.5px);
 }
 
 .mqst-toy-key.k-go {
   background: linear-gradient(180deg, #34d399 0%, #10b981 100%);
   color: #064e3b;
-  font-size: 16px;
+  font-size: clamp(13.5px, 1.4vw, 15.5px);
 }
 
 .mqst-next-dock {
@@ -984,7 +1172,8 @@
   justify-content: center;
   gap: 14px;
   flex-wrap: wrap;
-  max-width: 720px;
+  width: 100%;
+  max-width: 740px;
   margin: 0 auto;
 }
 
@@ -1114,6 +1303,56 @@
   flex-shrink: 0;
 }
 
+.mqst-unlock-subnote {
+  margin-top: 4px;
+  padding: 4px 8px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.85);
+  border: 1.5px solid #d97706;
+  color: #92400e;
+  font-size: 12.5px;
+  font-weight: 800;
+}
+
+.mqst-unlock-banner.is-costume {
+  background: linear-gradient(135deg, #fdf2f8 0%, #fce7f3 100%);
+  border-color: #be185d;
+  justify-content: space-between;
+  flex-wrap: wrap;
+}
+
+.mqst-unlock-costume-main {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex: 1;
+  min-width: 210px;
+}
+
+.mqst-unlock-equip-btn {
+  min-height: 44px;
+  padding: 6px 14px;
+  border-radius: 14px;
+  border: 2px solid var(--ink);
+  background: #fde047;
+  color: var(--ink);
+  font-size: 13.5px;
+  font-weight: 900;
+  cursor: pointer;
+  box-shadow: 2px 2px 0 var(--shadow-ink);
+  flex-shrink: 0;
+}
+
+.mqst-unlock-equip-btn.equipped {
+  background: #4ade80;
+  color: #064e3b;
+}
+
+.mqst-unlock-equip-btn:focus-visible {
+  outline: 3px solid #be185d;
+  outline-offset: 2px;
+}
+
 .mqst-victory-stats {
   display: flex;
   justify-content: center;
@@ -1196,6 +1435,7 @@ dialog.mqst-dialog::backdrop {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  flex-shrink: 0;
   padding: 14px 18px;
   border-bottom: 2px solid rgba(51, 43, 34, 0.12);
   background: #fff8eb;
@@ -1213,16 +1453,26 @@ dialog.mqst-dialog::backdrop {
 
 .mqst-dex-tabs {
   display: flex;
+  align-items: center;
   gap: 8px;
+  flex-shrink: 0;
   padding: 10px 18px;
   background: var(--surface-dim);
   border-bottom: 2px solid rgba(51, 43, 34, 0.1);
-  flex-wrap: wrap;
+  overflow-x: auto;
+  overflow-y: hidden;
+  flex-wrap: nowrap;
+  scrollbar-width: none;
+  scroll-snap-type: inline proximity;
 }
+.mqst-dex-tabs::-webkit-scrollbar { display: none; }
 
 .mqst-dex-tab {
+  position: relative;
+  flex: none;
+  scroll-snap-align: start;
   min-height: 44px;
-  padding: 6px 14px;
+  padding: 6px 14px 8px;
   border-radius: 999px;
   border: 2px solid var(--ink);
   background: var(--surface);
@@ -1232,9 +1482,26 @@ dialog.mqst-dialog::backdrop {
   cursor: pointer;
 }
 
-.mqst-dex-tab.active { background: var(--ink); color: #fff; }
-.mqst-dialog-body { padding: 16px 18px 20px; overflow-y: auto; flex: 1; }
+.mqst-dex-tab:focus-visible {
+  outline: 3px solid #2563eb;
+  outline-offset: 2px;
+}
+
+.mqst-dex-tab[aria-selected="true"],
+.mqst-dex-tab.active {
+  background: var(--ink);
+  color: #fff;
+}
+
+.mqst-dex-tab[aria-selected="true"]::after {
+  content: "";
+  position: absolute;
+  inset: auto 18px 4px;
+  border-block-end: 3px solid #f59e0b;
+}
+.mqst-dialog-body { padding: 16px 18px 20px; overflow-y: auto; flex: 1; min-height: 0; }
 .mqst-dialog-foot {
+  flex-shrink: 0;
   padding: 12px 18px;
   border-top: 2px solid rgba(51, 43, 34, 0.1);
   display: flex;
@@ -1352,6 +1619,7 @@ button.mqst-gem-cell:active {
 }
 
 .mqst-collect-card {
+  position: relative;
   border: 2px solid var(--ink);
   border-radius: 18px;
   padding: 12px;
@@ -1364,12 +1632,222 @@ button.mqst-gem-cell:active {
   box-shadow: 2.5px 2.5px 0 var(--shadow-ink);
 }
 
+.mqst-collect-card.is-equipped {
+  background: linear-gradient(135deg, #f0fdf4 0%, #fefce8 100%);
+  border-color: #16a34a;
+}
+
+.mqst-equipped-tag {
+  font-size: 11px;
+  font-weight: 900;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: #bbf7d0;
+  border: 1.5px solid #16a34a;
+  color: #14532d;
+}
+
 .mqst-collect-card.locked { background: var(--surface-dim); opacity: 0.72; }
 .mqst-collect-card.locked .mqst-collect-art { filter: grayscale(1) opacity(0.4); }
 .mqst-collect-art { width: 64px; height: 64px; display: flex; align-items: center; justify-content: center; font-size: 38px; }
 .mqst-collect-art svg { width: 60px; height: 60px; }
 .mqst-collect-name { font-size: 15.5px; font-weight: 900; color: var(--ink); }
 .mqst-collect-desc { font-size: 12.5px; color: var(--ink-soft); margin: 0; text-wrap: pretty; }
+.mqst-collect-skill { font-size: 12px; font-weight: 700; color: #0e7490; background: #ecfeff; border-radius: 10px; padding: 5px 8px; margin: 2px 0 0; text-wrap: pretty; }
+.mqst-collect-skill.mqst-locked-goal { color: #9a3412; background: #fff7ed; }
+
+.mqst-sprite-equip-btn {
+  margin-top: auto;
+  min-height: 44px;
+  width: 100%;
+  padding: 7px 12px;
+  border-radius: 12px;
+  border: 2px solid var(--ink);
+  background: #fef08a;
+  color: var(--ink);
+  font-size: 13px;
+  font-weight: 900;
+  cursor: pointer;
+  box-shadow: 2px 2px 0 var(--shadow-ink);
+}
+
+.mqst-sprite-equip-btn.active {
+  background: #4ade80;
+  color: #064e3b;
+}
+
+.mqst-sprite-equip-btn.goto {
+  background: #fed7aa;
+  color: #9a3412;
+}
+
+/* ---------------- 小兔換裝試衣鏡與造型卡片 ---------------- */
+.mqst-wardrobe-stage {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 14px 16px;
+  margin-bottom: 14px;
+  border-radius: 20px;
+  border: 2.5px solid var(--ink);
+  background: linear-gradient(135deg, #fff1f2 0%, #fef9c3 100%);
+  box-shadow: 3px 3px 0 var(--shadow-ink);
+  flex-wrap: wrap;
+}
+
+.mqst-wardrobe-preview-btn {
+  width: 112px;
+  height: 112px;
+  padding: 6px;
+  border-radius: 22px;
+  border: 2.5px solid var(--ink);
+  background: radial-gradient(circle at 50% 35%, #ffffff 0%, #fce7f3 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  flex-shrink: 0;
+  box-shadow: 2.5px 2.5px 0 var(--shadow-ink);
+  transition: transform .1s ease;
+}
+
+.mqst-wardrobe-preview-btn:hover { transform: scale(1.03); }
+.mqst-wardrobe-preview-btn:active { transform: scale(0.97); }
+.mqst-wardrobe-preview-btn:focus-visible {
+  outline: 3px solid #ec4899;
+  outline-offset: 2px;
+}
+.mqst-wardrobe-preview-btn svg {
+  width: 96px;
+  height: 96px;
+}
+
+.mqst-wardrobe-info {
+  flex: 1;
+  min-width: 220px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.mqst-wardrobe-current {
+  font-size: 16.5px;
+  font-weight: 900;
+  color: var(--ink);
+}
+
+.mqst-wardrobe-sub {
+  font-size: 13px;
+  color: var(--ink-soft);
+  margin: 0;
+  text-wrap: pretty;
+}
+
+.mqst-wardrobe-meters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 2px;
+}
+
+.mqst-wardrobe-meter-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  border: 1.5px solid var(--ink);
+  background: #ffffff;
+  font-size: 12.5px;
+  font-weight: 800;
+  color: var(--ink);
+}
+
+.mqst-wardrobe-next-tip {
+  margin-top: 2px;
+  padding: 6px 10px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.85);
+  border: 1.5px dashed #d97706;
+  color: #92400e;
+  font-size: 12.5px;
+  font-weight: 800;
+}
+
+.mqst-costume-art {
+  width: 78px;
+  height: 78px;
+  border-radius: 50%;
+  border: 2px solid rgba(51, 43, 34, 0.16);
+  background: #fff8eb;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.mqst-costume-art svg {
+  width: 70px;
+  height: 70px;
+}
+
+.mqst-collect-card.locked .mqst-costume-art {
+  filter: grayscale(0.85) opacity(0.55);
+}
+
+.mqst-costume-progress-wrap {
+  width: 100%;
+  margin-top: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.mqst-costume-progress-track {
+  width: 100%;
+  height: 10px;
+  border-radius: 999px;
+  border: 1.5px solid var(--ink);
+  background: #e2e8f0;
+  overflow: hidden;
+}
+
+.mqst-costume-progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #f59e0b 0%, #ec4899 100%);
+  border-radius: 999px;
+}
+
+.mqst-costume-goal-text {
+  font-size: 12px;
+  font-weight: 800;
+  color: #9a3412;
+}
+
+.mqst-costume-equip-btn {
+  margin-top: auto;
+  min-height: 48px;
+  width: 100%;
+  padding: 8px 12px;
+  border-radius: 14px;
+  border: 2px solid var(--ink);
+  background: #fde047;
+  color: var(--ink);
+  font-size: 13.5px;
+  font-weight: 900;
+  cursor: pointer;
+  box-shadow: 2px 2px 0 var(--shadow-ink);
+}
+
+.mqst-costume-equip-btn.active {
+  background: #4ade80;
+  color: #064e3b;
+}
+
+.mqst-costume-equip-btn:focus-visible,
+.mqst-sprite-equip-btn:focus-visible {
+  outline: 3px solid #2563eb;
+  outline-offset: 2px;
+}
 
 .mqst-parent-card { border: 2px solid var(--ink); border-radius: 18px; padding: 14px 16px; background: #fff; margin-bottom: 14px; }
 .mqst-parent-card h4 { margin: 0 0 4px; font-size: 16px; }
@@ -1391,8 +1869,15 @@ button.mqst-gem-cell:active {
   .mqst-choices-grid {
     grid-template-columns: repeat(2, 1fr);
   }
+  .mqst-console-dock {
+    min-height: 184px;
+  }
   .mqst-toy-keys-grid {
     grid-template-columns: repeat(4, 1fr);
+    grid-auto-rows: 50px;
+  }
+  .mqst-toy-key {
+    min-height: 50px;
   }
   .mqst-toy-key.k-back { grid-column: span 2; }
   .mqst-toy-key.k-go   { grid-column: span 2; }
@@ -1401,4 +1886,8 @@ button.mqst-gem-cell:active {
     gap: 3px;
   }
   .mqst-gem-cell { min-height: 32px; font-size: 11.5px; }
+  .mqst-hero-duo { gap: 4px; }
+  .mqst-partner-svg { width: 52px; height: 52px; }
+  .mqst-partner-speech { display: none; }
+  .mqst-partner-skill-btn { min-height: 44px; font-size: 11.5px; padding: 6px 8px; }
 }

@@ -10,7 +10,227 @@
 
   var soundOn = true;
   var voiceOn = true;
+  var bgmOn = true;
+  try {
+    if(localStorage.getItem('math_bgm_on') === '0') bgmOn = false;
+  } catch(e){}
   var audioCtx = null;
+
+  /* ---------------- 繪本風格多聲道 Web Audio 背景音樂引擎 (BGM) ---------------- */
+  var BGM_NORMAL_GAIN = 0.78;
+  var BGM_DUCK_GAIN = 0.24;
+  var bgmMasterGain = null;
+  var bgmWantedMode = null;
+  var bgmTimerId = null;
+  var bgmStep = 0;
+  var bgmNextNoteTime = 0;
+  var bgmDuckTimer = null;
+
+  function midiToFreq(midi){
+    return 440 * Math.pow(2, (midi - 69) / 12);
+  }
+
+  // 三首輕柔可愛的循環旋律（使用 MIDI 音高，0 代表休止符）
+  var BGM_TRACKS = {
+    map: {
+      stepSec: 0.27,
+      leadWave: 'triangle',
+      leadVol: 0.045,
+      bassVol: 0.032,
+      lead: [
+        72, 76, 79, 0,  81, 79, 76, 0,  77, 76, 74, 72,  74, 79, 76, 0,
+        72, 76, 79, 84, 81, 79, 76, 0,  74, 77, 76, 74,  72, 0,  72, 0
+      ],
+      bass: [
+        48, 0,  55, 0,  57, 0,  52, 0,  53, 0,  55, 0,   48, 0,  55, 0,
+        48, 0,  55, 0,  57, 0,  52, 0,  53, 0,  55, 0,   48, 0,  48, 0
+      ]
+    },
+    battle: {
+      stepSec: 0.21,
+      leadWave: 'triangle',
+      leadVol: 0.048,
+      bassVol: 0.034,
+      lead: [
+        72, 74, 76, 79, 76, 79, 81, 0,  77, 79, 81, 79,  76, 74, 72, 0,
+        74, 76, 77, 79, 81, 79, 76, 74, 72, 76, 79, 84,  79, 76, 72, 0
+      ],
+      bass: [
+        48, 60, 55, 60, 57, 64, 55, 60, 53, 60, 55, 62,  48, 55, 48, 0,
+        50, 57, 55, 62, 57, 64, 55, 62, 48, 55, 60, 67,  55, 62, 48, 0
+      ]
+    },
+    boss: {
+      stepSec: 0.19,
+      leadWave: 'triangle',
+      leadVol: 0.052,
+      bassVol: 0.038,
+      lead: [
+        69, 0,  72, 76, 81, 79, 76, 72, 74, 76, 77, 76,  74, 72, 71, 0,
+        69, 72, 76, 79, 84, 83, 81, 79, 77, 76, 74, 76,  81, 0,  76, 0
+      ],
+      bass: [
+        45, 57, 45, 57, 48, 60, 48, 60, 50, 62, 50, 62,  47, 59, 43, 55,
+        45, 57, 45, 57, 48, 60, 55, 67, 53, 65, 52, 64,  45, 57, 45, 0
+      ]
+    }
+  };
+
+  function ensureBgmGain(ctx){
+    if(!ctx) return null;
+    if(!bgmMasterGain){
+      bgmMasterGain = ctx.createGain();
+      bgmMasterGain.gain.value = BGM_NORMAL_GAIN;
+      bgmMasterGain.connect(ctx.destination);
+    }
+    return bgmMasterGain;
+  }
+
+  function scheduleBgmStepNote(ctx, bus, freq, when, duration, wave, vol){
+    var osc = ctx.createOscillator();
+    var gain = ctx.createGain();
+    osc.type = wave || 'sine';
+    osc.frequency.value = freq;
+    gain.gain.setValueAtTime(0.0001, when);
+    gain.gain.linearRampToValueAtTime(vol, when + 0.015);
+    gain.gain.exponentialRampToValueAtTime(0.0001, when + duration);
+    osc.connect(gain);
+    gain.connect(bus);
+    osc.start(when);
+    osc.stop(when + duration + 0.03);
+  }
+
+  function pumpBgmScheduler(){
+    if(!bgmOn || !bgmWantedMode) return;
+    if(document.hidden) return;
+    var ctx = getAudioCtx();
+    if(!ctx || ctx.state === 'suspended') return;
+    var bus = ensureBgmGain(ctx);
+    var track = BGM_TRACKS[bgmWantedMode] || BGM_TRACKS.map;
+
+    // 避免暫停或切換分頁回來後補播大量音符
+    if(bgmNextNoteTime < ctx.currentTime - 0.15){
+      bgmNextNoteTime = ctx.currentTime + 0.04;
+    }
+
+    var lookAhead = ctx.currentTime + 0.24;
+    while(bgmNextNoteTime < lookAhead){
+      var idx = bgmStep % track.lead.length;
+      var leadMidi = track.lead[idx];
+      var bassMidi = track.bass[idx];
+      if(leadMidi > 0){
+        scheduleBgmStepNote(ctx, bus, midiToFreq(leadMidi), bgmNextNoteTime, track.stepSec * 0.92, track.leadWave, track.leadVol);
+      }
+      if(bassMidi > 0){
+        scheduleBgmStepNote(ctx, bus, midiToFreq(bassMidi), bgmNextNoteTime, track.stepSec * 0.95, 'sine', track.bassVol);
+      }
+      bgmNextNoteTime += track.stepSec;
+      bgmStep = (bgmStep + 1) % track.lead.length;
+    }
+  }
+
+  function duckBgm(isSpeaking){
+    if(bgmDuckTimer){
+      clearTimeout(bgmDuckTimer);
+      bgmDuckTimer = null;
+    }
+    if(!bgmMasterGain || !audioCtx) return;
+    var target = isSpeaking ? BGM_DUCK_GAIN : BGM_NORMAL_GAIN;
+    try {
+      if(bgmMasterGain.gain.setTargetAtTime){
+        bgmMasterGain.gain.setTargetAtTime(target, audioCtx.currentTime, 0.08);
+      } else {
+        bgmMasterGain.gain.value = target;
+      }
+    } catch(e){}
+    if(isSpeaking){
+      // 保險復原計時器，防止部分裝置語音事件遺失
+      bgmDuckTimer = setTimeout(function(){
+        bgmDuckTimer = null;
+        duckBgm(false);
+      }, 4500);
+    }
+  }
+
+  function startBgmLoopIfNeeded(){
+    if(bgmTimerId || !bgmOn || !bgmWantedMode) return;
+    var ctx = getAudioCtx();
+    if(ctx){
+      ensureBgmGain(ctx);
+      bgmNextNoteTime = ctx.currentTime + 0.05;
+    }
+    bgmTimerId = setInterval(pumpBgmScheduler, 100);
+    pumpBgmScheduler();
+  }
+
+  function pauseBgmLoop(){
+    if(bgmTimerId){
+      clearInterval(bgmTimerId);
+      bgmTimerId = null;
+    }
+  }
+
+  function startBgm(mode){
+    var nextMode = BGM_TRACKS[mode] ? mode : 'map';
+    var changed = (bgmWantedMode !== nextMode);
+    bgmWantedMode = nextMode;
+    if(changed) bgmStep = 0;
+    if(!bgmOn) return;
+    if(!bgmTimerId){
+      startBgmLoopIfNeeded();
+    } else if(changed){
+      var ctx = getAudioCtx();
+      if(ctx) bgmNextNoteTime = ctx.currentTime + 0.04;
+      pumpBgmScheduler();
+    }
+  }
+
+  function stopBgm(){
+    bgmWantedMode = null;
+    bgmStep = 0;
+    pauseBgmLoop();
+  }
+
+  function setBgmOn(enabled){
+    bgmOn = Boolean(enabled);
+    try {
+      localStorage.setItem('math_bgm_on', bgmOn ? '1' : '0');
+    } catch(e){}
+    if(bgmOn){
+      if(bgmWantedMode) startBgmLoopIfNeeded();
+    } else {
+      pauseBgmLoop();
+    }
+    if(MathApp.emit) MathApp.emit('audioChange', { soundOn: soundOn, voiceOn: voiceOn, bgmOn: bgmOn });
+  }
+
+  function toggleBgm(){
+    setBgmOn(!bgmOn);
+    if(soundOn) sfx('click');
+    return bgmOn;
+  }
+
+  // 瀏覽器分頁切換至背景時自動暫停排程，回到前台再繼續播放
+  if(typeof document !== 'undefined' && document.addEventListener){
+    document.addEventListener('visibilitychange', function(){
+      if(document.hidden){
+        pauseBgmLoop();
+      } else if(bgmOn && bgmWantedMode){
+        startBgmLoopIfNeeded();
+      }
+    });
+    // 使用者互動時自動喚醒被瀏覽器 autoplay 政策暫停的 AudioContext
+    var unlockBgmGesture = function(){
+      if(bgmOn && bgmWantedMode){
+        var ctx = getAudioCtx();
+        if(ctx && ctx.state === 'running'){
+          pumpBgmScheduler();
+        }
+      }
+    };
+    document.addEventListener('pointerdown', unlockBgmGesture, { passive: true });
+    document.addEventListener('keydown', unlockBgmGesture, { passive: true });
+  }
 
   function getAudioCtx(){
     if(!audioCtx){
@@ -80,7 +300,46 @@
       tone(247, 0.1, 0.22, 'sine', 0.12);
     } else if(kind === 'boundary'){
       tone(300, 0, 0.12, 'square', 0.08);
+    } else if(kind === 'magic'){
+      tone(659, 0, 0.08, 'sine', 0.12);
+      tone(988, 0.05, 0.09, 'triangle', 0.12);
+      tone(1319, 0.11, 0.16, 'sine', 0.13);
     }
+  }
+
+  /**
+   * 依連擊數漸升的五聲音階打擊音效
+   * @param {number} comboCount 目前連擊次數
+   * @param {boolean} isBoss 是否為 Boss 關卡重擊
+   */
+  function sfxCombo(comboCount, isBoss){
+    if(!soundOn) return;
+    var scale = [523.25, 587.33, 659.25, 783.99, 880, 1046.5, 1174.66, 1318.51];
+    var idx = Math.max(0, Math.min(scale.length - 1, (Number(comboCount) || 1) - 1));
+    var baseFreq = scale[idx];
+
+    if(isBoss){
+      tone(220, 0, 0.07, 'square', 0.06);
+    }
+    tone(baseFreq, 0, 0.085, 'triangle', 0.13);
+    tone(baseFreq * 1.25, 0.055, 0.10, 'sine', 0.13);
+
+    // 2 連擊以上加入高八度閃亮泛音
+    if(idx >= 1){
+      tone(baseFreq * 1.5, 0.11, 0.14, 'sine', 0.11);
+    }
+    if(idx >= 3){
+      tone(baseFreq * 2, 0.15, 0.16, 'triangle', 0.09);
+    }
+  }
+
+  /**
+   * 角色輕快跳躍音效（地圖移動與互動小驚喜使用）
+   */
+  function sfxJump(){
+    if(!soundOn) return;
+    tone(420, 0, 0.055, 'sine', 0.10);
+    tone(630, 0.045, 0.075, 'triangle', 0.11);
   }
 
   // 偏好語音清單（越前面越優先）
@@ -243,12 +502,19 @@
       var best = pickBestVoice();
       if(best) u.voice = best;
 
-      // 更新頁尾狀態列並增加發聲動態反饋
+      // 更新頁尾狀態列並降低背景音樂音量，讓題目朗讀更清楚
       updateVoiceStatusUI();
+      duckBgm(true);
+      u.onend = function(){
+        if(voiceStatusCardEl) voiceStatusCardEl.classList.remove('speaking');
+        duckBgm(false);
+      };
+      u.onerror = function(){
+        if(voiceStatusCardEl) voiceStatusCardEl.classList.remove('speaking');
+        duckBgm(false);
+      };
       if(voiceStatusCardEl){
         voiceStatusCardEl.classList.add('speaking');
-        u.onend = function(){ voiceStatusCardEl.classList.remove('speaking'); };
-        u.onerror = function(){ voiceStatusCardEl.classList.remove('speaking'); };
       }
 
       window.speechSynthesis.speak(u);
@@ -271,7 +537,7 @@
       if(MathApp.refreshIcons) MathApp.refreshIcons();
     }
     if(soundOn) sfx('click');
-    if(MathApp.emit) MathApp.emit('audioChange', { soundOn: soundOn, voiceOn: voiceOn });
+    if(MathApp.emit) MathApp.emit('audioChange', { soundOn: soundOn, voiceOn: voiceOn, bgmOn: bgmOn });
   }
 
   function setVoiceOn(enabled){
@@ -283,9 +549,12 @@
         : '<i data-lucide="message-square-off"></i><span>語音（關）</span>';
       if(MathApp.refreshIcons) MathApp.refreshIcons();
     }
-    if(!voiceOn && 'speechSynthesis' in window) window.speechSynthesis.cancel();
+    if(!voiceOn && 'speechSynthesis' in window){
+      window.speechSynthesis.cancel();
+      duckBgm(false);
+    }
     updateVoiceStatusUI();
-    if(MathApp.emit) MathApp.emit('audioChange', { soundOn: soundOn, voiceOn: voiceOn });
+    if(MathApp.emit) MathApp.emit('audioChange', { soundOn: soundOn, voiceOn: voiceOn, bgmOn: bgmOn });
   }
 
   function toggleSound(){
@@ -577,6 +846,7 @@
         window.speechSynthesis.cancel();
       } catch(e){}
     }
+    duckBgm(false);
     if(voiceStatusCardEl){
       voiceStatusCardEl.classList.remove('speaking');
     }
@@ -586,6 +856,15 @@
     getAudioCtx: getAudioCtx,
     tone: tone,
     sfx: sfx,
+    sfxCombo: sfxCombo,
+    sfxJump: sfxJump,
+    startBgm: startBgm,
+    stopBgm: stopBgm,
+    duckBgm: duckBgm,
+    isBgmOn: function(){ return bgmOn; },
+    getBgmMode: function(){ return bgmWantedMode; },
+    setBgmOn: setBgmOn,
+    toggleBgm: toggleBgm,
     speak: speak,
     stopSpeak: stopSpeak,
     speakWithVoice: speakWithVoice,

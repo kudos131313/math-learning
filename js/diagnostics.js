@@ -525,8 +525,9 @@
         var islands = MathApp.mulQuest.getIslands();
         var stages = MathApp.mulQuest.getStages();
         var badges = MathApp.mulQuest.getBadges();
-        if(islands.length !== 5 || stages.length !== 15 || badges.length !== 10){
-          throw new Error('關卡或圖鑑設定數量異常：島嶼=' + islands.length + ' 關卡=' + stages.length + ' 徽章=' + badges.length);
+        var costumes = MathApp.mulQuest.getCostumes ? MathApp.mulQuest.getCostumes() : [];
+        if(islands.length !== 5 || stages.length !== 15 || badges.length !== 10 || costumes.length !== 8){
+          throw new Error('關卡或圖鑑設定數量異常：島嶼=' + islands.length + ' 關卡=' + stages.length + ' 徽章=' + badges.length + ' 造型=' + costumes.length);
         }
 
         // 驗證每一關題庫產生與選擇題誘答選項不重複且包含正解
