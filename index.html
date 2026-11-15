@@ -1272,7 +1272,7 @@
               <button type="button" class="mqst-hud-btn audio-mini icon-only" id="mqst-battle-audio-btn" aria-label="開啟聲音設定" title="聲音設定（音樂／音效／語音）">
                 <i data-lucide="volume-2" aria-hidden="true"></i>
               </button>
-              <button type="button" class="mqst-hud-btn helper" id="mqst-helper-toggle-btn">
+              <button type="button" class="mqst-hud-btn helper" id="mqst-helper-toggle-btn" title="打開積木提示（會影響 3 顆星評價與本題寶石收集）" aria-label="開啟積木小幫手（會影響滿星與寶石）">
                 <span aria-hidden="true">🧱</span><span>小幫手</span>
               </button>
               <button type="button" class="mqst-hud-btn exit" id="mqst-battle-exit-btn" aria-label="離開遊戲回到數字積木屋">
@@ -1317,8 +1317,8 @@
                   <div class="mqst-partner-speech" id="mqst-partner-speech" aria-live="polite"></div>
                   <div class="mqst-partner-svg" id="mqst-partner-svg" aria-hidden="true"></div>
                   <span class="mqst-actor-label mqst-partner-label" id="mqst-partner-label">守護精靈</span>
-                  <button type="button" class="mqst-partner-skill-btn" id="mqst-partner-skill-btn" title="每關可使用一次守護精靈助陣魔法，不影響滿星評價！">
-                    ✨ 精靈魔法
+                  <button type="button" class="mqst-partner-skill-btn" id="mqst-partner-skill-btn" title="每關免費使用 1 次：選擇題消除 1 個錯選項／鍵盤題免費開積木，不扣星、照拿寶石！">
+                    ✨ 免費消錯
                   </button>
                 </div>
               </div>
@@ -1465,7 +1465,7 @@
             <!-- 懸浮半透明積木提示泡泡（不破壞舞台，答錯或點擊小幫手滑出） -->
             <div class="mqst-helper-bubble" id="mqst-helper-drawer" aria-live="polite">
               <div class="mqst-helper-bubble-head">
-                <span>🧱 魔法積木提示泡泡</span>
+                <span id="mqst-helper-title">🧱 魔法積木提示泡泡</span>
                 <button type="button" class="mqst-helper-close" id="mqst-helper-close-btn" aria-label="收起積木提示">收起 ✕</button>
               </div>
               <div class="mqst-helper-blocks-body" id="mqst-helper-blocks-stage"></div>
@@ -1679,6 +1679,39 @@
     <div class="mqst-dialog-foot">
       <form method="dialog">
         <button type="submit" class="primary-btn" value="done">完成</button>
+      </form>
+    </div>
+  </dialog>
+
+  <!-- ================= 原生對話框：積木小幫手二次確認 ================= -->
+  <dialog class="mqst-dialog mqst-confirm-dialog" id="mqst-helper-confirm-dialog" closedby="any" aria-labelledby="mqst-helper-confirm-title">
+    <div class="mqst-dialog-head">
+      <div class="mqst-dialog-title-wrap">
+        <span class="mqst-dialog-ico" aria-hidden="true">🧱</span>
+        <h3 id="mqst-helper-confirm-title">要打開積木小幫手嗎？</h3>
+      </div>
+      <form method="dialog">
+        <button type="submit" class="close-modal-btn" value="cancel" aria-label="取消並關閉確認視窗">✕</button>
+      </form>
+    </div>
+
+    <div class="mqst-dialog-body">
+      <div class="mqst-confirm-notice">
+        <p class="mqst-confirm-lead">使用「小幫手」偷看積木提示會有以下影響喔：</p>
+        <ul class="mqst-confirm-list">
+          <li>⭐ <strong>無法獲得 3 顆星</strong>：本關結算最多只能拿 2 顆星</li>
+          <li>💎 <strong>本題沒有寶石</strong>：這一題答對後不會收集到乘法寶石</li>
+        </ul>
+      </div>
+      <div class="mqst-confirm-partner-tip" id="mqst-helper-confirm-partner-tip" style="display:none;">
+        💡 小提醒：你的守護小精靈還沒施展魔法！也可以改按舞台上的 <strong>「✨ 精靈魔法」</strong>，每關可免費幫忙 1 次且<strong>不扣星、照拿寶石</strong>喔！
+      </div>
+    </div>
+
+    <div class="mqst-dialog-foot mqst-confirm-actions">
+      <form method="dialog" class="mqst-confirm-form">
+        <button type="submit" class="ghost-btn" value="cancel" autofocus>先不要，我再想想</button>
+        <button type="submit" class="primary-btn" value="confirm">確定打開小幫手</button>
       </form>
     </div>
   </dialog>

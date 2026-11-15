@@ -254,36 +254,44 @@
     var cId = costumeId || 'default';
     var backLayer = '';
     var headFrontLayer = '';
+    var bodyOutfitLayer = '';
     var faceOverlayLayer = '';
 
     if(cId === 'default'){
-      headFrontLayer = '<polygon points="64,28 66,33 71,33 67,36 69,41 64,38 59,41 61,36 57,33 62,33" fill="#fde047" stroke="#332b22" stroke-width="1.8" stroke-linejoin="round"/>';
+      headFrontLayer = '<polygon points="64,28 66,33 71,33 67,36 69,41 64,38 59,41 61,36 57,33 62,33" fill="#fde047" stroke="#332b22" stroke-width="1.8" stroke-linejoin="round"/>' +
+        '<circle cx="64" cy="34.5" r="1.6" fill="#ffffff" opacity="0.85"/>';
+      bodyOutfitLayer = '<path d="M39 65 L50 71 L61 65" fill="none" stroke="#f59e0b" stroke-width="3.6" stroke-linecap="round"/>' +
+        '<polygon points="50,67 51.8,70.5 55.6,70.8 52.8,73.3 53.6,77 50,75 46.4,77 47.2,73.3 44.4,70.8 48.2,70.5" fill="#fde047" stroke="#332b22" stroke-width="1.4" stroke-linejoin="round"/>';
     } else if(cId === 'ribbon'){
       headFrontLayer = '<g transform="rotate(-14 63 30)">' +
         '<path d="M63 30 C54 21, 47 23, 50 31 C47 38, 55 39, 63 32 Z" fill="#fb7185" stroke="#332b22" stroke-width="2.2" stroke-linejoin="round"/>' +
         '<path d="M63 30 C72 21, 79 23, 76 31 C79 38, 71 39, 63 32 Z" fill="#fb7185" stroke="#332b22" stroke-width="2.2" stroke-linejoin="round"/>' +
-        '<circle cx="53" cy="28" r="1.6" fill="#fff1f2"/>' +
-        '<circle cx="55" cy="33" r="1.3" fill="#fff1f2"/>' +
-        '<circle cx="73" cy="28" r="1.6" fill="#fff1f2"/>' +
-        '<circle cx="71" cy="33" r="1.3" fill="#fff1f2"/>' +
+        '<circle cx="53" cy="28" r="1.6" fill="#fff1f2"/><circle cx="55" cy="33" r="1.3" fill="#fff1f2"/>' +
+        '<circle cx="73" cy="28" r="1.6" fill="#fff1f2"/><circle cx="71" cy="33" r="1.3" fill="#fff1f2"/>' +
         '<circle cx="63" cy="31" r="4.2" fill="#f43f5e" stroke="#332b22" stroke-width="2"/>' +
         '<circle cx="63" cy="31" r="1.6" fill="#fde047"/>' +
       '</g>';
+      bodyOutfitLayer = '<path d="M50 69 L41 64 C39 67 39 71 41 74 Z" fill="#fb7185" stroke="#332b22" stroke-width="1.8" stroke-linejoin="round"/>' +
+        '<path d="M50 69 L59 64 C61 67 61 71 59 74 Z" fill="#fb7185" stroke="#332b22" stroke-width="1.8" stroke-linejoin="round"/>' +
+        '<circle cx="50" cy="69" r="3" fill="#f43f5e" stroke="#332b22" stroke-width="1.6"/>';
     } else if(cId === 'sprout'){
       headFrontLayer = '<path d="M27 40 Q50 21 73 40" fill="none" stroke="#332b22" stroke-width="5.6" stroke-linecap="round"/>' +
         '<path d="M27 40 Q50 21 73 40" fill="none" stroke="#4ade80" stroke-width="3" stroke-linecap="round"/>' +
         '<path d="M50 29 Q50 18 50 15" fill="none" stroke="#332b22" stroke-width="3" stroke-linecap="round"/>' +
         '<path d="M50 17 C41 8, 33 14, 39 21 C43 24, 50 20, 50 17 Z" fill="#22c55e" stroke="#332b22" stroke-width="2.2" stroke-linejoin="round"/>' +
-        '<path d="M50 17 C59 7, 68 13, 62 20 C58 24, 50 20, 50 17 Z" fill="#86efac" stroke="#332b22" stroke-width="2.2" stroke-linejoin="round"/>';
+        '<path d="M50 17 C59 7, 68 13, 62 20 C58 24, 50 20, 50 17 Z" fill="#86efac" stroke="#332b22" stroke-width="2.2" stroke-linejoin="round"/>' +
+        '<circle cx="58" cy="14" r="1.6" fill="#ffffff" opacity="0.9"/>';
+      bodyOutfitLayer = '<path d="M35 64 Q42 74 50 69 Q58 74 65 64 Q58 68 50 67 Q42 68 35 64 Z" fill="#4ade80" stroke="#332b22" stroke-width="1.8" stroke-linejoin="round"/>';
     } else if(cId === 'explorer'){
       headFrontLayer = '<path d="M35 30 Q50 13 65 30 Z" fill="#fbbf24" stroke="#332b22" stroke-width="2.6" stroke-linejoin="round"/>' +
         '<path d="M36 27 Q50 23 64 27" fill="none" stroke="#b45309" stroke-width="3.2"/>' +
         '<ellipse cx="50" cy="31" rx="26" ry="5.5" fill="#fde68a" stroke="#332b22" stroke-width="2.6"/>' +
         '<circle cx="50" cy="22" r="4" fill="#38bdf8" stroke="#332b22" stroke-width="1.8"/>' +
         '<circle cx="50" cy="22" r="1.5" fill="#fde047"/>';
+      bodyOutfitLayer = '<path d="M37 64 L50 75 L63 64 Q50 68 37 64 Z" fill="#38bdf8" stroke="#332b22" stroke-width="1.8" stroke-linejoin="round"/>' +
+        '<circle cx="50" cy="69" r="3" fill="#fde047" stroke="#332b22" stroke-width="1.4"/>';
     } else if(cId === 'flower'){
       headFrontLayer = '<path d="M29 38 Q50 22 71 38" fill="none" stroke="#16a34a" stroke-width="3.2" stroke-linecap="round"/>' +
-        /* 左小花 */
         '<g transform="translate(35,30)">' +
           '<circle cx="0" cy="-4.5" r="3.4" fill="#f472b6" stroke="#332b22" stroke-width="1.4"/>' +
           '<circle cx="4.3" cy="-1.4" r="3.4" fill="#f472b6" stroke="#332b22" stroke-width="1.4"/>' +
@@ -292,7 +300,6 @@
           '<circle cx="-4.3" cy="-1.4" r="3.4" fill="#f472b6" stroke="#332b22" stroke-width="1.4"/>' +
           '<circle cx="0" cy="0" r="2.6" fill="#fde047" stroke="#332b22" stroke-width="1.2"/>' +
         '</g>' +
-        /* 中央主花 */
         '<g transform="translate(50,26)">' +
           '<circle cx="0" cy="-5" r="3.8" fill="#fde047" stroke="#332b22" stroke-width="1.4"/>' +
           '<circle cx="4.8" cy="-1.5" r="3.8" fill="#fde047" stroke="#332b22" stroke-width="1.4"/>' +
@@ -301,7 +308,6 @@
           '<circle cx="-4.8" cy="-1.5" r="3.8" fill="#fde047" stroke="#332b22" stroke-width="1.4"/>' +
           '<circle cx="0" cy="0" r="2.9" fill="#fb7185" stroke="#332b22" stroke-width="1.2"/>' +
         '</g>' +
-        /* 右小花 */
         '<g transform="translate(65,30)">' +
           '<circle cx="0" cy="-4.5" r="3.4" fill="#60a5fa" stroke="#332b22" stroke-width="1.4"/>' +
           '<circle cx="4.3" cy="-1.4" r="3.4" fill="#60a5fa" stroke="#332b22" stroke-width="1.4"/>' +
@@ -310,22 +316,26 @@
           '<circle cx="-4.3" cy="-1.4" r="3.4" fill="#60a5fa" stroke="#332b22" stroke-width="1.4"/>' +
           '<circle cx="0" cy="0" r="2.6" fill="#fde047" stroke="#332b22" stroke-width="1.2"/>' +
         '</g>';
+      bodyOutfitLayer = '<path d="M35 65 Q40 72 45 67 Q50 73 55 67 Q60 72 65 65" fill="#fbcfe8" stroke="#332b22" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>';
     } else if(cId === 'glasses'){
       headFrontLayer = '<polygon points="64,28 66,33 71,33 67,36 69,41 64,38 59,41 61,36 57,33 62,33" fill="#38bdf8" stroke="#332b22" stroke-width="1.8" stroke-linejoin="round"/>';
       faceOverlayLayer = '<g>' +
-        '<rect x="30" y="42" width="16" height="11" rx="4.5" fill="#1e293b" fill-opacity="0.58" stroke="#fde047" stroke-width="2.4"/>' +
-        '<rect x="54" y="42" width="16" height="11" rx="4.5" fill="#1e293b" fill-opacity="0.58" stroke="#fde047" stroke-width="2.4"/>' +
+        '<rect x="30" y="42" width="16" height="11" rx="4.5" fill="#1e293b" fill-opacity="0.62" stroke="#fde047" stroke-width="2.4"/>' +
+        '<rect x="54" y="42" width="16" height="11" rx="4.5" fill="#1e293b" fill-opacity="0.62" stroke="#fde047" stroke-width="2.4"/>' +
         '<path d="M46 46 Q50 44 54 46" fill="none" stroke="#332b22" stroke-width="2.4" stroke-linecap="round"/>' +
         '<line x1="33" y1="45" x2="37" y2="50" stroke="#ffffff" stroke-width="1.8" stroke-linecap="round" opacity="0.85"/>' +
         '<line x1="57" y1="45" x2="61" y2="50" stroke="#ffffff" stroke-width="1.8" stroke-linecap="round" opacity="0.85"/>' +
       '</g>';
+      bodyOutfitLayer = '<path d="M50 69 L41 64 L41 73 Z" fill="#38bdf8" stroke="#332b22" stroke-width="1.8" stroke-linejoin="round"/>' +
+        '<path d="M50 69 L59 64 L59 73 Z" fill="#38bdf8" stroke="#332b22" stroke-width="1.8" stroke-linejoin="round"/>' +
+        '<circle cx="50" cy="69" r="3" fill="#fde047" stroke="#332b22" stroke-width="1.6"/>';
     } else if(cId === 'cape'){
       backLayer = '<path d="M25 60 Q11 79 16 93 Q50 97 84 93 Q89 79 75 60 Z" fill="#312e81" stroke="#332b22" stroke-width="2.8" stroke-linejoin="round"/>' +
         '<path d="M26 63 Q17 79 20 89 Q50 93 80 89 Q83 79 74 63" fill="none" stroke="#fde047" stroke-width="1.8" stroke-dasharray="4 3"/>' +
         '<polygon points="22,79 23.5,82 27,82 24.2,84 25.2,87 22,85 18.8,87 19.8,84 17,82 20.5,82" fill="#fde047"/>' +
         '<polygon points="78,79 79.5,82 83,82 80.2,84 81.2,87 78,85 74.8,87 75.8,84 73,82 76.5,82" fill="#fde047"/>';
       headFrontLayer = '<polygon points="64,28 66,33 71,33 67,36 69,41 64,38 59,41 61,36 57,33 62,33" fill="#fde047" stroke="#332b22" stroke-width="1.8" stroke-linejoin="round"/>';
-      faceOverlayLayer = '<path d="M36 64 L50 70 L64 64" fill="none" stroke="#312e81" stroke-width="3.6" stroke-linecap="round"/>' +
+      bodyOutfitLayer = '<path d="M36 64 L50 70 L64 64" fill="none" stroke="#312e81" stroke-width="3.6" stroke-linecap="round"/>' +
         '<polygon points="50,65 52,69 56,69 53,71.5 54,75.5 50,73 46,75.5 47,71.5 44,69 48,69" fill="#fde047" stroke="#332b22" stroke-width="1.6" stroke-linejoin="round"/>';
     } else if(cId === 'crown'){
       backLayer = '<path d="M23 59 Q9 78 15 93 Q50 98 85 93 Q91 78 77 59 Z" fill="#fef08a" stroke="#b45309" stroke-width="2.6" stroke-linejoin="round"/>' +
@@ -338,13 +348,14 @@
         '<circle cx="43" cy="26" r="2.2" fill="#f43f5e" stroke="#332b22" stroke-width="1.1"/>' +
         '<circle cx="50" cy="24" r="2.8" fill="#38bdf8" stroke="#332b22" stroke-width="1.2"/>' +
         '<circle cx="57" cy="26" r="2.2" fill="#22c55e" stroke="#332b22" stroke-width="1.1"/>';
-      faceOverlayLayer = '<path d="M41 66 L50 70 L59 66 L59 73 L50 70 L41 73 Z" fill="#f43f5e" stroke="#332b22" stroke-width="1.6" stroke-linejoin="round"/>' +
+      bodyOutfitLayer = '<path d="M41 66 L50 70 L59 66 L59 73 L50 70 L41 73 Z" fill="#f43f5e" stroke="#332b22" stroke-width="1.6" stroke-linejoin="round"/>' +
         '<circle cx="50" cy="70" r="2.8" fill="#38bdf8" stroke="#332b22" stroke-width="1.4"/>';
     }
 
     return {
       backLayer: backLayer,
       headFrontLayer: headFrontLayer,
+      bodyOutfitLayer: bodyOutfitLayer,
       faceOverlayLayer: faceOverlayLayer
     };
   }
@@ -353,20 +364,37 @@
     var m = mood || 'normal';
     var activeId = costumeId || ((typeof saveData !== 'undefined' && saveData && saveData.activeCostume) ? saveData.activeCostume : 'default');
     var layers = buildBunnyCostumeLayers(activeId);
+    getPinkBunnySvg._uid = (getPinkBunnySvg._uid || 0) + 1;
+    var bid = 'bn-' + getPinkBunnySvg._uid;
+
     return '<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">' +
+      '<defs>' +
+        '<linearGradient id="' + bid + 'h" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#fce7f3"/><stop offset="100%" stop-color="#f9a8d4"/></linearGradient>' +
+        '<linearGradient id="' + bid + 'b" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#fbcfe8"/><stop offset="100%" stop-color="#f472b6"/></linearGradient>' +
+      '</defs>' +
+      '<ellipse cx="50" cy="93" rx="24" ry="4.5" fill="rgba(51,43,34,0.14)"/>' +
       layers.backLayer +
+      /* 圓滾滾奶油白小尾巴 */
+      '<circle cx="72" cy="78" r="6" fill="#fff1f2" stroke="#332b22" stroke-width="2.6"/>' +
       /* 左耳與右耳 */
       '<ellipse cx="36" cy="24" rx="9" ry="20" transform="rotate(-10 36 24)" fill="#fbcfe8" stroke="#332b22" stroke-width="3.2"/>' +
       '<ellipse cx="36" cy="25" rx="4.5" ry="13" transform="rotate(-10 36 25)" fill="#f472b6"/>' +
       '<ellipse cx="64" cy="24" rx="9" ry="20" transform="rotate(10 64 24)" fill="#fbcfe8" stroke="#332b22" stroke-width="3.2"/>' +
       '<ellipse cx="64" cy="25" rx="4.5" ry="13" transform="rotate(10 64 25)" fill="#f472b6"/>' +
-      /* 探險小背包邊緣 */
-      '<rect x="20" y="60" width="14" height="20" rx="6" fill="#fbbf24" stroke="#332b22" stroke-width="2.8"/>' +
-      /* 身體 */
-      '<ellipse cx="50" cy="72" rx="22" ry="18" fill="#f9a8d4" stroke="#332b22" stroke-width="3.2"/>' +
-      '<ellipse cx="50" cy="74" rx="13" ry="11" fill="#fff1f2"/>' +
+      /* 立體探險小背包 */
+      '<rect x="18" y="59" width="15" height="21" rx="6" fill="#fbbf24" stroke="#332b22" stroke-width="2.8"/>' +
+      '<path d="M18 66 Q25.5 70 33 66" fill="none" stroke="#b45309" stroke-width="2.4"/>' +
+      '<circle cx="25.5" cy="68.5" r="2.2" fill="#fffbeb" stroke="#332b22" stroke-width="1.3"/>' +
+      /* 小手臂 */
+      '<ellipse cx="29" cy="70" rx="6.5" ry="4.5" transform="rotate(-28 29 70)" fill="#fbcfe8" stroke="#332b22" stroke-width="2.6"/>' +
+      '<ellipse cx="71" cy="70" rx="6.5" ry="4.5" transform="rotate(28 71 70)" fill="#fbcfe8" stroke="#332b22" stroke-width="2.6"/>' +
+      /* 身體與肚肚 */
+      '<ellipse cx="50" cy="72" rx="22" ry="18" fill="url(#' + bid + 'b)" stroke="#332b22" stroke-width="3.2"/>' +
+      '<ellipse cx="50" cy="75" rx="13" ry="10.5" fill="#fff1f2"/>' +
+      /* 服裝胸飾（領結／披肩／徽章） */
+      layers.bodyOutfitLayer +
       /* 頭部 */
-      '<ellipse cx="50" cy="48" rx="25" ry="20" fill="#fbcfe8" stroke="#332b22" stroke-width="3.2"/>' +
+      '<ellipse cx="50" cy="48" rx="25" ry="20" fill="url(#' + bid + 'h)" stroke="#332b22" stroke-width="3.2"/>' +
       /* 頭飾配件 */
       layers.headFrontLayer +
       /* 粉腮與動態表情 */
@@ -378,59 +406,403 @@
       /* 小腳丫 */
       '<ellipse cx="39" cy="89" rx="8" ry="5" fill="#fbcfe8" stroke="#332b22" stroke-width="2.8"/>' +
       '<ellipse cx="61" cy="89" rx="8" ry="5" fill="#fbcfe8" stroke="#332b22" stroke-width="2.8"/>' +
+      '<circle cx="37" cy="88.5" r="1.5" fill="#ffffff" opacity="0.75"/>' +
+      '<circle cx="59" cy="88.5" r="1.5" fill="#ffffff" opacity="0.75"/>' +
     '</svg>';
   }
 
   function getStageChestSvg(theme, mood){
     var m = mood || 'normal';
     var colors = {
-      forest: ['#86efac', '#22c55e'],
-      workshop: ['#fde047', '#f59e0b'],
-      garden: ['#fbcfe8', '#ec4899'],
-      valley: ['#bae6fd', '#3b82f6'],
-      castle: ['#ddd6fe', '#8b5cf6']
+      forest:   { top: '#86efac', body: '#4ade80', trim: '#bbf7d0', accent: '#22c55e', badge: 'leaf' },
+      workshop: { top: '#fde047', body: '#facc15', trim: '#fef08a', accent: '#f97316', badge: 'gear' },
+      garden:   { top: '#fbcfe8', body: '#f472b6', trim: '#fce7f3', accent: '#ec4899', badge: 'bow' },
+      valley:   { top: '#bae6fd', body: '#60a5fa', trim: '#e0f2fe', accent: '#3b82f6', badge: 'wing' },
+      castle:   { top: '#ddd6fe', body: '#a78bfa', trim: '#ede9fe', accent: '#7c3aed', badge: 'crown' }
     };
     var pal = colors[theme] || colors.forest;
+    getStageChestSvg._uid = (getStageChestSvg._uid || 0) + 1;
+    var cid = 'ch-' + (theme || 'forest') + '-' + getStageChestSvg._uid;
+
+    function buildThemeAddon(b){
+      if(b === 'leaf'){
+        return '<path d="M48 27 C41 14 27 16 30 25 C34 30 44 29 48 27 Z" fill="#4ade80" stroke="#332b22" stroke-width="2.2"/>' +
+          '<path d="M48 27 C55 13 69 15 66 24 C62 29 52 29 48 27 Z" fill="#22c55e" stroke="#332b22" stroke-width="2.2"/>';
+      }
+      if(b === 'gear'){
+        return '<circle cx="48" cy="24" r="7" fill="#fb923c" stroke="#332b22" stroke-width="2.2"/>' +
+          '<circle cx="48" cy="24" r="2.6" fill="#fef08a" stroke="#332b22" stroke-width="1.6"/>';
+      }
+      if(b === 'bow'){
+        return '<path d="M48 26 L36 19 C33 23 33 29 36 33 Z" fill="#ec4899" stroke="#332b22" stroke-width="2.1"/>' +
+          '<path d="M48 26 L60 19 C63 23 63 29 60 33 Z" fill="#ec4899" stroke="#332b22" stroke-width="2.1"/>' +
+          '<circle cx="48" cy="26" r="4" fill="#fde047" stroke="#332b22" stroke-width="2"/>';
+      }
+      if(b === 'wing'){
+        return '<path d="M16 48 C6 38 4 50 11 56 C14 58 18 55 18 51 Z" fill="#fde047" stroke="#332b22" stroke-width="2.2"/>' +
+          '<path d="M80 48 C90 38 92 50 85 56 C82 58 78 55 78 51 Z" fill="#fde047" stroke="#332b22" stroke-width="2.2"/>';
+      }
+      return '<polygon points="36,27 40,16 48,22 56,16 60,27" fill="#fbbf24" stroke="#332b22" stroke-width="2.2" stroke-linejoin="round"/>';
+    }
+
     if(m === 'open'){
-      return '<svg viewBox="0 0 90 90">' +
-        '<rect x="15" y="42" width="60" height="34" rx="11" fill="' + pal[0] + '" stroke="#332b22" stroke-width="3.2"/>' +
-        '<rect x="16" y="22" width="58" height="16" rx="8" transform="rotate(-10 18 38)" fill="' + pal[1] + '" stroke="#332b22" stroke-width="3"/>' +
-        '<circle cx="34" cy="39" r="6" fill="#fde047" stroke="#332b22" stroke-width="2"/>' +
-        '<circle cx="46" cy="36" r="7" fill="#38bdf8" stroke="#332b22" stroke-width="2"/>' +
-        '<circle cx="57" cy="39" r="6" fill="#fde047" stroke="#332b22" stroke-width="2"/>' +
-        buildFaceExpression('happy', 30, 60, 58, 63, 3.5) +
-        '<polygon points="45,6 48,14 56,14 50,19 52,26 45,21 38,26 40,19 34,14 42,14" fill="#fde047" stroke="#332b22" stroke-width="2" stroke-linejoin="round"/>' +
+      return '<svg viewBox="0 0 96 96">' +
+        '<defs><linearGradient id="' + cid + '" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="' + pal.top + '"/><stop offset="100%" stop-color="' + pal.body + '"/></linearGradient></defs>' +
+        '<ellipse cx="48" cy="84" rx="28" ry="5.5" fill="rgba(51,43,34,0.16)"/>' +
+        /* 掀開的立體箱蓋 */
+        '<g transform="rotate(-14 20 42)">' +
+          '<path d="M16 42 C16 25 80 25 80 42 Z" fill="' + pal.accent + '" stroke="#332b22" stroke-width="3"/>' +
+          '<rect x="14" y="38" width="68" height="8" rx="4" fill="#fbbf24" stroke="#332b22" stroke-width="2.6"/>' +
+        '</g>' +
+        /* 箱內閃耀寶石與金幣 */
+        '<ellipse cx="48" cy="46" rx="26" ry="7" fill="#332b22"/>' +
+        '<circle cx="33" cy="41" r="6.5" fill="#fde047" stroke="#332b22" stroke-width="2"/>' +
+        '<polygon points="48,30 55,38 48,46 41,38" fill="#38bdf8" stroke="#332b22" stroke-width="2"/>' +
+        '<polygon points="63,34 69,41 63,47 57,41" fill="#fb7185" stroke="#332b22" stroke-width="2"/>' +
+        /* 寶箱主體 */
+        '<rect x="16" y="45" width="64" height="36" rx="12" fill="url(#' + cid + ')" stroke="#332b22" stroke-width="3.2"/>' +
+        '<rect x="23" y="45" width="7" height="36" fill="#fbbf24" opacity="0.85" stroke="#332b22" stroke-width="2"/>' +
+        '<rect x="66" y="45" width="7" height="36" fill="#fbbf24" opacity="0.85" stroke="#332b22" stroke-width="2"/>' +
+        '<ellipse cx="32" cy="66" rx="4" ry="2.4" fill="#fb7185" opacity="0.6"/>' +
+        '<ellipse cx="64" cy="66" rx="4" ry="2.4" fill="#fb7185" opacity="0.6"/>' +
+        buildFaceExpression('happy', 38, 58, 63, 68, 3.6) +
+        '<polygon points="48,8 51,16 59,16 53,21 55,28 48,23 41,28 43,21 37,16 45,16" fill="#fde047" stroke="#332b22" stroke-width="2" stroke-linejoin="round"/>' +
       '</svg>';
     }
-    return '<svg viewBox="0 0 90 90">' +
-      '<rect x="15" y="34" width="60" height="40" rx="12" fill="' + pal[0] + '" stroke="#332b22" stroke-width="3.2"/>' +
-      '<path d="M15 44 Q45 36 75 44" fill="none" stroke="#332b22" stroke-width="3"/>' +
-      '<rect x="38" y="38" width="14" height="14" rx="4" fill="#fde047" stroke="#332b22" stroke-width="2.5"/>' +
-      buildFaceExpression(m === 'hit' ? 'hit' : 'normal', 30, 60, 58, 62, 3.5) +
-      '<polygon points="45,14 48,22 56,22 50,27 52,34 45,29 38,34 40,27 34,22 42,22" fill="#fde047" stroke="#332b22" stroke-width="2" stroke-linejoin="round"/>' +
+
+    return '<svg viewBox="0 0 96 96">' +
+      '<defs><linearGradient id="' + cid + '" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="' + pal.trim + '"/><stop offset="100%" stop-color="' + pal.body + '"/></linearGradient></defs>' +
+      '<ellipse cx="48" cy="84" rx="28" ry="5.5" fill="rgba(51,43,34,0.16)"/>' +
+      /* 可愛小腳 */
+      '<ellipse cx="33" cy="79" rx="7" ry="4.5" fill="' + pal.accent + '" stroke="#332b22" stroke-width="2.5"/>' +
+      '<ellipse cx="63" cy="79" rx="7" ry="4.5" fill="' + pal.accent + '" stroke="#332b22" stroke-width="2.5"/>' +
+      /* 寶箱蓋與主體 */
+      '<path d="M16 45 C16 24 80 24 80 45 Z" fill="' + pal.top + '" stroke="#332b22" stroke-width="3.2"/>' +
+      '<rect x="16" y="42" width="64" height="36" rx="12" fill="url(#' + cid + ')" stroke="#332b22" stroke-width="3.2"/>' +
+      /* 金屬包邊條與高光 */
+      '<rect x="24" y="31" width="6" height="47" rx="2" fill="#fbbf24" stroke="#332b22" stroke-width="2"/>' +
+      '<rect x="66" y="31" width="6" height="47" rx="2" fill="#fbbf24" stroke="#332b22" stroke-width="2"/>' +
+      '<path d="M16 44 Q48 38 80 44" fill="none" stroke="#332b22" stroke-width="3"/>' +
+      /* 主題小飾品 */
+      buildThemeAddon(pal.badge) +
+      /* 金色鎖扣 */
+      '<rect x="41" y="37" width="14" height="13" rx="4" fill="#fde047" stroke="#332b22" stroke-width="2.4"/>' +
+      '<circle cx="48" cy="43.5" r="2.2" fill="#332b22"/>' +
+      /* 粉腮與動態表情 */
+      '<ellipse cx="30" cy="63" rx="4" ry="2.4" fill="#fb7185" opacity="0.6"/>' +
+      '<ellipse cx="66" cy="63" rx="4" ry="2.4" fill="#fb7185" opacity="0.6"/>' +
+      buildFaceExpression(m === 'hit' ? 'hit' : 'normal', 38, 58, 60, 65, 3.6) +
+      /* 閃亮星光 */
+      '<path d="M12 24 L14 28 L18 30 L14 32 L12 36 L10 32 L6 30 L10 28 Z" fill="#fde047"/>' +
+      '<circle cx="83" cy="27" r="2.3" fill="#fde047"/>' +
     '</svg>';
   }
 
   function getCharacterSvg(key, isBoss, mood){
     var m = mood || 'normal';
+    getCharacterSvg._uid = (getCharacterSvg._uid || 0) + 1;
+    var uid = getCharacterSvg._uid;
+
     if(isBoss){
       var bossMap = {
-        forest: '<svg viewBox="0 0 80 80"><rect x="16" y="24" width="48" height="44" rx="14" fill="#86efac" stroke="#332b22" stroke-width="3"/><circle cx="28" cy="18" r="10" fill="#4ade80" stroke="#332b22" stroke-width="3"/><circle cx="52" cy="18" r="10" fill="#4ade80" stroke="#332b22" stroke-width="3"/><circle cx="24" cy="49" r="4" fill="#fda4af" opacity="0.8"/><circle cx="56" cy="49" r="4" fill="#fda4af" opacity="0.8"/>' + buildFaceExpression(m, 31, 49, 43, 54, 4.2) + '</svg>',
-        workshop: '<svg viewBox="0 0 80 80"><rect x="14" y="22" width="52" height="46" rx="10" fill="#fcd34d" stroke="#332b22" stroke-width="3"/><line x1="40" y1="8" x2="40" y2="22" stroke="#332b22" stroke-width="3"/><circle cx="40" cy="8" r="5" fill="#ef4444" stroke="#332b22" stroke-width="2.5"/><rect x="24" y="34" width="12" height="10" rx="3" fill="#fff" stroke="#332b22" stroke-width="2.5"/><rect x="44" y="34" width="12" height="10" rx="3" fill="#fff" stroke="#332b22" stroke-width="2.5"/>' + buildFaceExpression(m, 30, 50, 39, 55, 3) + '</svg>',
-        garden: '<svg viewBox="0 0 80 80"><circle cx="40" cy="44" r="22" fill="#f9a8d4" stroke="#332b22" stroke-width="3"/><circle cx="22" cy="24" r="10" fill="#f472b6" stroke="#332b22" stroke-width="3"/><circle cx="58" cy="24" r="10" fill="#f472b6" stroke="#332b22" stroke-width="3"/><circle cx="40" cy="18" r="10" fill="#fb7185" stroke="#332b22" stroke-width="3"/>' + buildFaceExpression(m, 33, 47, 42, 52, 3.8) + '</svg>',
-        valley: '<svg viewBox="0 0 80 80"><path d="M18 58 Q14 26 40 20 Q66 26 62 58 Z" fill="#60a5fa" stroke="#332b22" stroke-width="3"/><polygon points="26,23 20,10 34,19" fill="#fbbf24" stroke="#332b22" stroke-width="2.5"/><polygon points="54,23 60,10 46,19" fill="#fbbf24" stroke="#332b22" stroke-width="2.5"/><ellipse cx="40" cy="52" rx="14" ry="8" fill="#dbeafe" stroke="#332b22" stroke-width="2.5"/>' + buildFaceExpression(m, 32, 48, 38, 51, 4) + '</svg>',
-        castle: '<svg viewBox="0 0 80 80"><polygon points="20,24 28,10 40,20 52,10 60,24" fill="#fbbf24" stroke="#332b22" stroke-width="3" stroke-linejoin="round"/><rect x="16" y="24" width="48" height="44" rx="14" fill="#a78bfa" stroke="#332b22" stroke-width="3"/>' + buildFaceExpression(m, 31, 49, 43, 55, 4.2) + '</svg>'
+        /* 1-3 魔王：森林樹樁怪（木紋樹皮身 + 三層蓬鬆綠冠 + 小黃花 + 樹枝小手） */
+        forest: (function(){
+          var gId = 'bs-for-' + uid;
+          return '<svg viewBox="0 0 96 96">' +
+            '<defs><linearGradient id="' + gId + '" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#fde68a"/><stop offset="100%" stop-color="#d97706"/></linearGradient></defs>' +
+            '<ellipse cx="48" cy="86" rx="27" ry="5.5" fill="rgba(51,43,34,0.16)"/>' +
+            /* 樹枝小手 */
+            '<path d="M22 55 L11 47 M14 49 L11 42" stroke="#332b22" stroke-width="3.5" stroke-linecap="round"/>' +
+            '<path d="M74 55 L85 47 M82 49 L85 42" stroke="#332b22" stroke-width="3.5" stroke-linecap="round"/>' +
+            /* 樹樁主體與樹根腳 */
+            '<path d="M22 36 H74 L77 77 C77 82 68 83 62 81 L57 77 L39 77 L34 81 C28 83 19 82 19 77 Z" fill="url(#' + gId + ')" stroke="#332b22" stroke-width="3.2" stroke-linejoin="round"/>' +
+            '<path d="M29 44 V53 M67 45 V55 M31 69 V75 M65 69 V75" stroke="#b45309" stroke-width="2.2" stroke-linecap="round" opacity="0.65"/>' +
+            /* 三層茂密綠樹冠 */
+            '<circle cx="28" cy="27" r="14" fill="#4ade80" stroke="#332b22" stroke-width="3"/>' +
+            '<circle cx="68" cy="27" r="14" fill="#4ade80" stroke="#332b22" stroke-width="3"/>' +
+            '<circle cx="48" cy="22" r="17" fill="#86efac" stroke="#332b22" stroke-width="3"/>' +
+            /* 頭頂小花 */
+            '<circle cx="62" cy="18" r="4.5" fill="#fde047" stroke="#332b22" stroke-width="1.8"/>' +
+            '<circle cx="62" cy="18" r="1.8" fill="#f97316"/>' +
+            /* 腮紅與表情 */
+            '<ellipse cx="30" cy="60" rx="4.5" ry="2.6" fill="#fb7185" opacity="0.7"/>' +
+            '<ellipse cx="66" cy="60" rx="4.5" ry="2.6" fill="#fb7185" opacity="0.7"/>' +
+            buildFaceExpression(m, 37, 59, 53, 62, 4.3) +
+          '</svg>';
+        })(),
+
+        /* 2-3 魔王：工坊機甲怪（金屬機甲 + 天線警報燈 + 齒輪胸甲 + 機械爪） */
+        workshop: (function(){
+          var gId = 'bs-wrk-' + uid;
+          return '<svg viewBox="0 0 96 96">' +
+            '<defs><linearGradient id="' + gId + '" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#fef08a"/><stop offset="100%" stop-color="#f59e0b"/></linearGradient></defs>' +
+            '<ellipse cx="48" cy="86" rx="27" ry="5.5" fill="rgba(51,43,34,0.16)"/>' +
+            /* 機械爪手與輪腳 */
+            '<rect x="10" y="48" width="10" height="14" rx="4" fill="#94a3b8" stroke="#332b22" stroke-width="2.6"/>' +
+            '<rect x="76" y="48" width="10" height="14" rx="4" fill="#94a3b8" stroke="#332b22" stroke-width="2.6"/>' +
+            '<rect x="27" y="74" width="13" height="9" rx="4" fill="#475569" stroke="#332b22" stroke-width="2.6"/>' +
+            '<rect x="56" y="74" width="13" height="9" rx="4" fill="#475569" stroke="#332b22" stroke-width="2.6"/>' +
+            /* 天線燈泡 */
+            '<line x1="48" y1="12" x2="48" y2="26" stroke="#332b22" stroke-width="3.2"/>' +
+            '<circle cx="48" cy="11" r="6" fill="#ef4444" stroke="#332b22" stroke-width="2.6"/>' +
+            '<circle cx="46" cy="9" r="2" fill="#fecaca"/>' +
+            /* 機甲主體 */
+            '<rect x="18" y="25" width="60" height="52" rx="14" fill="url(#' + gId + ')" stroke="#332b22" stroke-width="3.2"/>' +
+            '<rect x="25" y="34" width="46" height="20" rx="8" fill="#1e293b" stroke="#332b22" stroke-width="2.5"/>' +
+            '<circle cx="24" cy="31" r="2" fill="#94a3b8"/><circle cx="72" cy="31" r="2" fill="#94a3b8"/>' +
+            /* 胸前能源核心 */
+            '<rect x="31" y="61" width="34" height="11" rx="5" fill="#dbeafe" stroke="#332b22" stroke-width="2.2"/>' +
+            '<circle cx="40" cy="66.5" r="3" fill="#38bdf8"/><circle cx="48" cy="66.5" r="3" fill="#4ade80"/><circle cx="56" cy="66.5" r="3" fill="#fb7185"/>' +
+            /* 亮白機械眼框內的表情 */
+            '<rect x="29" y="37" width="16" height="13" rx="4" fill="#ffffff"/>' +
+            '<rect x="51" y="37" width="16" height="13" rx="4" fill="#ffffff"/>' +
+            buildFaceExpression(m, 37, 59, 44, 57, 3.4) +
+          '</svg>';
+        })(),
+
+        /* 3-3 魔王：花園迷宮怪（層疊大花瓣 + 翠綠葉萼 + 露珠光點） */
+        garden: (function(){
+          var gId = 'bs-gar-' + uid;
+          return '<svg viewBox="0 0 96 96">' +
+            '<defs><linearGradient id="' + gId + '" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#fbcfe8"/><stop offset="100%" stop-color="#f472b6"/></linearGradient></defs>' +
+            '<ellipse cx="48" cy="86" rx="25" ry="5" fill="rgba(51,43,34,0.15)"/>' +
+            /* 葉萼底座 */
+            '<path d="M48 76 C28 84 18 72 28 65 Z" fill="#4ade80" stroke="#332b22" stroke-width="2.6"/>' +
+            '<path d="M48 76 C68 84 78 72 68 65 Z" fill="#22c55e" stroke="#332b22" stroke-width="2.6"/>' +
+            /* 五片大花瓣 */
+            '<circle cx="48" cy="20" r="14" fill="#fb7185" stroke="#332b22" stroke-width="2.8"/>' +
+            '<circle cx="22" cy="37" r="14" fill="#f472b6" stroke="#332b22" stroke-width="2.8"/>' +
+            '<circle cx="74" cy="37" r="14" fill="#f472b6" stroke="#332b22" stroke-width="2.8"/>' +
+            '<circle cx="30" cy="64" r="13" fill="#f9a8d4" stroke="#332b22" stroke-width="2.8"/>' +
+            '<circle cx="66" cy="64" r="13" fill="#f9a8d4" stroke="#332b22" stroke-width="2.8"/>' +
+            /* 花芯臉部 */
+            '<circle cx="48" cy="48" r="24" fill="url(#' + gId + ')" stroke="#332b22" stroke-width="3.2"/>' +
+            '<ellipse cx="33" cy="51" rx="4.2" ry="2.5" fill="#be185d" opacity="0.5"/>' +
+            '<ellipse cx="63" cy="51" rx="4.2" ry="2.5" fill="#be185d" opacity="0.5"/>' +
+            buildFaceExpression(m, 39, 57, 47, 55, 4) +
+          '</svg>';
+        })(),
+
+        /* 4-3 魔王：山谷噴火龍（張開雙翼 + 金黃龍角 + 奶白條紋肚肚 + 火花） */
+        valley: (function(){
+          var gId = 'bs-val-' + uid;
+          return '<svg viewBox="0 0 96 96">' +
+            '<defs><linearGradient id="' + gId + '" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#93c5fd"/><stop offset="100%" stop-color="#3b82f6"/></linearGradient></defs>' +
+            '<ellipse cx="48" cy="86" rx="28" ry="5.5" fill="rgba(51,43,34,0.16)"/>' +
+            /* 龍翼 */
+            '<path d="M24 44 C6 28 4 48 14 58 C18 61 24 58 26 52 Z" fill="#fbbf24" stroke="#332b22" stroke-width="2.8"/>' +
+            '<path d="M72 44 C90 28 92 48 82 58 C78 61 72 58 70 52 Z" fill="#fbbf24" stroke="#332b22" stroke-width="2.8"/>' +
+            /* 金色龍角 */
+            '<polygon points="31,28 24,10 41,22" fill="#fbbf24" stroke="#332b22" stroke-width="2.8" stroke-linejoin="round"/>' +
+            '<polygon points="65,28 72,10 55,22" fill="#fbbf24" stroke="#332b22" stroke-width="2.8" stroke-linejoin="round"/>' +
+            /* 龍身與小腳 */
+            '<ellipse cx="34" cy="79" rx="8" ry="5" fill="#2563eb" stroke="#332b22" stroke-width="2.6"/>' +
+            '<ellipse cx="62" cy="79" rx="8" ry="5" fill="#2563eb" stroke="#332b22" stroke-width="2.6"/>' +
+            '<path d="M21 72 Q16 27 48 21 Q80 27 75 72 Z" fill="url(#' + gId + ')" stroke="#332b22" stroke-width="3.2" stroke-linejoin="round"/>' +
+            /* 奶白條紋肚肚 */
+            '<ellipse cx="48" cy="64" rx="17" ry="11" fill="#fefce8" stroke="#332b22" stroke-width="2.4"/>' +
+            '<path d="M36 63 H60 M39 69 H57" stroke="#fbbf24" stroke-width="2.2" stroke-linecap="round"/>' +
+            /* 小火花與額頭稜紋 */
+            '<path d="M81 20 C85 13 88 21 84 26 C81 28 78 24 81 20 Z" fill="#f97316" stroke="#332b22" stroke-width="1.8"/>' +
+            '<ellipse cx="31" cy="48" rx="4.2" ry="2.4" fill="#fb7185" opacity="0.65"/>' +
+            '<ellipse cx="65" cy="48" rx="4.2" ry="2.4" fill="#fb7185" opacity="0.65"/>' +
+            buildFaceExpression(m, 38, 58, 45, 52, 4.1) +
+          '</svg>';
+        })(),
+
+        /* 5-3 魔王：城堡大魔王（三寶石皇冠 + 皇家深紫披風 + 魔法菱徽 + 紫羅蘭漸層身） */
+        castle: (function(){
+          var gId = 'bs-cas-' + uid;
+          return '<svg viewBox="0 0 96 96">' +
+            '<defs><linearGradient id="' + gId + '" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#ddd6fe"/><stop offset="100%" stop-color="#8b5cf6"/></linearGradient></defs>' +
+            '<ellipse cx="48" cy="86" rx="28" ry="5.5" fill="rgba(51,43,34,0.16)"/>' +
+            /* 皇家披風 */
+            '<path d="M23 40 L10 75 Q48 84 86 75 L73 40 Z" fill="#5b21b6" stroke="#332b22" stroke-width="3" stroke-linejoin="round"/>' +
+            '<path d="M14 72 Q48 80 82 72" fill="none" stroke="#fbbf24" stroke-width="3" stroke-linecap="round"/>' +
+            /* 小腳 */
+            '<ellipse cx="35" cy="79" rx="7.5" ry="4.5" fill="#7c3aed" stroke="#332b22" stroke-width="2.6"/>' +
+            '<ellipse cx="61" cy="79" rx="7.5" ry="4.5" fill="#7c3aed" stroke="#332b22" stroke-width="2.6"/>' +
+            /* 黃金寶石皇冠 */
+            '<polygon points="24,30 30,11 40,22 48,8 56,22 66,11 72,30" fill="#fbbf24" stroke="#332b22" stroke-width="3" stroke-linejoin="round"/>' +
+            '<circle cx="31" cy="23" r="2.6" fill="#ef4444" stroke="#332b22" stroke-width="1.2"/>' +
+            '<circle cx="48" cy="20" r="3.2" fill="#38bdf8" stroke="#332b22" stroke-width="1.2"/>' +
+            '<circle cx="65" cy="23" r="2.6" fill="#4ade80" stroke="#332b22" stroke-width="1.2"/>' +
+            /* 魔王主體 */
+            '<rect x="21" y="28" width="54" height="49" rx="16" fill="url(#' + gId + ')" stroke="#332b22" stroke-width="3.2"/>' +
+            /* 胸前魔法稜鏡徽章 */
+            '<polygon points="48,62 53,67 48,72 43,67" fill="#fde047" stroke="#332b22" stroke-width="2"/>' +
+            '<ellipse cx="31" cy="52" rx="4.4" ry="2.5" fill="#f472b6" opacity="0.65"/>' +
+            '<ellipse cx="65" cy="52" rx="4.4" ry="2.5" fill="#f472b6" opacity="0.65"/>' +
+            buildFaceExpression(m, 37, 59, 49, 57, 4.2) +
+            /* 懸浮魔法星光 */
+            '<path d="M12 24 L14 28 L18 30 L14 32 L12 36 L10 32 L6 30 L10 28 Z" fill="#fde047"/>' +
+            '<circle cx="84" cy="24" r="2.5" fill="#fde047"/>' +
+          '</svg>';
+        })()
       };
       return bossMap[key] || bossMap.forest;
     }
 
     var spMood = (m === 'happy' || m === 'fever') ? 'happy' : 'normal';
+
+    function buildSparkles(color){
+      return '<g fill="' + color + '" opacity="0.9">' +
+        '<path d="M11 22 L12.6 25.4 L16 27 L12.6 28.6 L11 32 L9.4 28.6 L6 27 L9.4 25.4 Z"/>' +
+        '<circle cx="69" cy="20" r="2.2"/>' +
+        '<circle cx="67" cy="58" r="1.7"/>' +
+      '</g>';
+    }
+
     var spriteMap = {
-      forest: '<svg viewBox="0 0 64 64"><rect x="14" y="22" width="36" height="32" rx="11" fill="#bbf7d0" stroke="#332b22" stroke-width="2.6"/><path d="M32 22 C28 10 18 10 20 18 C22 22 32 22 32 22 Z" fill="#4ade80" stroke="#332b22" stroke-width="2.2"/><path d="M32 22 C36 10 46 10 44 18 C42 22 32 22 32 22 Z" fill="#22c55e" stroke="#332b22" stroke-width="2.2"/>' + buildFaceExpression(spMood, 25, 39, 36, 43, 3) + '</svg>',
-      workshop: '<svg viewBox="0 0 64 64"><rect x="15" y="18" width="34" height="34" rx="8" fill="#fde047" stroke="#332b22" stroke-width="2.6"/><rect x="22" y="12" width="20" height="8" rx="4" fill="#fb923c" stroke="#332b22" stroke-width="2.4"/>' + buildFaceExpression(spMood, 26, 38, 33, 41, 3) + '</svg>',
-      garden: '<svg viewBox="0 0 64 64"><ellipse cx="20" cy="32" rx="11" ry="14" fill="#fbcfe8" stroke="#332b22" stroke-width="2.4"/><ellipse cx="44" cy="32" rx="11" ry="14" fill="#fbcfe8" stroke="#332b22" stroke-width="2.4"/><rect x="24" y="20" width="16" height="28" rx="8" fill="#f472b6" stroke="#332b22" stroke-width="2.5"/>' + buildFaceExpression(spMood, 29, 35, 31, 38, 2.5) + '</svg>',
-      valley: '<svg viewBox="0 0 64 64"><circle cx="22" cy="40" r="10" fill="#bae6fd" stroke="#332b22" stroke-width="2.4"/><circle cx="42" cy="40" r="10" fill="#bae6fd" stroke="#332b22" stroke-width="2.4"/><circle cx="32" cy="32" r="16" fill="#e0f2fe" stroke="#332b22" stroke-width="2.6"/>' + buildFaceExpression(spMood, 27, 37, 31, 38, 2.8) + '</svg>',
-      castle: '<svg viewBox="0 0 64 64"><polygon points="20,20 26,10 32,18 38,10 44,20" fill="#fbbf24" stroke="#332b22" stroke-width="2.4" stroke-linejoin="round"/><rect x="16" y="20" width="32" height="32" rx="10" fill="#c4b5fd" stroke="#332b22" stroke-width="2.6"/>' + buildFaceExpression(spMood, 26, 38, 34, 41, 3) + '</svg>'
+      /* 1. 嫩芽積木寶寶：圓潤嫩綠積木 + 雙片交疊嫩葉露珠 + 積木高光 + 腮紅小腳 */
+      forest: (function(){
+        var gId = 'sp-for-' + uid;
+        return '<svg viewBox="0 0 80 80">' +
+          '<defs><linearGradient id="' + gId + '" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#dcfce7"/><stop offset="100%" stop-color="#86efac"/></linearGradient></defs>' +
+          '<ellipse cx="40" cy="70" rx="20" ry="4.5" fill="rgba(51,43,34,0.14)"/>' +
+          buildSparkles('#4ade80') +
+          /* 小腳丫 */
+          '<ellipse cx="30" cy="65" rx="6.5" ry="4" fill="#4ade80" stroke="#332b22" stroke-width="2.4"/>' +
+          '<ellipse cx="50" cy="65" rx="6.5" ry="4" fill="#4ade80" stroke="#332b22" stroke-width="2.4"/>' +
+          /* 小手 */
+          '<ellipse cx="16" cy="48" rx="5" ry="3.8" transform="rotate(-20 16 48)" fill="#bbf7d0" stroke="#332b22" stroke-width="2.4"/>' +
+          '<ellipse cx="64" cy="48" rx="5" ry="3.8" transform="rotate(20 64 48)" fill="#bbf7d0" stroke="#332b22" stroke-width="2.4"/>' +
+          /* 積木身體 */
+          '<rect x="18" y="27" width="44" height="39" rx="14" fill="url(#' + gId + ')" stroke="#332b22" stroke-width="2.8"/>' +
+          /* 積木小凸點與嫩芽葉 */
+          '<rect x="34" y="22" width="12" height="6" rx="3" fill="#86efac" stroke="#332b22" stroke-width="2.4"/>' +
+          '<path d="M40 23 C33 9 18 11 21 21 C24 27 36 25 40 23 Z" fill="#4ade80" stroke="#332b22" stroke-width="2.4" stroke-linejoin="round"/>' +
+          '<path d="M40 23 C47 8 62 10 59 20 C56 26 44 25 40 23 Z" fill="#22c55e" stroke="#332b22" stroke-width="2.4" stroke-linejoin="round"/>' +
+          '<path d="M26 19 Q33 20 39 22 M54 18 Q47 19 41 22" stroke="#166534" stroke-width="1.6" stroke-linecap="round" fill="none"/>' +
+          '<circle cx="27" cy="16" r="2" fill="#ffffff" opacity="0.9"/>' +
+          /* 粉腮與表情 */
+          '<ellipse cx="26" cy="49" rx="4" ry="2.4" fill="#fb7185" opacity="0.62"/>' +
+          '<ellipse cx="54" cy="49" rx="4" ry="2.4" fill="#fb7185" opacity="0.62"/>' +
+          buildFaceExpression(spMood, 31, 49, 44, 53, 3.3) +
+        '</svg>';
+      })(),
+
+      /* 2. 方塊小工匠：金黃積木身 + 橘色工匠安全帽 + 藍色吊帶口袋 + 迷你齒輪星光 */
+      workshop: (function(){
+        var gId = 'sp-wrk-' + uid;
+        return '<svg viewBox="0 0 80 80">' +
+          '<defs><linearGradient id="' + gId + '" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#fef08a"/><stop offset="100%" stop-color="#facc15"/></linearGradient></defs>' +
+          '<ellipse cx="40" cy="71" rx="20" ry="4.5" fill="rgba(51,43,34,0.14)"/>' +
+          buildSparkles('#f59e0b') +
+          /* 小腳丫 */
+          '<ellipse cx="30" cy="66" rx="6.5" ry="4" fill="#fb923c" stroke="#332b22" stroke-width="2.4"/>' +
+          '<ellipse cx="50" cy="66" rx="6.5" ry="4" fill="#fb923c" stroke="#332b22" stroke-width="2.4"/>' +
+          /* 小手 */
+          '<circle cx="16" cy="49" r="4.5" fill="#fde047" stroke="#332b22" stroke-width="2.4"/>' +
+          '<circle cx="64" cy="49" r="4.5" fill="#fde047" stroke="#332b22" stroke-width="2.4"/>' +
+          /* 積木身體 */
+          '<rect x="18" y="25" width="44" height="41" rx="11" fill="url(#' + gId + ')" stroke="#332b22" stroke-width="2.8"/>' +
+          /* 藍色吊帶褲口袋 */
+          '<path d="M22 55 H58 V58 C58 63 54 66 49 66 H31 C26 66 22 63 22 58 Z" fill="#60a5fa" stroke="#332b22" stroke-width="2.2"/>' +
+          '<rect x="33" y="57" width="14" height="6" rx="2.5" fill="#93c5fd" stroke="#332b22" stroke-width="1.8"/>' +
+          '<circle cx="26" cy="56.5" r="1.8" fill="#fef08a" stroke="#332b22" stroke-width="1.2"/>' +
+          '<circle cx="54" cy="56.5" r="1.8" fill="#fef08a" stroke="#332b22" stroke-width="1.2"/>' +
+          /* 工匠安全帽 */
+          '<path d="M21 26 C21 13 59 13 59 26 Z" fill="#fb923c" stroke="#332b22" stroke-width="2.6"/>' +
+          '<rect x="16" y="23" width="48" height="6" rx="3" fill="#f97316" stroke="#332b22" stroke-width="2.5"/>' +
+          '<circle cx="40" cy="18" r="3.5" fill="#fef08a" stroke="#332b22" stroke-width="1.8"/>' +
+          '<path d="M28 19 Q34 15 41 16" stroke="#ffffff" stroke-width="2.2" stroke-linecap="round" fill="none" opacity="0.7"/>' +
+          /* 粉腮與表情 */
+          '<ellipse cx="26" cy="45" rx="3.8" ry="2.3" fill="#fb7185" opacity="0.65"/>' +
+          '<ellipse cx="54" cy="45" rx="3.8" ry="2.3" fill="#fb7185" opacity="0.65"/>' +
+          buildFaceExpression(spMood, 31, 49, 40, 44, 3.2) +
+        '</svg>';
+      })(),
+
+      /* 3. 雙胞胎蝴蝶精靈：漸層粉紫大蝶翼 + 花朵髮飾 + 捲捲觸角 + 魔法光粉 */
+      garden: (function(){
+        var gW = 'sp-garW-' + uid;
+        var gB = 'sp-garB-' + uid;
+        return '<svg viewBox="0 0 80 80">' +
+          '<defs>' +
+            '<linearGradient id="' + gW + '" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#fbcfe8"/><stop offset="100%" stop-color="#c084fc"/></linearGradient>' +
+            '<linearGradient id="' + gB + '" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#fce7f3"/><stop offset="100%" stop-color="#f472b6"/></linearGradient>' +
+          '</defs>' +
+          '<ellipse cx="40" cy="70" rx="18" ry="4" fill="rgba(51,43,34,0.13)"/>' +
+          buildSparkles('#f472b6') +
+          /* 上下對稱大翅膀 */
+          '<path d="M35 38 C16 14 6 28 14 42 C18 48 28 46 35 44 Z" fill="url(#' + gW + ')" stroke="#332b22" stroke-width="2.5"/>' +
+          '<path d="M45 38 C64 14 74 28 66 42 C62 48 52 46 45 44 Z" fill="url(#' + gW + ')" stroke="#332b22" stroke-width="2.5"/>' +
+          '<path d="M35 46 C18 46 14 62 24 64 C31 65 35 56 36 50 Z" fill="#f9a8d4" stroke="#332b22" stroke-width="2.4"/>' +
+          '<path d="M45 46 C62 46 66 62 56 64 C49 65 45 56 44 50 Z" fill="#f9a8d4" stroke="#332b22" stroke-width="2.4"/>' +
+          '<circle cx="19" cy="34" r="3.5" fill="#fef08a" opacity="0.85"/><circle cx="61" cy="34" r="3.5" fill="#fef08a" opacity="0.85"/>' +
+          '<circle cx="24" cy="56" r="2.2" fill="#ffffff" opacity="0.8"/><circle cx="56" cy="56" r="2.2" fill="#ffffff" opacity="0.8"/>' +
+          /* 觸角與小花 */
+          '<path d="M34 25 Q29 14 23 16" fill="none" stroke="#332b22" stroke-width="2.2" stroke-linecap="round"/>' +
+          '<path d="M46 25 Q51 14 57 16" fill="none" stroke="#332b22" stroke-width="2.2" stroke-linecap="round"/>' +
+          '<circle cx="23" cy="16" r="3" fill="#fde047" stroke="#332b22" stroke-width="1.8"/>' +
+          '<circle cx="57" cy="16" r="3" fill="#fde047" stroke="#332b22" stroke-width="1.8"/>' +
+          /* 精靈身體 */
+          '<rect x="27" y="23" width="26" height="39" rx="13" fill="url(#' + gB + ')" stroke="#332b22" stroke-width="2.6"/>' +
+          /* 粉腮與表情 */
+          '<ellipse cx="32" cy="43" rx="3.2" ry="2" fill="#be185d" opacity="0.45"/>' +
+          '<ellipse cx="48" cy="43" rx="3.2" ry="2" fill="#be185d" opacity="0.45"/>' +
+          buildFaceExpression(spMood, 34, 46, 39, 44, 2.8) +
+        '</svg>';
+      })(),
+
+      /* 4. 雲朵小飛龍：天藍漸層龍寶 + 金色小龍翼 + 龍角寶石 + 奶白小肚肚 + 暖呼呼小火苗 */
+      valley: (function(){
+        var gId = 'sp-val-' + uid;
+        return '<svg viewBox="0 0 80 80">' +
+          '<defs><linearGradient id="' + gId + '" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#e0f2fe"/><stop offset="100%" stop-color="#60a5fa"/></linearGradient></defs>' +
+          '<ellipse cx="40" cy="71" rx="20" ry="4.5" fill="rgba(51,43,34,0.14)"/>' +
+          buildSparkles('#38bdf8') +
+          /* 小龍翼 */
+          '<path d="M22 44 C10 34 8 46 15 53 C18 55 23 53 24 49 Z" fill="#fde047" stroke="#332b22" stroke-width="2.3"/>' +
+          '<path d="M58 44 C70 34 72 46 65 53 C62 55 57 53 56 49 Z" fill="#fde047" stroke="#332b22" stroke-width="2.3"/>' +
+          /* 雲朵蓬鬆尾／腳 */
+          '<ellipse cx="30" cy="65" rx="6.5" ry="4.2" fill="#93c5fd" stroke="#332b22" stroke-width="2.4"/>' +
+          '<ellipse cx="50" cy="65" rx="6.5" ry="4.2" fill="#93c5fd" stroke="#332b22" stroke-width="2.4"/>' +
+          /* 金色小龍角 */
+          '<polygon points="27,25 22,12 34,21" fill="#fbbf24" stroke="#332b22" stroke-width="2.3" stroke-linejoin="round"/>' +
+          '<polygon points="53,25 58,12 46,21" fill="#fbbf24" stroke="#332b22" stroke-width="2.3" stroke-linejoin="round"/>' +
+          /* 圓滾龍身 */
+          '<circle cx="40" cy="42" r="21" fill="url(#' + gId + ')" stroke="#332b22" stroke-width="2.8"/>' +
+          '<ellipse cx="40" cy="54" rx="12" ry="8" fill="#fefce8" stroke="#332b22" stroke-width="2.2"/>' +
+          '<path d="M33 54 H47 M35 58 H45" stroke="#fde047" stroke-width="2" stroke-linecap="round"/>' +
+          /* 額頭水滴寶石 */
+          '<polygon points="40,24 43.5,29 40,33 36.5,29" fill="#38bdf8" stroke="#332b22" stroke-width="1.6"/>' +
+          /* 粉腮與表情 */
+          '<ellipse cx="26" cy="44" rx="3.8" ry="2.2" fill="#fb7185" opacity="0.6"/>' +
+          '<ellipse cx="54" cy="44" rx="3.8" ry="2.2" fill="#fb7185" opacity="0.6"/>' +
+          buildFaceExpression(spMood, 31, 49, 40, 44, 3.1) +
+        '</svg>';
+      })(),
+
+      /* 5. 皇冠積木王：薰衣草紫皇家積木 + 黃金寶石皇冠 + 皇家小披風 + 星光勳章 */
+      castle: (function(){
+        var gId = 'sp-cas-' + uid;
+        return '<svg viewBox="0 0 80 80">' +
+          '<defs><linearGradient id="' + gId + '" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#ede9fe"/><stop offset="100%" stop-color="#a78bfa"/></linearGradient></defs>' +
+          '<ellipse cx="40" cy="71" rx="21" ry="4.5" fill="rgba(51,43,34,0.14)"/>' +
+          buildSparkles('#fbbf24') +
+          /* 皇家滾金邊披風 */
+          '<path d="M22 40 L12 63 Q40 69 68 63 L58 40 Z" fill="#7c3aed" stroke="#332b22" stroke-width="2.5" stroke-linejoin="round"/>' +
+          '<path d="M15 61 Q40 67 65 61" fill="none" stroke="#fbbf24" stroke-width="2.5" stroke-linecap="round"/>' +
+          /* 小腳丫 */
+          '<ellipse cx="31" cy="66" rx="6" ry="3.8" fill="#c4b5fd" stroke="#332b22" stroke-width="2.4"/>' +
+          '<ellipse cx="49" cy="66" rx="6" ry="3.8" fill="#c4b5fd" stroke="#332b22" stroke-width="2.4"/>' +
+          /* 積木身體 */
+          '<rect x="19" y="25" width="42" height="40" rx="13" fill="url(#' + gId + ')" stroke="#332b22" stroke-width="2.8"/>' +
+          /* 三寶石黃金皇冠 */
+          '<polygon points="22,26 26,12 34,20 40,9 46,20 54,12 58,26" fill="#fbbf24" stroke="#332b22" stroke-width="2.5" stroke-linejoin="round"/>' +
+          '<circle cx="27" cy="21" r="2.1" fill="#ef4444" stroke="#332b22" stroke-width="1"/>' +
+          '<circle cx="40" cy="19" r="2.6" fill="#38bdf8" stroke="#332b22" stroke-width="1"/>' +
+          '<circle cx="53" cy="21" r="2.1" fill="#ef4444" stroke="#332b22" stroke-width="1"/>' +
+          /* 胸前星星勳章 */
+          '<polygon points="40,54 42,58 46,58 43,60.5 44,64.5 40,62 36,64.5 37,60.5 34,58 38,58" fill="#fde047" stroke="#332b22" stroke-width="1.6" stroke-linejoin="round"/>' +
+          /* 粉腮與表情 */
+          '<ellipse cx="26" cy="45" rx="3.8" ry="2.2" fill="#f472b6" opacity="0.65"/>' +
+          '<ellipse cx="54" cy="45" rx="3.8" ry="2.2" fill="#f472b6" opacity="0.65"/>' +
+          buildFaceExpression(spMood, 31, 49, 41, 44, 3.1) +
+        '</svg>';
+      })()
     };
     return spriteMap[key] || spriteMap.forest;
   }
@@ -638,10 +1010,12 @@
     }
     if(els.hitCallout){
       els.hitCallout.classList.remove('is-ult');
+      els.hitCallout.style.opacity = '0';
+      els.hitCallout.style.visibility = 'hidden';
     }
     if(typeof window.gsap !== 'undefined'){
       var resetNodes = [
-        els.projectile, els.partnerProjectile, els.fxImpact,
+        els.projectile, els.partnerProjectile, els.fxImpact, els.hitCallout,
         els.ultBackdrop, els.ultFlashVeil, els.ultMagicRing, els.heroAfterimage,
         els.ultCutin, els.ultSkyRift, els.ultBeam, els.ultTargetRing,
         els.ultShockwave, els.ultCarrot, els.ultSlash
@@ -1125,7 +1499,10 @@
     els.helperCloseBtn = document.getElementById('mqst-helper-close-btn');
     els.nextBtn        = document.getElementById('mqst-next-btn');
     els.helperDrawer   = document.getElementById('mqst-helper-drawer');
+    els.helperTitle    = document.getElementById('mqst-helper-title');
     els.helperStage    = document.getElementById('mqst-helper-blocks-stage');
+    els.helperConfirmDialog = document.getElementById('mqst-helper-confirm-dialog');
+    els.helperConfirmTip    = document.getElementById('mqst-helper-confirm-partner-tip');
     els.feedback       = document.getElementById('mqst-feedback');
     els.explanationBox = document.getElementById('mqst-explanation-box');
 
@@ -1550,6 +1927,15 @@
     els.partnerSpeech.classList.add('visible');
   }
 
+  function openHelperDrawer(titleText){
+    if(els.helperTitle && titleText){
+      els.helperTitle.textContent = titleText;
+    }
+    if(els.helperDrawer && !els.helperDrawer.classList.contains('open')){
+      els.helperDrawer.classList.add('open');
+    }
+  }
+
   function updatePartnerSkillButton(){
     if(!els.partnerSkillBtn) return;
     var partner = getActivePartnerIsland();
@@ -1559,7 +1945,17 @@
     }
     els.partnerSkillBtn.style.display = 'inline-flex';
     els.partnerSkillBtn.disabled = Boolean(session.partnerUsedSkill);
-    els.partnerSkillBtn.textContent = session.partnerUsedSkill ? '✨ 魔法已施展' : '✨ 精靈魔法';
+    if(session.partnerUsedSkill){
+      els.partnerSkillBtn.textContent = '✨ 魔法已施展';
+      els.partnerSkillBtn.title = '本關的守護精靈免費魔法已經施展過囉！';
+      return;
+    }
+    var q = (session.questions && session.questions[session.idx]) ? session.questions[session.idx] : null;
+    var isChoice = Boolean(q && q.uiMode === 'choice');
+    els.partnerSkillBtn.textContent = isChoice ? '✨ 免費消錯' : '✨ 免費積木';
+    els.partnerSkillBtn.title = isChoice
+      ? '每關免費 1 次：幫你消除 1 個錯誤選項，不扣星、照拿寶石！'
+      : '每關免費 1 次：免費打開積木提示，不扣星、照拿寶石！';
   }
 
   function beginBattleUI(chipTitle, bgSrc, theme, bossObj){
@@ -1813,9 +2209,7 @@
     }
 
     // 鍵盤題或無法消除泡泡時，免費展開魔法積木輔助且不扣三星資格
-    if(els.helperDrawer && !els.helperDrawer.classList.contains('open')){
-      els.helperDrawer.classList.add('open');
-    }
+    openHelperDrawer('✨ 精靈免費積木（不扣星、照拿寶石！）');
     setPartnerSpeech('積木提示免費幫你看，一樣拿滿星！');
     if(els.feedback){
       els.feedback.textContent = '✨ ' + partner.spriteName + ' 施展魔法！免費打開積木提示（不影響滿星！）';
@@ -1957,12 +2351,12 @@
         els.hitCallout.classList.remove('is-ult');
       }
       tl.fromTo(els.hitCallout,
-        { autoAlpha: 0, y: 18, scale: isFinisher ? 0.28 : 0.45 },
-        { autoAlpha: 1, y: isFinisher ? -24 : -16, scale: isFinisher ? (bossFinisher ? 1.52 : 1.38) : (heavyHit ? 1.28 : 1.15), duration: 0.24, ease: 'back.out(2.2)' },
+        { autoAlpha: 0, y: 14, scale: isFinisher ? 0.28 : 0.45 },
+        { autoAlpha: 1, y: isFinisher ? -18 : -10, scale: isFinisher ? (bossFinisher ? 1.48 : 1.35) : (heavyHit ? 1.24 : 1.12), duration: 0.20, ease: 'back.out(2.2)' },
         impactLabel
       ).to(els.hitCallout,
-        { autoAlpha: 0, y: isFinisher ? -64 : -46, scale: 1.05, duration: 0.48, ease: 'power1.in', clearProps: 'transform' },
-        impactLabel + '+=' + (isFinisher ? '0.96' : '0.74')
+        { autoAlpha: 0, y: isFinisher ? -52 : -36, scale: 1.02, duration: 0.34, ease: 'power1.in', clearProps: 'transform' },
+        impactLabel + '+=' + (isFinisher ? '0.78' : '0.52')
       );
     }
   }
@@ -2583,9 +2977,7 @@
       els.feedback.textContent = '💡 沒關係！看看魔法積木提示泡泡，再試一次吧！';
       els.feedback.className = 'mqst-stage-toast bad';
     }
-    if(els.helperDrawer && !els.helperDrawer.classList.contains('open')){
-      els.helperDrawer.classList.add('open');
-    }
+    openHelperDrawer('💡 積木提示（答錯輔助）');
 
     runAnim(function(gsap){
       gsap.fromTo(els.questionStage, { x: -7 }, { x: 0, duration: 0.3, ease: 'elastic.out(1.2, 0.35)', clearProps: 'transform' });
@@ -2903,7 +3295,7 @@
 
     var spHtml = '<div class="mqst-gem-summary">' +
       '<span>🐣 已收服守護小精靈：<b>' + countUnlockedSprites() + ' / ' + ISLANDS.length + '</b> 隻</span>' +
-      '<span style="font-size:13px;color:var(--ink-soft);">打敗每座島嶼的 👑 魔王關即可收服！點「帶牠去冒險」可派牠上場施展魔法。</span>' +
+      '<span style="font-size:13px;color:var(--ink-soft);">打敗每座島嶼的 👑 魔王關即可收服！每關可免費施展 1 次精靈魔法（選擇題消錯／鍵盤題開積木），不扣星、照拿寶石！</span>' +
       '</div><div class="mqst-collection-grid">';
     ISLANDS.forEach(function(isl){
       var got = Number(saveData.stageStars[isl.bossStageId] || 0) >= 1;
@@ -3148,11 +3540,37 @@
       els.helperToggleBtn.addEventListener('click', function(){
         if(!els.helperDrawer) return;
         if(MathApp.sfx) MathApp.sfx('click');
-        var open = els.helperDrawer.classList.toggle('open');
-        if(open){
-          session.usedHelperOnCurrent = true;
-          session.usedHelperInStage = true;
+        if(els.helperDrawer.classList.contains('open')){
+          els.helperDrawer.classList.remove('open');
+          return;
         }
+        // 本題已經使用過小幫手（已計算提示扣星），直接再次開啟不重複詢問
+        if(session.usedHelperOnCurrent){
+          openHelperDrawer('🧱 積木小幫手（本關最高 2 顆星）');
+          return;
+        }
+        if(els.helperConfirmDialog && typeof els.helperConfirmDialog.showModal === 'function'){
+          if(els.helperConfirmTip){
+            var canUseFreePartner = Boolean(getActivePartnerIsland() && !session.partnerUsedSkill);
+            els.helperConfirmTip.style.display = canUseFreePartner ? 'block' : 'none';
+          }
+          els.helperConfirmDialog.showModal();
+          return;
+        }
+        session.usedHelperOnCurrent = true;
+        session.usedHelperInStage = true;
+        openHelperDrawer('🧱 積木小幫手（本關最高 2 顆星）');
+      });
+    }
+    if(els.helperConfirmDialog){
+      els.helperConfirmDialog.addEventListener('close', function(){
+        var choice = els.helperConfirmDialog.returnValue;
+        els.helperConfirmDialog.returnValue = '';
+        if(choice !== 'confirm') return;
+        if(MathApp.sfx) MathApp.sfx('click');
+        session.usedHelperOnCurrent = true;
+        session.usedHelperInStage = true;
+        openHelperDrawer('🧱 積木小幫手（本關最高 2 顆星）');
       });
     }
     if(els.helperCloseBtn){

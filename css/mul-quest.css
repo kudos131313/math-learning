@@ -749,9 +749,9 @@
 }
 
 .mqst-partner-svg {
-  width: clamp(58px, 8vw, 76px);
-  height: clamp(58px, 8vw, 76px);
-  filter: drop-shadow(0 5px 0 rgba(51, 43, 34, 0.22));
+  width: clamp(64px, 8.8vw, 84px);
+  height: clamp(64px, 8.8vw, 84px);
+  filter: drop-shadow(0 5px 0 rgba(51, 43, 34, 0.22)) drop-shadow(0 0 10px rgba(255, 255, 255, 0.45));
   will-change: transform;
   transform-origin: 50% 90%;
 }
@@ -1555,7 +1555,7 @@
 
 .mqst-hit-callout {
   position: absolute;
-  top: 20%;
+  top: 42%;
   left: 50%;
   transform: translateX(-50%);
   padding: 4px 12px;
@@ -1569,6 +1569,7 @@
   white-space: nowrap;
   pointer-events: none;
   opacity: 0;
+  visibility: hidden;
   z-index: 12;
 }
 
@@ -2035,6 +2036,49 @@ dialog.mqst-dialog {
 dialog.mqst-dialog[open] { display: flex; }
 dialog.mqst-dialog:modal { overscroll-behavior: contain; }
 dialog.mqst-audio-dialog { width: min(500px, calc(100vw - 28px)); }
+dialog.mqst-confirm-dialog { width: min(460px, calc(100vw - 28px)); }
+.mqst-confirm-notice {
+  padding: 12px 14px;
+  border-radius: 14px;
+  border: 2px solid #f59e0b;
+  background: #fffbeb;
+}
+.mqst-confirm-lead {
+  margin: 0 0 8px;
+  font-size: 15px;
+  font-weight: 800;
+  color: var(--ink);
+}
+.mqst-confirm-list {
+  margin: 0;
+  padding-left: 20px;
+  display: grid;
+  gap: 6px;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--ink-soft);
+}
+.mqst-confirm-partner-tip {
+  margin-top: 12px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  border: 2px dashed #7c3aed;
+  background: #f5f3ff;
+  font-size: 13.5px;
+  font-weight: 700;
+  line-height: 1.5;
+  color: #4c1d95;
+}
+.mqst-confirm-form {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 10px;
+  width: 100%;
+}
+.mqst-confirm-form button {
+  min-height: 44px;
+}
 dialog.mqst-dialog::backdrop {
   background: rgba(51, 43, 34, 0.52);
   backdrop-filter: blur(2px);
@@ -2267,8 +2311,8 @@ button.mqst-gem-cell:active {
 
 .mqst-collect-card.locked { background: var(--surface-dim); opacity: 0.72; }
 .mqst-collect-card.locked .mqst-collect-art { filter: grayscale(1) opacity(0.4); }
-.mqst-collect-art { width: 64px; height: 64px; display: flex; align-items: center; justify-content: center; font-size: 38px; }
-.mqst-collect-art svg { width: 60px; height: 60px; }
+.mqst-collect-art { width: 76px; height: 76px; display: flex; align-items: center; justify-content: center; font-size: 38px; }
+.mqst-collect-art svg { width: 72px; height: 72px; filter: drop-shadow(0 3px 0 rgba(51, 43, 34, 0.14)); }
 .mqst-collect-name { font-size: 15.5px; font-weight: 900; color: var(--ink); }
 .mqst-collect-desc { font-size: 12.5px; color: var(--ink-soft); margin: 0; text-wrap: pretty; }
 .mqst-collect-skill { font-size: 12px; font-weight: 700; color: #0e7490; background: #ecfeff; border-radius: 10px; padding: 5px 8px; margin: 2px 0 0; text-wrap: pretty; }
