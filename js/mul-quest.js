@@ -675,7 +675,10 @@
         try { window.gsap.set(actorNodes, { clearProps: 'transform,opacity' }); } catch(e){}
       }
       if(els.bossSvg){
-        try { window.gsap.set(els.bossSvg, { clearProps: 'filter' }); } catch(e){}
+        try {
+          els.bossSvg.style.filter = '';
+          window.gsap.set(els.bossSvg, { clearProps: 'opacity,filter' });
+        } catch(e){}
       }
     }
   }
@@ -1928,8 +1931,11 @@
         .to(els.enemyActor, { x: 0, y: 0, scaleX: 1, scaleY: 1, rotation: 0, duration: isFinisher ? 0.72 : 0.58, ease: 'elastic.out(1.2, 0.30)', clearProps: 'transform' }, impactLabel + '+=0.12');
     }
     if(els.bossSvg){
-      tl.to(els.bossSvg, { filter: isFinisher ? 'brightness(2.4) drop-shadow(0 0 28px #fde047)' : 'brightness(2) drop-shadow(0 0 18px #f97316)', duration: 0.14 }, impactLabel)
-        .to(els.bossSvg, { filter: 'drop-shadow(0 6px 0 rgba(51, 43, 34, 0.25))', duration: 0.34, clearProps: 'filter' }, impactLabel + '+=0.16');
+      // 避免在平板 WebKit 合成層上動態插值 filter 導致變色後不復原，改以純 opacity 受擊閃爍搭配光環特效
+      tl.to(els.bossSvg, { opacity: 0.28, duration: 0.07, ease: 'power1.out' }, impactLabel)
+        .to(els.bossSvg, { opacity: 1, duration: 0.08, ease: 'power1.in' }, impactLabel + '+=0.07')
+        .to(els.bossSvg, { opacity: 0.35, duration: 0.07, ease: 'power1.out' }, impactLabel + '+=0.15')
+        .to(els.bossSvg, { opacity: 1, duration: 0.14, ease: 'power1.in', clearProps: 'opacity' }, impactLabel + '+=0.22');
     }
     if(els.stageArena){
       var shakeAmp = isFinisher ? (bossFinisher ? 15 : 11) : (heavyHit ? 7 : 3);
