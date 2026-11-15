@@ -130,11 +130,11 @@
       ];
     } else if(qType === 'commutative'){
       badge = '交換律魔法配對';
-      storyHtml = '✨ 交換律提示：已知 <b>' + b + ' × ' + a + ' ＝ ' + product + '</b>，那反過來呢？';
-      hint = '把兩個數字交換位置，總積木數量還是一樣喔！';
-      spokenPrompt = '已知 ' + b + ' 乘以 ' + a + ' 等於 ' + product + '，那 ' + a + ' 乘以 ' + b + ' 等於多少？';
+      storyHtml = '✨ 交換律魔法：把兩個數字左右交換，積木總數還是一樣多喔！';
+      hint = '想一想：' + b + ' × ' + a + ' 等於 ' + a + ' 乘以多少呢？';
+      spokenPrompt = b + ' 乘以 ' + a + ' 等於 ' + a + ' 乘以多少？';
       slots = [
-        { id: 'ans', expected: product, maxLen: 2, label: '乘積答案' }
+        { id: 'ans', expected: b, maxLen: 1, label: '交換後的乘數' }
       ];
     } else if(qType === 'missing_b'){
       badge = '逆向填空挑戰';
@@ -201,7 +201,18 @@
       if(candidates.indexOf(val) === -1) candidates.push(val);
     }
 
-    if(q.qType === 'missing_a' || q.qType === 'missing_b'){
+    if(q.qType === 'commutative'){
+      // 交換律對等填空：優先納入被交換的數 a、誤填乘積 a*b 及鄰近數
+      pushCand(q.a);
+      pushCand(q.product);
+      pushCand(target - 1);
+      pushCand(target + 1);
+      pushCand(target + 2);
+      for(var cn = 1; cn <= 9; cn++){
+        if(candidates.length >= 6) break;
+        pushCand(cn);
+      }
+    } else if(q.qType === 'missing_a' || q.qType === 'missing_b'){
       // 未知乘數或被乘數 (1~9)
       pushCand(target - 1);
       pushCand(target + 1);
@@ -338,6 +349,15 @@
         '<span class="mq-num-box" style="color:var(--t-color-dark);background:#ffedd5;">' + q.b + '</span>' +
         '<span>＝</span>' +
         '<input type="text" class="mq-input-slot" data-slot-id="ans" maxlength="2" inputmode="none" readonly aria-label="輸入乘積答案" placeholder="?">';
+    } else if(q.qType === 'commutative'){
+      html =
+        '<span class="mq-num-box" style="color:var(--t-color-dark);background:#ffedd5;">' + q.b + '</span>' +
+        '<span>×</span>' +
+        '<span class="mq-num-box" style="color:var(--h-color-dark);background:#dbeafe;">' + q.a + '</span>' +
+        '<span>＝</span>' +
+        '<span class="mq-num-box" style="color:var(--h-color-dark);background:#dbeafe;">' + q.a + '</span>' +
+        '<span>×</span>' +
+        '<input type="text" class="mq-input-slot" data-slot-id="ans" maxlength="1" inputmode="none" readonly aria-label="輸入交換後的乘數" placeholder="?">';
     } else if(q.qType === 'missing_b'){
       html =
         '<span class="mq-num-box" style="color:var(--h-color-dark);background:#dbeafe;">' + q.a + '</span>' +
@@ -380,10 +400,84 @@
     }
   }
 
-  /* 建立積木小幫手抽屜 HTML（供測驗與冒險闖關共用） */
+  /* 建立積木小幫手抽屜 HTML（供測驗與冒險闖關共用，依題型提供不直接爆雷答案的鷹架提示） */
   function buildHelperBlocksHtml(q){
     var a = q.a;
     var b = q.b;
+    var cnDigits = ['零','一','二','三','四','五','六','七','八','九'];
+    var productCn = (MathApp.utils && MathApp.utils.numberToChinese) ? MathApp.utils.numberToChinese(q.product) : String(q.product);
+
+    if(q.qType === 'missing_b'){
+      var mbHtml = '<div style="margin-bottom:8px;font-size:13.5px;font-weight:800;color:var(--ink);">' +
+        '📦 <b>每組有 ' + a + ' 個，一直數到 ' + q.product + ' 個</b>（數數看一共排了幾組？）：' +
+        '</div>';
+      mbHtml += '<div class="mul-groups-container">';
+      for(var mg = 1; mg <= b; mg++){
+        mbHtml += '<div class="mul-group-tray">';
+        mbHtml += '  <span class="mul-group-tray-head">一組 (+' + a + ')</span>';
+        mbHtml += '  <div class="mul-group-tray-blocks">';
+        for(var mu = 0; mu < a; mu++){
+          mbHtml += MathApp.utils.blockGlyph('o');
+        }
+        mbHtml += '  </div>';
+        mbHtml += '</div>';
+      }
+      mbHtml += '</div>';
+      var mbSteps = [];
+      for(var ms = 1; ms <= b; ms++){
+        mbSteps.push(String(a * ms));
+      }
+      var mbSuffix = q.product < 10 ? ('得' + productCn) : (q.product === 10 ? '得十' : productCn);
+      mbHtml += '<div class="mul-repeated-add-bar" style="margin-top:8px;">' +
+        '<span>🐇 <b>跳數累加：</b>' + mbSteps.join(' ➔ ') + '</span>' +
+        '<span>💡 <b>口訣提示：</b>' + cnDigits[a] + '（？）' + mbSuffix + '</span>' +
+        '</div>';
+      return mbHtml;
+    }
+
+    if(q.qType === 'missing_a'){
+      var maHtml = '<div style="margin-bottom:8px;font-size:13.5px;font-weight:800;color:var(--ink);">' +
+        '📦 <b>一共有 ' + q.product + ' 個積木，平分排進 ' + b + ' 組</b>（數數看每一組裡面有幾個？）：' +
+        '</div>';
+      maHtml += '<div class="mul-groups-container">';
+      for(var ag = 1; ag <= b; ag++){
+        maHtml += '<div class="mul-group-tray">';
+        maHtml += '  <span class="mul-group-tray-head">第 ' + ag + ' 組</span>';
+        maHtml += '  <div class="mul-group-tray-blocks">';
+        for(var au = 0; au < a; au++){
+          maHtml += MathApp.utils.blockGlyph('o');
+        }
+        maHtml += '  </div>';
+        maHtml += '</div>';
+      }
+      maHtml += '</div>';
+      var maSuffix = q.product < 10 ? ('得' + productCn) : (q.product === 10 ? '得十' : productCn);
+      maHtml += '<div class="mul-repeated-add-bar" style="margin-top:8px;">' +
+        '<span>🔍 <b>數數看：</b>每一盤裡面各有幾個小白積木？</span>' +
+        '<span>💡 <b>口訣提示：</b>（？）' + cnDigits[b] + maSuffix + '</span>' +
+        '</div>';
+      return maHtml;
+    }
+
+    if(q.qType === 'commutative'){
+      var cmHtml = '<div style="margin-bottom:8px;font-size:13.5px;font-weight:800;color:var(--ink);">' +
+        '🔄 <b>交換律魔法對照：</b>換個方向排排看，總積木數不變！每一直行有 <b>' + a + '</b> 個，數數看有幾行？' +
+        '</div>';
+      cmHtml += '<div class="mul-mini-array" style="max-width:340px;margin:0 auto;">';
+      for(var cr = 1; cr <= a; cr++){
+        cmHtml += '<div class="mul-array-row" style="justify-content:center;">';
+        for(var cd = 1; cd <= b; cd++){
+          cmHtml += '<span class="mul-array-dot"></span>';
+        }
+        cmHtml += '</div>';
+      }
+      cmHtml += '</div>';
+      cmHtml += '<div class="mul-repeated-add-bar" style="margin-top:8px;">' +
+        '<span>✨ <b>觀察點陣：</b>橫著數有 ' + a + ' 排，直著數一排有 ' + a + ' 個、共有 <b>？</b> 行！</span>' +
+        '</div>';
+      return cmHtml;
+    }
+
     var html = '<div style="margin-bottom:8px;font-size:13.5px;font-weight:800;color:var(--ink);">' +
       '📦 <b>每組有 ' + a + ' 個，共有 ' + b + ' 組</b>（一起數數看合起來有幾個）：' +
       '</div>';
@@ -407,7 +501,7 @@
     }
     html += '<div class="mul-repeated-add-bar" style="margin-top:8px;">' +
       '<span>🐇 <b>跳數累加：</b>' + stepSums.join(' ➔ ') + '</span>' +
-      '<span>💡 <b>口訣提示：</b>' + ['零','一','二','三','四','五','六','七','八','九'][a] + ['零','一','二','三','四','五','六','七','八','九'][b] + '…</span>' +
+      '<span>💡 <b>口訣提示：</b>' + cnDigits[a] + cnDigits[b] + '…</span>' +
       '</div>';
 
     return html;

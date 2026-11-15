@@ -248,6 +248,7 @@
     arcadeOpen: false,
     active: false,
     isRescueMode: false,
+    isGemHuntMode: false,
     isMovingOnMap: false,
     stage: null,
     questions: [],
@@ -262,12 +263,37 @@
     locked: false,
     enemyHp: 0,
     enemyMaxHp: 0,
+    bossShield: 0,
+    bossShieldMax: 0,
     activeInput: null
   };
 
   var els = {};
   var motionReduced = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   var bunnyIdleTween = null;
+  var speakTimer = null;
+
+  function clearSpeakTimer(){
+    if(speakTimer){
+      clearTimeout(speakTimer);
+      speakTimer = null;
+    }
+  }
+
+  function scheduleSpeak(text, delayMs){
+    clearSpeakTimer();
+    if(!text || !MathApp.speak) return;
+    if(!delayMs || delayMs <= 0){
+      MathApp.speak(text);
+      return;
+    }
+    speakTimer = setTimeout(function(){
+      speakTimer = null;
+      if(session.arcadeOpen && MathApp.speak){
+        MathApp.speak(text);
+      }
+    }, delayMs);
+  }
 
   function initGsapMedia(){
     if(typeof window.gsap === 'undefined') return;
@@ -369,28 +395,51 @@
   }
 
   function buildStageQuestions(stage){
-    var poolPairs = [];
+    var unlitPairs = [];
+    var litPairs = [];
     stage.tables.forEach(function(a){
-      for(var b = 1; b <= 9; b++) poolPairs.push({ a: a, b: b });
+      for(var b = 1; b <= 9; b++){
+        var pair = { a: a, b: b };
+        if(saveData.gems[a + 'x' + b]){
+          litPairs.push(pair);
+        } else {
+          unlitPairs.push(pair);
+        }
+      }
     });
-    shuffleArr(poolPairs);
+    // 優先抽選尚未點亮寶石的算式，再以已點亮算式補齊複習，避免重刷關卡總是撞見同一題
+    shuffleArr(unlitPairs);
+    shuffleArr(litPairs);
+    var poolPairs = unlitPairs.concat(litPairs);
+
+    // 若為 Boss 關卡，優先將理解／交換律／未知數題安排在前面作為護盾試煉
+    var orderedTypes = [];
+    for(var t = 0; t < stage.count; t++){
+      orderedTypes.push(stage.qTypes[t % stage.qTypes.length]);
+    }
+    if(stage.isBoss && stage.qTypes.length > 1){
+      orderedTypes.sort(function(t1, t2){
+        var w1 = (t1 === 'standard') ? 1 : 0;
+        var w2 = (t2 === 'standard') ? 1 : 0;
+        return w1 - w2;
+      });
+    }
 
     var selected = [];
     for(var i = 0; i < stage.count; i++){
       var pair = poolPairs[i % poolPairs.length];
-      var qType = stage.qTypes[i % stage.qTypes.length];
+      var qType = orderedTypes[i];
       var mode = stage.inputMode;
       if(mode === 'mixed') mode = (i < Math.ceil(stage.count / 2)) ? 'choice' : 'keypad';
 
       var effectiveType = (qType === 'story_choice' || (mode === 'choice' && qType === 'concept')) ? 'standard' : qType;
       var q = MathApp.mulQuiz.buildQuestion(pair.a, pair.b, effectiveType);
 
-      if(qType === 'story_choice' && effectiveType === 'standard'){
+      // 僅對 2~7 組套用情境文字，不再覆寫 pair.b 而導致同場題目重複
+      if(qType === 'story_choice' && effectiveType === 'standard' && pair.b >= 2 && pair.b <= 7){
         var icons = ['🍎', '🍪', '✏️', '🌟', '🎈'];
         var units = ['盤', '袋', '盒', '排', '串'];
         var idx = MathApp.utils.randInt(0, icons.length - 1);
-        var bVal = Math.max(2, Math.min(7, pair.b));
-        if(bVal !== pair.b) q = MathApp.mulQuiz.buildQuestion(pair.a, bVal, 'standard');
         q.badge = '情境乘法冒險';
         q.storyHtml = icons[idx] + ' 每' + units[idx] + '有 <b>' + q.a + '</b> 個，共有 <b>' + q.b + '</b> ' + units[idx] + '，合起來有幾個？';
       }
@@ -407,6 +456,42 @@
       q.uiMode = 'keypad';
       q.badge = '🆘 求救小精靈特訓';
       q.rescueKey = k;
+      return q;
+    });
+  }
+
+  function getCollectableUnlitGems(){
+    var allowedTables = {};
+    STAGES.forEach(function(st){
+      if(isStageUnlocked(st.id)){
+        st.tables.forEach(function(t){ allowedTables[t] = true; });
+      }
+    });
+    var list = [];
+    for(var a = 1; a <= 9; a++){
+      if(!allowedTables[a]) continue;
+      for(var b = 1; b <= 9; b++){
+        if(!saveData.gems[a + 'x' + b]){
+          list.push({ a: a, b: b });
+        }
+      }
+    }
+    return list;
+  }
+
+  function findRecommendedStageForTable(a){
+    for(var i = 0; i < STAGES.length; i++){
+      if(STAGES[i].tables.indexOf(a) !== -1) return STAGES[i];
+    }
+    return STAGES[0];
+  }
+
+  function buildGemHuntQuestions(pairs){
+    shuffleArr(pairs);
+    return pairs.slice(0, 6).map(function(p){
+      var q = MathApp.mulQuiz.buildQuestion(p.a, p.b, 'standard');
+      q.uiMode = 'keypad';
+      q.badge = '💎 未點亮寶石特訓';
       return q;
     });
   }
@@ -430,6 +515,10 @@
     els.rescueCount    = document.getElementById('mqst-rescue-count');
     els.openDexBtn     = document.getElementById('mqst-open-dex-btn');
     els.openParentBtn  = document.getElementById('mqst-open-parent-btn');
+    els.mapSoundBtn    = document.getElementById('mqst-map-sound-btn');
+    els.mapVoiceBtn    = document.getElementById('mqst-map-voice-btn');
+    els.battleSoundBtn = document.getElementById('mqst-battle-sound-btn');
+    els.battleVoiceBtn = document.getElementById('mqst-battle-voice-btn');
 
     els.mapView        = document.getElementById('mqst-map-view');
     els.previewBadge   = document.getElementById('mqst-preview-badge');
@@ -457,6 +546,7 @@
     els.enemyActor     = document.getElementById('mqst-enemy-actor');
     els.bossSvg        = document.getElementById('mqst-boss-svg');
     els.bossName       = document.getElementById('mqst-boss-name');
+    els.bossShieldRow  = document.getElementById('mqst-boss-shield-row');
     els.bossHpBar      = document.getElementById('mqst-boss-hp-bar');
     els.bossTaunt      = document.getElementById('mqst-boss-taunt');
     els.hitCallout     = document.getElementById('mqst-hit-callout');
@@ -510,16 +600,43 @@
   }
 
   /* ---------------- 全螢幕開關與統計更新 ---------------- */
+  function syncAudioButtons(){
+    var sOn = (MathApp.audio && MathApp.audio.isSoundOn) ? MathApp.audio.isSoundOn() : true;
+    var vOn = (MathApp.audio && MathApp.audio.isVoiceOn) ? MathApp.audio.isVoiceOn() : true;
+
+    [els.mapSoundBtn, els.battleSoundBtn].forEach(function(btn){
+      if(!btn) return;
+      var iconOnly = btn.classList.contains('icon-only');
+      btn.setAttribute('aria-pressed', String(sOn));
+      btn.classList.toggle('is-off', !sOn);
+      btn.innerHTML = '<i data-lucide="' + (sOn ? 'volume-2' : 'volume-x') + '" aria-hidden="true"></i>' +
+        (iconOnly ? '' : '<span>' + (sOn ? '音效' : '靜音') + '</span>');
+    });
+
+    [els.mapVoiceBtn, els.battleVoiceBtn].forEach(function(btn){
+      if(!btn) return;
+      var iconOnly = btn.classList.contains('icon-only');
+      btn.setAttribute('aria-pressed', String(vOn));
+      btn.classList.toggle('is-off', !vOn);
+      btn.innerHTML = '<i data-lucide="' + (vOn ? 'speech' : 'message-square-off') + '" aria-hidden="true"></i>' +
+        (iconOnly ? '' : '<span>' + (vOn ? '語音' : '無聲') + '</span>');
+    });
+
+    if(MathApp.refreshIcons) MathApp.refreshIcons();
+  }
+
   function openArcade(){
     if(!els.arcadeOverlay) return;
     session.arcadeOpen = true;
     els.arcadeOverlay.classList.add('is-open');
     els.arcadeOverlay.setAttribute('aria-hidden', 'false');
+    syncAudioButtons();
     showView('map');
   }
 
   function closeArcade(){
     if(!els.arcadeOverlay) return;
+    clearSpeakTimer();
     if(MathApp.stopSpeak) MathApp.stopSpeak();
     session.arcadeOpen = false;
     session.active = false;
@@ -648,6 +765,7 @@
 
   /* ---------------- 視圖切換 ---------------- */
   function showView(viewName){
+    clearSpeakTimer();
     if(MathApp.stopSpeak) MathApp.stopSpeak();
     if(els.mapView)    els.mapView.style.display    = (viewName === 'map') ? 'flex' : 'none';
     if(els.battleView) els.battleView.style.display = (viewName === 'battle') ? 'flex' : 'none';
@@ -696,13 +814,14 @@
     });
   }
 
-  /* ---------------- 開始關卡或求救復仇戰 ---------------- */
+  /* ---------------- 開始關卡或特訓戰鬥 ---------------- */
   function startStage(stageId){
     var st = getStageById(stageId);
     if(!st || !isStageUnlocked(stageId)) return;
 
     session.active = true;
     session.isRescueMode = false;
+    session.isGemHuntMode = false;
     session.stage = st;
     session.questions = buildStageQuestions(st);
     session.idx = 0;
@@ -713,6 +832,8 @@
     session.newGemsThisRun = [];
     session.enemyMaxHp = session.questions.length;
     session.enemyHp = session.enemyMaxHp;
+    session.bossShieldMax = st.isBoss ? ((st.islandId === 'forest' || st.islandId === 'workshop') ? 1 : 2) : 0;
+    session.bossShield = session.bossShieldMax;
 
     var isl = getIslandById(st.islandId);
     beginBattleUI(st.id + ' · ' + st.label, isl.bgImg, st.islandId, st.isBoss ? st.boss : null);
@@ -722,6 +843,7 @@
     if(saveData.rescueQueue.length === 0) return;
     session.active = true;
     session.isRescueMode = true;
+    session.isGemHuntMode = false;
     session.stage = null;
     session.questions = buildRescueQuestions();
     session.idx = 0;
@@ -732,8 +854,34 @@
     session.newGemsThisRun = [];
     session.enemyMaxHp = session.questions.length;
     session.enemyHp = session.enemyMaxHp;
+    session.bossShieldMax = 0;
+    session.bossShield = 0;
 
     beginBattleUI('🆘 求救小精靈特訓', 'assets/quest/bg-garden.jpg', 'garden', null);
+  }
+
+  function startGemHuntBattle(){
+    var unlit = getCollectableUnlitGems();
+    if(unlit.length === 0) return;
+    if(els.dexDialog && els.dexDialog.open) els.dexDialog.close();
+
+    session.active = true;
+    session.isRescueMode = false;
+    session.isGemHuntMode = true;
+    session.stage = null;
+    session.questions = buildGemHuntQuestions(unlit);
+    session.idx = 0;
+    session.combo = 0;
+    session.maxCombo = 0;
+    session.firstTryCorrect = 0;
+    session.usedHelperInStage = false;
+    session.newGemsThisRun = [];
+    session.enemyMaxHp = session.questions.length;
+    session.enemyHp = session.enemyMaxHp;
+    session.bossShieldMax = 0;
+    session.bossShield = 0;
+
+    beginBattleUI('💎 未點亮寶石補完特訓', 'assets/quest/bg-castle.jpg', 'castle', null);
   }
 
   function beginBattleUI(chipTitle, bgSrc, theme, bossObj){
@@ -745,11 +893,15 @@
     if(bossObj){
       if(els.bossName)  els.bossName.textContent  = bossObj.name;
       if(els.bossSvg)   els.bossSvg.innerHTML     = getCharacterSvg(bossObj.svgKey, true);
-      if(els.bossTaunt) els.bossTaunt.textContent = bossObj.tauntStart;
+      if(els.bossTaunt) els.bossTaunt.textContent = session.bossShield > 0
+        ? ('「先打破我的 ' + session.bossShield + ' 層魔法護盾再說吧！」')
+        : bossObj.tauntStart;
     } else {
-      if(els.bossName)  els.bossName.textContent  = session.isRescueMode ? '迷路小精靈籠子' : '關卡寶箱怪';
+      if(els.bossName)  els.bossName.textContent  = session.isRescueMode ? '迷路小精靈籠子' : (session.isGemHuntMode ? '閃耀寶石守護箱' : '關卡寶箱怪');
       if(els.bossSvg)   els.bossSvg.innerHTML     = getStageChestSvg(theme);
-      if(els.bossTaunt) els.bossTaunt.textContent = session.isRescueMode ? '「快用正確口訣打開魔法鎖！」' : '「答對全部題目就能打開大寶箱！」';
+      if(els.bossTaunt) els.bossTaunt.textContent = session.isRescueMode
+        ? '「快用正確口訣打開魔法鎖！」'
+        : (session.isGemHuntMode ? '「一次答對就能立刻點亮新寶石喔！」' : '「答對全部題目就能打開大寶箱！」');
     }
 
     renderEnemyHp();
@@ -758,6 +910,24 @@
   }
 
   function renderEnemyHp(){
+    if(els.bossShieldRow){
+      if(session.bossShieldMax > 0){
+        els.bossShieldRow.style.display = 'flex';
+        if(session.bossShield > 0){
+          var shields = '';
+          for(var s = 0; s < session.bossShieldMax; s++){
+            shields += '<span class="mqst-shield-pip' + (s >= session.bossShield ? ' broken' : '') + '">🛡️</span>';
+          }
+          els.bossShieldRow.innerHTML = shields + '<span class="mqst-shield-txt">魔法護盾 ' + session.bossShield + ' 層</span>';
+        } else {
+          els.bossShieldRow.innerHTML = '<span class="mqst-shield-txt broken-all">💥 護盾全破！全力進攻！</span>';
+        }
+      } else {
+        els.bossShieldRow.style.display = 'none';
+        els.bossShieldRow.innerHTML = '';
+      }
+    }
+
     if(!els.bossHpBar) return;
     var html = '';
     for(var i = 0; i < session.enemyMaxHp; i++){
@@ -817,7 +987,9 @@
 
     var eqHtml = '';
     if(q.uiMode === 'choice'){
-      if(q.qType === 'missing_b'){
+      if(q.qType === 'commutative'){
+        eqHtml = '<span class="mq-num-box" style="color:var(--t-color-dark);background:#ffedd5;">' + q.b + '</span><span>×</span><span class="mq-num-box" style="color:var(--h-color-dark);background:#dbeafe;">' + q.a + '</span><span>＝</span><span class="mq-num-box" style="color:var(--h-color-dark);background:#dbeafe;">' + q.a + '</span><span>×</span><span class="mq-num-box" style="background:#fef9c3;">？</span>';
+      } else if(q.qType === 'missing_b'){
         eqHtml = '<span class="mq-num-box" style="color:var(--h-color-dark);background:#dbeafe;">' + q.a + '</span><span>×</span><span class="mq-num-box" style="background:#fef9c3;">？</span><span>＝</span><span class="mq-num-box">' + q.product + '</span>';
       } else if(q.qType === 'missing_a'){
         eqHtml = '<span class="mq-num-box" style="background:#fef9c3;">？</span><span>×</span><span class="mq-num-box" style="color:var(--t-color-dark);background:#ffedd5;">' + q.b + '</span><span>＝</span><span class="mq-num-box">' + q.product + '</span>';
@@ -841,7 +1013,9 @@
         gsap.fromTo(bubbles, { autoAlpha: 0, scale: 0.85 }, { autoAlpha: 1, scale: 1, duration: 0.25, stagger: 0.04, ease: 'back.out(1.6)', clearProps: 'transform,opacity,visibility' });
       });
     } else {
-      if(q.qType === 'missing_b'){
+      if(q.qType === 'commutative'){
+        eqHtml = '<span class="mq-num-box" style="color:var(--t-color-dark);background:#ffedd5;">' + q.b + '</span><span>×</span><span class="mq-num-box" style="color:var(--h-color-dark);background:#dbeafe;">' + q.a + '</span><span>＝</span><span class="mq-num-box" style="color:var(--h-color-dark);background:#dbeafe;">' + q.a + '</span><span>×</span><input type="text" class="mq-input-slot" data-slot-id="ans" maxlength="1" inputmode="none" readonly aria-label="輸入交換後的乘數" placeholder="?">';
+      } else if(q.qType === 'missing_b'){
         eqHtml = '<span class="mq-num-box" style="color:var(--h-color-dark);background:#dbeafe;">' + q.a + '</span><span>×</span><input type="text" class="mq-input-slot" data-slot-id="ans" maxlength="1" inputmode="none" readonly aria-label="輸入未知乘數" placeholder="?"><span>＝</span><span class="mq-num-box">' + q.product + '</span>';
       } else if(q.qType === 'missing_a'){
         eqHtml = '<input type="text" class="mq-input-slot" data-slot-id="ans" maxlength="1" inputmode="none" readonly aria-label="輸入未知被乘數" placeholder="?"><span>×</span><span class="mq-num-box" style="color:var(--t-color-dark);background:#ffedd5;">' + q.b + '</span><span>＝</span><span class="mq-num-box">' + q.product + '</span>';
@@ -878,13 +1052,14 @@
       gsap.fromTo(els.questionStage, { autoAlpha: 0, y: -8 }, { autoAlpha: 1, y: 0, duration: 0.25, ease: 'power2.out', clearProps: 'transform,opacity,visibility' });
     });
 
-    if(MathApp.speak){
-      MathApp.speak(q.spokenPrompt);
-    }
+    scheduleSpeak(q.spokenPrompt, 120);
   }
 
   /* ---------------- 粉紅小兔攻擊演出 & 答對/答錯 ---------------- */
-  function playBunnyAttackAnim(isCombo){
+  function playBunnyAttackAnim(isCombo, shieldEvent){
+    if(els.projectile){
+      els.projectile.textContent = (isCombo && session.bossShield === 0) ? '💫' : '🌟';
+    }
     runAnim(function(gsap){
       var tl = gsap.timeline();
       if(els.heroActor){
@@ -894,7 +1069,7 @@
       if(els.projectile){
         tl.fromTo(els.projectile,
           { autoAlpha: 1, x: 0, y: 0, scale: 0.8, rotation: 0 },
-          { autoAlpha: 0, x: 260, y: -30, scale: 1.5, rotation: 360, duration: 0.34, ease: 'power2.in' },
+          { autoAlpha: 0, x: 260, y: -30, scale: isCombo ? 1.8 : 1.5, rotation: 360, duration: 0.34, ease: 'power2.in' },
           0.05
         );
       }
@@ -903,10 +1078,16 @@
           .to(els.enemyActor, { scaleX: 1, scaleY: 1, x: 0, duration: 0.3, ease: 'elastic.out(1, 0.35)', clearProps: 'transform' });
       }
       if(els.hitCallout){
-        els.hitCallout.textContent = isCombo ? ('COMBO ×' + session.combo + ' 🔥') : 'GREAT! ✨';
+        if(shieldEvent === 'broken-all'){
+          els.hitCallout.textContent = '護盾全破 💥';
+        } else if(shieldEvent === 'crack'){
+          els.hitCallout.textContent = '護盾碎裂 🛡️';
+        } else {
+          els.hitCallout.textContent = isCombo ? ('COMBO ×' + session.combo + ' 🔥') : 'GREAT! ✨';
+        }
         tl.fromTo(els.hitCallout,
           { autoAlpha: 1, y: 10, scale: 0.6 },
-          { autoAlpha: 0, y: -28, scale: 1.15, duration: 0.7, ease: 'back.out(1.6)' },
+          { autoAlpha: 0, y: -28, scale: 1.15, duration: 0.72, ease: 'back.out(1.6)' },
           0.28
         );
       }
@@ -928,7 +1109,7 @@
     }
 
     var gemKey = q.a + 'x' + q.b;
-    if((cleanFirstTry || session.isRescueMode) && !saveData.gems[gemKey]){
+    if((cleanFirstTry || session.isRescueMode || session.isGemHuntMode) && !saveData.gems[gemKey]){
       saveData.gems[gemKey] = true;
       session.newGemsThisRun.push(gemKey);
     }
@@ -938,6 +1119,12 @@
       saveData.stats.rescuedCount++;
     }
 
+    var shieldEvent = '';
+    if(session.bossShield > 0){
+      session.bossShield--;
+      shieldEvent = (session.bossShield === 0) ? 'broken-all' : 'crack';
+    }
+
     session.enemyHp = Math.max(0, session.enemyHp - 1);
     renderEnemyHp();
     updateComboUI();
@@ -945,7 +1132,13 @@
     updateHubStats();
 
     if(session.stage && session.stage.isBoss && els.bossTaunt){
-      els.bossTaunt.textContent = (session.enemyHp === 0) ? session.stage.boss.tauntWin : session.stage.boss.tauntHit;
+      if(session.enemyHp === 0){
+        els.bossTaunt.textContent = session.stage.boss.tauntWin;
+      } else if(shieldEvent === 'broken-all'){
+        els.bossTaunt.textContent = '「糟糕！我的魔法護盾被打破啦！」';
+      } else {
+        els.bossTaunt.textContent = session.stage.boss.tauntHit;
+      }
     } else if(els.bossTaunt){
       els.bossTaunt.textContent = (session.enemyHp === 0) ? '「寶箱喀嚓打開啦！太棒了！」' : '「漂亮的一擊！繼續加油！」';
     }
@@ -954,11 +1147,12 @@
       MathApp.sfx(session.combo >= 3 ? 'combo' : (session.stage && session.stage.isBoss ? 'hit' : 'correct'));
     }
 
-    playBunnyAttackAnim(session.combo >= 3);
+    playBunnyAttackAnim(session.combo >= 3, shieldEvent);
 
     var gemNote = session.newGemsThisRun.indexOf(gemKey) !== -1 ? ('（💎 新點亮 ' + q.a + '×' + q.b + ' 寶石！）') : '';
+    var shieldNote = shieldEvent === 'broken-all' ? ' 💥 Boss 護盾全破！' : (shieldEvent === 'crack' ? ' 🛡️ 擊碎一層護盾！' : '');
     if(els.feedback){
-      els.feedback.textContent = '🎉 答對了！' + gemNote;
+      els.feedback.textContent = '🎉 答對了！' + shieldNote + gemNote;
       els.feedback.className = 'mqst-stage-toast good';
     }
 
@@ -981,9 +1175,8 @@
     }
     if(MathApp.refreshIcons) MathApp.refreshIcons();
 
-    if(MathApp.speak){
-      MathApp.speak('答對了！' + q.mantra);
-    }
+    // 延遲 340ms 再朗讀口訣，避免與答對叮咚音效重疊互吃聲音
+    scheduleSpeak('答對了！' + q.mantra, 340);
 
     runAnim(function(gsap){
       if(els.nextBtn) gsap.fromTo(els.nextBtn, { scale: 0.85 }, { scale: 1, duration: 0.25, ease: 'back.out(1.7)', clearProps: 'transform' });
@@ -991,6 +1184,7 @@
   }
 
   function handleWrong(q){
+    clearSpeakTimer();
     if(MathApp.stopSpeak) MathApp.stopSpeak();
     session.hadWrongOnCurrent = true;
     session.combo = 0;
@@ -1020,6 +1214,7 @@
 
   function checkChoiceAnswer(val, btnEl){
     if(session.locked) return;
+    clearSpeakTimer();
     if(MathApp.stopSpeak) MathApp.stopSpeak();
 
     var q = session.questions[session.idx];
@@ -1037,6 +1232,7 @@
 
   function checkKeypadAnswer(){
     if(session.locked) return;
+    clearSpeakTimer();
     if(MathApp.stopSpeak) MathApp.stopSpeak();
 
     var q = session.questions[session.idx];
@@ -1125,6 +1321,7 @@
   }
 
   function goNextQuestion(){
+    clearSpeakTimer();
     if(MathApp.stopSpeak) MathApp.stopSpeak();
     if(MathApp.sfx) MathApp.sfx('click');
     session.idx++;
@@ -1182,8 +1379,21 @@
     if(els.resMaxCombo) els.resMaxCombo.textContent = session.maxCombo + ' 🔥';
 
     if(session.isRescueMode){
-      els.resultTitle.textContent = '🆘 求救小精靈全數救出！';
-      els.resultSub.textContent = '粉紅小兔把你卡住的乘法通通變成強項囉！';
+      var remainingRescue = saveData.rescueQueue.length;
+      if(remainingRescue === 0){
+        els.resultTitle.textContent = '🆘 求救小精靈全數救出！';
+        els.resultSub.textContent = '粉紅小兔把你卡住的乘法通通變成強項囉！';
+      } else {
+        els.resultTitle.textContent = '🆘 本批小精靈救出成功！';
+        els.resultSub.textContent = '還有 ' + remainingRescue + ' 隻迷路小精靈在等你，回地圖再救援一次吧！';
+      }
+      els.resNextBtn.style.display = 'none';
+      els.resRetryBtn.style.display = 'none';
+    } else if(session.isGemHuntMode){
+      els.resultTitle.textContent = '💎 寶石補完特訓完成！';
+      els.resultSub.textContent = session.newGemsThisRun.length > 0
+        ? ('太棒了！又替 81 格寶石牆點亮了 ' + session.newGemsThisRun.length + ' 顆閃亮寶石！')
+        : '完成特訓！再多試一次，就能把沒亮的寶石一次點亮喔！';
       els.resNextBtn.style.display = 'none';
       els.resRetryBtn.style.display = 'none';
     } else {
@@ -1218,9 +1428,10 @@
     if(MathApp.utils && MathApp.utils.launchConfetti){
       MathApp.utils.launchConfetti(stars === 3 || Boolean(unlockedSprite));
     }
-    if(MathApp.speak){
-      MathApp.speak(session.isRescueMode ? '太棒了，求救小精靈全部救出來了！' : ('恭喜過關！獲得 ' + stars + ' 顆星！'));
-    }
+    var victoryMsg = session.isRescueMode
+      ? (saveData.rescueQueue.length === 0 ? '太棒了，求救小精靈全部救出來了！' : ('太棒了！還有 ' + saveData.rescueQueue.length + ' 隻小精靈等你去救喔！'))
+      : (session.isGemHuntMode ? '太厲害了，寶石補完特訓完成！' : ('恭喜過關！獲得 ' + stars + ' 顆星！'));
+    scheduleSpeak(victoryMsg, 420);
 
     runAnim(function(gsap){
       var tl = gsap.timeline();
@@ -1242,9 +1453,10 @@
   /* ---------------- 圖鑑 Modal 渲染 ---------------- */
   function renderDexDialog(){
     var litCount = countLitGems();
+    var collectableUnlit = getCollectableUnlitGems();
     var gemHtml = '<div class="mqst-gem-summary">' +
       '<span>💎 已點亮九九乘法寶石：<b>' + litCount + ' / 81</b> 格</span>' +
-      '<span style="font-size:13px;color:var(--ink-soft);">在冒險中一次答對該算式即可永久點亮！</span>' +
+      '<span style="font-size:13px;color:var(--ink-soft);">點擊任一格子可聽口訣或查看該去哪關點亮！</span>' +
       '</div><div class="mqst-gem-grid">';
     gemHtml += '<div class="mqst-gem-cell head">×</div>';
     for(var c = 1; c <= 9; c++) gemHtml += '<div class="mqst-gem-cell head">' + c + '</div>';
@@ -1252,10 +1464,20 @@
       gemHtml += '<div class="mqst-gem-cell head">' + r + '</div>';
       for(var col = 1; col <= 9; col++){
         var lit = Boolean(saveData.gems[r + 'x' + col]);
-        gemHtml += '<div class="mqst-gem-cell' + (lit ? ' lit' : '') + '">' + (lit ? (r * col) : '·') + '</div>';
+        gemHtml += '<button type="button" class="mqst-gem-cell' + (lit ? ' lit' : '') + '"' +
+          ' data-gem-a="' + r + '" data-gem-b="' + col + '" data-gem-lit="' + (lit ? '1' : '0') + '"' +
+          ' aria-label="' + r + ' 乘以 ' + col + (lit ? (' 等於 ' + (r * col) + '，點擊朗讀口訣') : ' 尚未點亮，點擊查看提示') + '">' +
+          (lit ? (r * col) : '·') + '</button>';
       }
     }
     gemHtml += '</div>';
+    gemHtml += '<div class="mqst-gem-inspector" id="mqst-gem-inspector">' +
+      '<span class="mqst-gem-inspector-msg" id="mqst-gem-inspector-msg">👆 點擊上方寶石格，可以聽口訣或查看對應關卡喔！</span>' +
+      '<div class="mqst-gem-inspector-actions" id="mqst-gem-inspector-actions">' +
+      (collectableUnlit.length > 0
+        ? ('<button type="button" class="mqst-tool-btn mqst-gem-hunt-btn" id="mqst-gem-hunt-btn">✨ 補齊未點亮寶石（剩 ' + collectableUnlit.length + ' 顆）</button>')
+        : '<span class="mqst-gem-all-done">🎉 已收齊目前可收集的全部寶石！</span>') +
+      '</div></div>';
     if(els.paneGems) els.paneGems.innerHTML = gemHtml;
 
     var spHtml = '<div class="mqst-collection-grid">';
@@ -1428,6 +1650,58 @@
         els.dexDialog.showModal();
       });
 
+      if(els.paneGems){
+        els.paneGems.addEventListener('click', function(e){
+          var huntBtn = e.target.closest('#mqst-gem-hunt-btn');
+          if(huntBtn){
+            if(MathApp.sfx) MathApp.sfx('click');
+            startGemHuntBattle();
+            return;
+          }
+
+          var gotoBtn = e.target.closest('[data-goto-stage]');
+          if(gotoBtn){
+            var sid = gotoBtn.getAttribute('data-goto-stage');
+            if(MathApp.sfx) MathApp.sfx('click');
+            if(els.dexDialog && els.dexDialog.open) els.dexDialog.close();
+            walkBunnyAndStart(sid);
+            return;
+          }
+
+          var cell = e.target.closest('button.mqst-gem-cell[data-gem-a]');
+          if(!cell) return;
+          var ga = Number(cell.getAttribute('data-gem-a'));
+          var gb = Number(cell.getAttribute('data-gem-b'));
+          var isLit = cell.getAttribute('data-gem-lit') === '1';
+          var msgEl = document.getElementById('mqst-gem-inspector-msg');
+          var actEl = document.getElementById('mqst-gem-inspector-actions');
+          var collectableUnlit = getCollectableUnlitGems();
+          var huntBtnHtml = collectableUnlit.length > 0
+            ? ('<button type="button" class="mqst-tool-btn mqst-gem-hunt-btn" id="mqst-gem-hunt-btn">✨ 補齊未點亮寶石（剩 ' + collectableUnlit.length + ' 顆）</button>')
+            : '';
+
+          if(isLit){
+            var mantra = (MathApp.mul && MathApp.mul.getMantra) ? MathApp.mul.getMantra(ga, gb) : (ga + '×' + gb);
+            if(MathApp.sfx) MathApp.sfx('pop');
+            if(msgEl) msgEl.innerHTML = '💎 <b>' + ga + ' × ' + gb + ' ＝ ' + (ga * gb) + '</b>（口訣：<b>' + mantra + '</b>）';
+            if(actEl) actEl.innerHTML = huntBtnHtml;
+            scheduleSpeak(mantra + '，' + ga + ' 乘以 ' + gb + ' 等於 ' + (ga * gb), 60);
+          } else {
+            var rec = findRecommendedStageForTable(ga);
+            var unlocked = rec && isStageUnlocked(rec.id);
+            if(MathApp.sfx) MathApp.sfx('click');
+            if(msgEl){
+              msgEl.innerHTML = unlocked
+                ? ('🔒 <b>' + ga + ' × ' + gb + '</b> 尚未點亮，可在【<b>' + rec.id + ' · ' + rec.label + '</b>】一次答對點亮！')
+                : ('🔒 <b>' + ga + ' × ' + gb + '</b> 尚未點亮，先解鎖【<b>' + rec.id + ' · ' + rec.label + '</b>】就能遇到喔！');
+            }
+            if(actEl){
+              actEl.innerHTML = (unlocked ? ('<button type="button" class="mqst-tool-btn mqst-gem-goto-btn" data-goto-stage="' + rec.id + '">前往 ' + rec.id + '</button>') : '') + huntBtnHtml;
+            }
+          }
+        });
+      }
+
       var dexTabs = els.dexDialog.querySelectorAll('.mqst-dex-tab[data-dex]');
       dexTabs.forEach(function(tab){
         tab.addEventListener('click', function(){
@@ -1492,11 +1766,29 @@
       });
     }
 
+    [els.mapSoundBtn, els.battleSoundBtn].forEach(function(btn){
+      if(!btn) return;
+      btn.addEventListener('click', function(){
+        if(MathApp.audio && MathApp.audio.toggleSound) MathApp.audio.toggleSound();
+      });
+    });
+    [els.mapVoiceBtn, els.battleVoiceBtn].forEach(function(btn){
+      if(!btn) return;
+      btn.addEventListener('click', function(){
+        if(MathApp.audio && MathApp.audio.toggleVoice) MathApp.audio.toggleVoice();
+      });
+    });
+
     document.addEventListener('keydown', function(e){
       if(!session.arcadeOpen) return;
       if(e.key === 'Escape'){
         if((els.dexDialog && els.dexDialog.open) || (els.parentDialog && els.parentDialog.open)) return;
-        closeArcade();
+        // 戰鬥中誤按 Esc 僅返回世界地圖，避免直接關閉全螢幕而失去進度
+        if(session.active && els.battleView && els.battleView.style.display !== 'none'){
+          showView('map');
+        } else {
+          closeArcade();
+        }
         return;
       }
       if(!session.active || els.battleView.style.display === 'none') return;
@@ -1514,6 +1806,7 @@
     });
 
     if(MathApp.on){
+      MathApp.on('audioChange', syncAudioButtons);
       MathApp.on('mulExplore', function(){
         if(!saveData.stats.exploredInLab){
           saveData.stats.exploredInLab = true;
@@ -1551,6 +1844,7 @@
 
     initGsapMedia();
     bindEvents();
+    syncAudioButtons();
     updateHubStats();
     renderMap();
   }

@@ -30,7 +30,7 @@
 <link rel="stylesheet" href="css/calc.css?v=20260908e">
 <link rel="stylesheet" href="css/calc-quiz.css?v=20260908e">
 <link rel="stylesheet" href="css/mul.css?v=20261020a">
-<link rel="stylesheet" href="css/mul-quest.css?v=20261115a">
+<link rel="stylesheet" href="css/mul-quest.css?v=20261115b">
 <link rel="stylesheet" href="css/modal.css?v=20260908e">
 </head>
 <body>
@@ -1204,6 +1204,12 @@
 
             <div class="mqst-hud-actions">
               <span class="mqst-preview-badge" id="mqst-preview-badge" style="display:none;">🔓 預習模式</span>
+              <button type="button" class="mqst-hud-btn audio-mini" id="mqst-map-sound-btn" aria-pressed="true" aria-label="切換遊戲音效" title="切換遊戲音效">
+                <i data-lucide="volume-2" aria-hidden="true"></i><span>音效</span>
+              </button>
+              <button type="button" class="mqst-hud-btn audio-mini" id="mqst-map-voice-btn" aria-pressed="true" aria-label="切換語音朗讀" title="切換語音朗讀">
+                <i data-lucide="speech" aria-hidden="true"></i><span>語音</span>
+              </button>
               <button type="button" class="mqst-hud-btn dex" id="mqst-open-dex-btn">
                 <span aria-hidden="true">💎</span><span>圖鑑</span>
               </button>
@@ -1260,6 +1266,12 @@
               <div class="mqst-combo-pill" id="mqst-combo-pill" aria-live="polite">
                 🔥 連擊 <strong id="mqst-combo-count">0</strong>
               </div>
+              <button type="button" class="mqst-hud-btn audio-mini icon-only" id="mqst-battle-sound-btn" aria-pressed="true" aria-label="切換遊戲音效" title="切換遊戲音效">
+                <i data-lucide="volume-2" aria-hidden="true"></i>
+              </button>
+              <button type="button" class="mqst-hud-btn audio-mini icon-only" id="mqst-battle-voice-btn" aria-pressed="true" aria-label="切換語音朗讀" title="切換語音朗讀">
+                <i data-lucide="speech" aria-hidden="true"></i>
+              </button>
               <button type="button" class="mqst-hud-btn helper" id="mqst-helper-toggle-btn">
                 <span aria-hidden="true">🧱</span><span>小幫手</span>
               </button>
@@ -1303,6 +1315,7 @@
               <div class="mqst-enemy-actor" id="mqst-enemy-actor">
                 <div class="mqst-enemy-hp-card">
                   <span class="mqst-enemy-name" id="mqst-boss-name">森林寶箱怪</span>
+                  <div class="mqst-boss-shield-row" id="mqst-boss-shield-row" style="display:none;" aria-label="Boss 魔法護盾"></div>
                   <div class="mqst-boss-hp-bar" id="mqst-boss-hp-bar" aria-label="目標剩餘能量"></div>
                 </div>
                 <div class="mqst-enemy-speech" id="mqst-boss-taunt">「答對這題就給我星星攻擊！」</div>
@@ -1579,7 +1592,7 @@
 
 <!-- 模組化應用腳本（相容本機雙擊開啟） -->
 <script defer src="js/core.js?v=20260906h"></script>
-<script defer src="js/audio.js?v=20261115a"></script>
+<script defer src="js/audio.js?v=20261115b"></script>
 <script defer src="js/utils.js?v=20260906l"></script>
 <script defer src="js/learn.js?v=20260906i"></script>
 <script defer src="js/quiz.js?v=20260907d"></script>
@@ -1588,8 +1601,8 @@
 <script defer src="js/calc.js?v=20260907e"></script>
 <script defer src="js/calc-quiz.js?v=20260907d"></script>
 <script defer src="js/mul.js?v=20261115a"></script>
-<script defer src="js/mul-quiz.js?v=20261115a"></script>
-<script defer src="js/mul-quest.js?v=20261115a"></script>
+<script defer src="js/mul-quiz.js?v=20261115b"></script>
+<script defer src="js/mul-quest.js?v=20261115b"></script>
 <script defer src="js/diagnostics.js?v=20261115a"></script>
 <script defer src="js/app.js?v=20261115a"></script>
 </body>

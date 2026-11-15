@@ -259,6 +259,10 @@
 .mqst-hud-btn.helper   { background: #dbeafe; color: #1e40af; }
 .mqst-hud-btn.back     { background: #dcfce7; color: #166534; }
 .mqst-hud-btn.exit     { background: #fff1f2; color: #9f1239; }
+.mqst-hud-btn.audio-mini { background: #f0fdf4; color: #166534; padding: 6px 11px; }
+.mqst-hud-btn.audio-mini.icon-only { padding: 6px 10px; }
+.mqst-hud-btn.audio-mini.is-off { background: #f1f5f9; color: #64748b; opacity: 0.86; }
+.mqst-hud-btn.audio-mini svg { width: 18px; height: 18px; flex-shrink: 0; }
 
 .mqst-preview-badge {
   display: inline-flex;
@@ -715,6 +719,37 @@
   font-weight: 900;
   color: #881337;
   margin-bottom: 3px;
+}
+
+.mqst-boss-shield-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  margin-bottom: 4px;
+  padding: 2px 7px;
+  border-radius: 999px;
+  background: #eff6ff;
+  border: 1.5px solid #3b82f6;
+  font-size: 11.5px;
+  font-weight: 900;
+  color: #1d4ed8;
+}
+
+.mqst-shield-pip {
+  font-size: 13px;
+  line-height: 1;
+  transition: opacity .2s ease, transform .2s ease;
+}
+
+.mqst-shield-pip.broken {
+  opacity: 0.25;
+  filter: grayscale(1);
+  transform: scale(0.82);
+}
+
+.mqst-shield-txt.broken-all {
+  color: #dc2626;
 }
 
 .mqst-boss-hp-bar {
@@ -1244,6 +1279,70 @@ dialog.mqst-dialog::backdrop {
   border-color: #b45309;
   color: #78350f;
   box-shadow: 0 2px 0 #b45309;
+}
+
+button.mqst-gem-cell {
+  cursor: pointer;
+  padding: 0;
+  transition: transform .08s ease, box-shadow .08s ease;
+}
+
+button.mqst-gem-cell:hover {
+  transform: translateY(-1px);
+  border-color: var(--ink);
+}
+
+button.mqst-gem-cell:active {
+  transform: translateY(1px);
+  box-shadow: none;
+}
+
+.mqst-gem-inspector {
+  margin-top: 12px;
+  padding: 10px 14px;
+  border-radius: 16px;
+  border: 2px solid var(--ink);
+  background: #fffbeb;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.mqst-gem-inspector-msg {
+  font-size: 14px;
+  font-weight: 800;
+  color: var(--ink);
+  flex: 1;
+  min-width: 210px;
+}
+
+.mqst-gem-inspector-actions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.mqst-gem-hunt-btn {
+  background: linear-gradient(180deg, #fde047 0%, #f59e0b 100%);
+  color: #451a03;
+  font-size: 13.5px;
+  min-height: 44px;
+}
+
+.mqst-gem-goto-btn {
+  background: #dbeafe;
+  color: #1e40af;
+  font-size: 13.5px;
+  min-height: 44px;
+}
+
+.mqst-gem-all-done {
+  font-size: 13.5px;
+  font-weight: 900;
+  color: #15803d;
 }
 
 .mqst-collection-grid {

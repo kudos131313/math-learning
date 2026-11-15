@@ -261,28 +261,52 @@
   var soundToggleBtn = document.getElementById('toggle-sound');
   var voiceToggleBtn = document.getElementById('toggle-voice');
 
-  if(soundToggleBtn){
-    soundToggleBtn.addEventListener('click', function(){
-      soundOn = !soundOn;
+  function setSoundOn(enabled){
+    soundOn = Boolean(enabled);
+    if(soundToggleBtn){
       soundToggleBtn.setAttribute('aria-pressed', String(soundOn));
-      soundToggleBtn.innerHTML = soundOn 
-        ? '<i data-lucide="volume-2"></i><span>音效</span>' 
+      soundToggleBtn.innerHTML = soundOn
+        ? '<i data-lucide="volume-2"></i><span>音效</span>'
         : '<i data-lucide="volume-x"></i><span>音效（關）</span>';
       if(MathApp.refreshIcons) MathApp.refreshIcons();
-      if(soundOn) sfx('click');
+    }
+    if(soundOn) sfx('click');
+    if(MathApp.emit) MathApp.emit('audioChange', { soundOn: soundOn, voiceOn: voiceOn });
+  }
+
+  function setVoiceOn(enabled){
+    voiceOn = Boolean(enabled);
+    if(voiceToggleBtn){
+      voiceToggleBtn.setAttribute('aria-pressed', String(voiceOn));
+      voiceToggleBtn.innerHTML = voiceOn
+        ? '<i data-lucide="speech"></i><span>語音</span>'
+        : '<i data-lucide="message-square-off"></i><span>語音（關）</span>';
+      if(MathApp.refreshIcons) MathApp.refreshIcons();
+    }
+    if(!voiceOn && 'speechSynthesis' in window) window.speechSynthesis.cancel();
+    updateVoiceStatusUI();
+    if(MathApp.emit) MathApp.emit('audioChange', { soundOn: soundOn, voiceOn: voiceOn });
+  }
+
+  function toggleSound(){
+    setSoundOn(!soundOn);
+    return soundOn;
+  }
+
+  function toggleVoice(){
+    setVoiceOn(!voiceOn);
+    return voiceOn;
+  }
+
+  if(soundToggleBtn){
+    soundToggleBtn.addEventListener('click', function(){
+      toggleSound();
     });
   }
 
   if(voiceToggleBtn){
     voiceToggleBtn.addEventListener('click', function(){
-      voiceOn = !voiceOn;
-      voiceToggleBtn.setAttribute('aria-pressed', String(voiceOn));
-      voiceToggleBtn.innerHTML = voiceOn 
-        ? '<i data-lucide="speech"></i><span>語音</span>' 
-        : '<i data-lucide="message-square-off"></i><span>語音（關）</span>';
-      if(MathApp.refreshIcons) MathApp.refreshIcons();
-      if(!voiceOn && 'speechSynthesis' in window) window.speechSynthesis.cancel();
-      updateVoiceStatusUI();
+      toggleVoice();
     });
   }
 
@@ -290,11 +314,8 @@
   if(voiceTestBtn){
     voiceTestBtn.addEventListener('click', function(){
       // 若先前為關閉狀態，自動開啟語音
-      if(!voiceOn && voiceToggleBtn){
-        voiceOn = true;
-        voiceToggleBtn.setAttribute('aria-pressed', 'true');
-        voiceToggleBtn.innerHTML = '<i data-lucide="speech"></i><span>語音</span>';
-        if(MathApp.refreshIcons) MathApp.refreshIcons();
+      if(!voiceOn){
+        setVoiceOn(true);
       }
       var best = pickBestVoice();
       var voiceNameText = best ? best.name : '系統預設';
@@ -572,7 +593,11 @@
     openVoiceListModal: openVoiceListModal,
     updateVoiceStatusUI: updateVoiceStatusUI,
     isSoundOn: function(){ return soundOn; },
-    isVoiceOn: function(){ return voiceOn; }
+    isVoiceOn: function(){ return voiceOn; },
+    setSoundOn: setSoundOn,
+    setVoiceOn: setVoiceOn,
+    toggleSound: toggleSound,
+    toggleVoice: toggleVoice
   };
 
   // 掛載至 MathApp 捷徑
