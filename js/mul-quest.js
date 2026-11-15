@@ -636,27 +636,41 @@
       try { attackTimeline.kill(); } catch(e){}
       attackTimeline = null;
     }
+    if(els.hitCallout){
+      els.hitCallout.classList.remove('is-ult');
+    }
     if(typeof window.gsap !== 'undefined'){
       var resetNodes = [
         els.projectile, els.partnerProjectile, els.fxImpact,
-        els.ultBackdrop, els.ultCutin, els.ultBeam, els.ultCarrot, els.ultSlash
+        els.ultBackdrop, els.ultFlashVeil, els.ultMagicRing, els.heroAfterimage,
+        els.ultCutin, els.ultSkyRift, els.ultBeam, els.ultTargetRing,
+        els.ultShockwave, els.ultCarrot, els.ultSlash
       ].filter(Boolean);
       if(resetNodes.length > 0){
         try { window.gsap.set(resetNodes, { autoAlpha: 0, clearProps: 'transform' }); } catch(e){}
       }
+      if(els.ultSpeedlines){
+        try { window.gsap.set(els.ultSpeedlines, { clearProps: 'transform,opacity' }); } catch(e){}
+      }
+      if(els.ultCutin){
+        var shine = els.ultCutin.querySelector('.mqst-ult-cutin-shine');
+        if(shine){
+          try { window.gsap.set(shine, { clearProps: 'transform' }); } catch(e){}
+        }
+      }
       if(els.fxLayer){
-        var fxResetNodes = els.fxLayer.querySelectorAll('.mqst-fx-trail, .mqst-ult-meteor, .mqst-ult-slash-blade, .mqst-ult-slash-cross');
+        var fxResetNodes = els.fxLayer.querySelectorAll('.mqst-fx-trail, .mqst-ult-meteor, .mqst-ult-beam-ring, .mqst-ult-carrot-chip, .mqst-ult-slash-blade, .mqst-ult-slash-cross');
         if(fxResetNodes.length > 0){
           try { window.gsap.set(fxResetNodes, { autoAlpha: 0, clearProps: 'transform' }); } catch(e){}
         }
       }
       if(els.ultBeam){
-        var shaft = els.ultBeam.querySelector('.mqst-ult-beam-shaft');
-        if(shaft){
-          try { window.gsap.set(shaft, { clearProps: 'transform,opacity' }); } catch(e){}
+        var beamParts = els.ultBeam.querySelectorAll('.mqst-ult-beam-orb, .mqst-ult-beam-aura, .mqst-ult-beam-shaft');
+        if(beamParts.length > 0){
+          try { window.gsap.set(beamParts, { clearProps: 'transform,opacity' }); } catch(e){}
         }
       }
-      var actorNodes = [els.heroActor, els.partnerActor, els.enemyActor, els.stageArena, els.heroAura].filter(Boolean);
+      var actorNodes = [els.heroActor, els.partnerActor, els.enemyActor, els.stageArena, els.stageBgImg, els.heroAura].filter(Boolean);
       if(actorNodes.length > 0){
         try { window.gsap.set(actorNodes, { clearProps: 'transform,opacity' }); } catch(e){}
       }
@@ -1072,10 +1086,18 @@
     els.projectile     = document.getElementById('mqst-projectile');
     els.partnerProjectile = document.getElementById('mqst-partner-projectile');
     els.ultBackdrop    = document.getElementById('mqst-ult-backdrop');
+    els.ultSpeedlines  = document.getElementById('mqst-ult-speedlines');
+    els.ultFlashVeil   = document.getElementById('mqst-ult-flash-veil');
+    els.ultMagicRing   = document.getElementById('mqst-ult-magic-ring');
+    els.heroAfterimage = document.getElementById('mqst-hero-afterimage');
     els.ultCutin       = document.getElementById('mqst-ult-cutin');
+    els.ultCutinHero   = document.getElementById('mqst-ult-cutin-hero');
     els.ultCutinTag    = document.getElementById('mqst-ult-cutin-tag');
     els.ultCutinTitle  = document.getElementById('mqst-ult-cutin-title');
+    els.ultSkyRift     = document.getElementById('mqst-ult-sky-rift');
     els.ultBeam        = document.getElementById('mqst-ult-beam');
+    els.ultTargetRing  = document.getElementById('mqst-ult-target-ring');
+    els.ultShockwave   = document.getElementById('mqst-ult-shockwave');
     els.ultCarrot      = document.getElementById('mqst-ult-carrot');
     els.ultSlash       = document.getElementById('mqst-ult-slash');
     els.enemyActor     = document.getElementById('mqst-enemy-actor');
@@ -1837,176 +1859,336 @@
     return coords;
   }
 
-  function appendImpactBurst(tl, impactLabel, tx, ty, heavyHit, bossFinisher){
-    var mult = bossFinisher ? 1.25 : 1;
+  function fireFinisherConfetti(tx, ty, isBoss){
+    if(motionReduced || typeof window.confetti !== 'function' || !els.stageArena) return;
+    try {
+      var rect = els.stageArena.getBoundingClientRect();
+      if(!rect || rect.width <= 0 || !window.innerWidth || !window.innerHeight) return;
+      var ox = Math.max(0.08, Math.min(0.92, (rect.left + tx) / window.innerWidth));
+      var oy = Math.max(0.08, Math.min(0.92, (rect.top + ty) / window.innerHeight));
+      window.confetti({
+        particleCount: isBoss ? 52 : 34,
+        spread: isBoss ? 88 : 68,
+        startVelocity: isBoss ? 44 : 36,
+        scalar: 0.95,
+        ticks: 110,
+        origin: { x: ox, y: oy },
+        colors: ['#fde047', '#f97316', '#ec4899', '#38bdf8', '#a855f7', '#ffffff']
+      });
+    } catch(e){}
+  }
+
+  function appendImpactBurst(tl, impactLabel, tx, ty, heavyHit, bossFinisher, isFinisher){
+    var mult = bossFinisher ? 1.48 : (isFinisher ? 1.28 : 1);
     if(els.fxImpact){
+      var shockRing = els.fxImpact.querySelector('.mqst-fx-ring.shock');
       var outerRing = els.fxImpact.querySelector('.mqst-fx-ring.outer');
       var innerRing = els.fxImpact.querySelector('.mqst-fx-ring.inner');
       var flashEl = els.fxImpact.querySelector('.mqst-fx-flash');
       var sparks = els.fxImpact.querySelectorAll('.mqst-fx-spark');
 
       tl.set(els.fxImpact, { x: tx, y: ty, xPercent: -50, yPercent: -50, autoAlpha: 1 }, impactLabel);
+      if(shockRing){
+        if(isFinisher){
+          tl.fromTo(shockRing, { scale: 0.25, rotation: 0, autoAlpha: 1 }, { scale: 2.35 * mult, rotation: 60, autoAlpha: 0, duration: 0.68, ease: 'power2.out' }, impactLabel);
+        } else {
+          tl.set(shockRing, { autoAlpha: 0 }, impactLabel);
+        }
+      }
       if(outerRing){
-        tl.fromTo(outerRing, { scale: 0.2, autoAlpha: 1 }, { scale: (heavyHit ? 1.85 : 1.5) * mult, autoAlpha: 0, duration: 0.56, ease: 'power2.out' }, impactLabel);
+        tl.fromTo(outerRing, { scale: 0.2, autoAlpha: 1 }, { scale: (heavyHit ? 1.95 : 1.5) * mult, autoAlpha: 0, duration: isFinisher ? 0.64 : 0.56, ease: 'power2.out' }, impactLabel);
       }
       if(innerRing){
-        tl.fromTo(innerRing, { scale: 0.18, autoAlpha: 1 }, { scale: (heavyHit ? 1.45 : 1.18) * mult, autoAlpha: 0, duration: 0.46, ease: 'power2.out' }, impactLabel + '+=0.06');
+        tl.fromTo(innerRing, { scale: 0.18, autoAlpha: 1 }, { scale: (heavyHit ? 1.55 : 1.18) * mult, autoAlpha: 0, duration: isFinisher ? 0.54 : 0.46, ease: 'power2.out' }, impactLabel + '+=0.06');
       }
       if(flashEl){
-        tl.fromTo(flashEl, { scale: 0.3, rotation: 0, autoAlpha: 1 }, { scale: (heavyHit ? 1.65 : 1.35) * mult, rotation: 45, duration: 0.16, ease: 'power3.out' }, impactLabel)
-          .to(flashEl, { autoAlpha: 0, scale: (heavyHit ? 1.85 : 1.5) * mult, duration: 0.26, ease: 'power1.in' }, impactLabel + '+=0.16');
+        tl.fromTo(flashEl, { scale: 0.3, rotation: 0, autoAlpha: 1 }, { scale: (heavyHit ? 1.85 : 1.35) * mult, rotation: 55, duration: 0.16, ease: 'power3.out' }, impactLabel)
+          .to(flashEl, { autoAlpha: 0, scale: (heavyHit ? 2.15 : 1.5) * mult, duration: 0.30, ease: 'power1.in' }, impactLabel + '+=0.16');
       }
       for(var k = 0; k < sparks.length; k++){
         var sp = sparks[k];
         var ang = (k / sparks.length) * Math.PI * 2 + (k % 2 === 0 ? 0.18 : -0.15);
-        var rad = ((heavyHit ? 94 : 68) + (k % 3) * 16) * mult;
+        var rad = ((heavyHit ? 102 : 68) + (k % 3) * 20) * mult;
         tl.fromTo(sp,
-          { x: 0, y: 0, scale: 1.25 * mult, rotation: 0, autoAlpha: 1 },
-          { x: Math.cos(ang) * rad, y: Math.sin(ang) * rad + 18, scale: 0, rotation: 240, autoAlpha: 0, duration: 0.62, ease: 'power2.out' },
-          impactLabel + '+=' + (k * 0.015)
+          { x: 0, y: 0, scale: (isFinisher ? 1.45 : 1.25) * mult, rotation: 0, autoAlpha: 1 },
+          { x: Math.cos(ang) * rad, y: Math.sin(ang) * rad + 20, scale: 0, rotation: 270, autoAlpha: 0, duration: isFinisher ? 0.72 : 0.62, ease: 'power2.out' },
+          impactLabel + '+=' + (k * 0.012)
         );
       }
-      tl.set(els.fxImpact, { autoAlpha: 0 }, impactLabel + '+=0.78');
+      tl.set(els.fxImpact, { autoAlpha: 0 }, impactLabel + '+=0.86');
+    }
+
+    if(isFinisher && els.ultFlashVeil){
+      // 單次柔和白金高光擴散（符合無障礙規範，無連續高頻閃爍）
+      tl.fromTo(els.ultFlashVeil, { autoAlpha: 0 }, { autoAlpha: bossFinisher ? 0.72 : 0.52, duration: 0.07, ease: 'power2.out' }, impactLabel)
+        .to(els.ultFlashVeil, { autoAlpha: 0, duration: 0.42, ease: 'power2.out' }, impactLabel + '+=0.07');
+    }
+
+    if(isFinisher){
+      tl.add(function(){
+        fireFinisherConfetti(tx, ty, bossFinisher);
+      }, impactLabel);
     }
 
     if(els.enemyActor){
-      var kickX = bossFinisher ? 28 : (heavyHit ? 22 : 16);
-      tl.to(els.enemyActor, { x: kickX, y: bossFinisher ? -10 : -6, scaleX: 0.76, scaleY: 1.24, rotation: bossFinisher ? 14 : 11, duration: 0.11, ease: 'power2.out' }, impactLabel)
-        .to(els.enemyActor, { x: 0, y: 0, scaleX: 1, scaleY: 1, rotation: 0, duration: 0.58, ease: 'elastic.out(1.15, 0.32)', clearProps: 'transform' }, impactLabel + '+=0.11');
+      var kickX = isFinisher ? (bossFinisher ? 42 : 34) : (heavyHit ? 22 : 16);
+      var kickY = isFinisher ? (bossFinisher ? -22 : -16) : -6;
+      tl.to(els.enemyActor, { x: kickX, y: kickY, scaleX: 0.72, scaleY: 1.28, rotation: isFinisher ? (bossFinisher ? 22 : 18) : 11, duration: 0.12, ease: 'power2.out' }, impactLabel)
+        .to(els.enemyActor, { x: 0, y: 0, scaleX: 1, scaleY: 1, rotation: 0, duration: isFinisher ? 0.72 : 0.58, ease: 'elastic.out(1.2, 0.30)', clearProps: 'transform' }, impactLabel + '+=0.12');
     }
     if(els.bossSvg){
-      tl.to(els.bossSvg, { filter: bossFinisher ? 'brightness(2.3) drop-shadow(0 0 22px #fde047)' : 'brightness(2) drop-shadow(0 0 18px #f97316)', duration: 0.12 }, impactLabel)
-        .to(els.bossSvg, { filter: 'drop-shadow(0 6px 0 rgba(51, 43, 34, 0.25))', duration: 0.30, clearProps: 'filter' }, impactLabel + '+=0.14');
+      tl.to(els.bossSvg, { filter: isFinisher ? 'brightness(2.4) drop-shadow(0 0 28px #fde047)' : 'brightness(2) drop-shadow(0 0 18px #f97316)', duration: 0.14 }, impactLabel)
+        .to(els.bossSvg, { filter: 'drop-shadow(0 6px 0 rgba(51, 43, 34, 0.25))', duration: 0.34, clearProps: 'filter' }, impactLabel + '+=0.16');
     }
     if(els.stageArena){
-      var shakeAmp = bossFinisher ? 9 : (heavyHit ? 7 : 3);
-      var shakeY = bossFinisher ? 5 : (heavyHit ? 4 : 2);
-      tl.to(els.stageArena, { x: -shakeAmp, y: shakeY, duration: 0.05 }, impactLabel)
-        .to(els.stageArena, { x: shakeAmp, y: -shakeY, duration: 0.05 }, impactLabel + '+=0.05')
-        .to(els.stageArena, { x: -Math.round(shakeAmp * 0.55), y: 2, duration: 0.05 }, impactLabel + '+=0.10')
-        .to(els.stageArena, { x: 0, y: 0, duration: 0.06, clearProps: 'transform' }, impactLabel + '+=0.15');
+      var shakeAmp = isFinisher ? (bossFinisher ? 15 : 11) : (heavyHit ? 7 : 3);
+      var shakeY = isFinisher ? (bossFinisher ? 9 : 7) : (heavyHit ? 4 : 2);
+      tl.to(els.stageArena, { x: -shakeAmp, y: shakeY, duration: 0.045 }, impactLabel)
+        .to(els.stageArena, { x: shakeAmp, y: -shakeY, duration: 0.045 }, impactLabel + '+=0.045')
+        .to(els.stageArena, { x: -Math.round(shakeAmp * 0.72), y: Math.round(shakeY * 0.72), duration: 0.045 }, impactLabel + '+=0.09')
+        .to(els.stageArena, { x: Math.round(shakeAmp * 0.45), y: -Math.round(shakeY * 0.45), duration: 0.045 }, impactLabel + '+=0.135')
+        .to(els.stageArena, { x: 0, y: 0, duration: 0.08, clearProps: 'transform' }, impactLabel + '+=0.18');
+    }
+    if(isFinisher && els.stageBgImg){
+      tl.to(els.stageBgImg, { scale: bossFinisher ? 1.12 : 1.09, duration: 0.12, ease: 'power2.out' }, impactLabel)
+        .to(els.stageBgImg, { scale: 1, duration: 0.56, ease: 'power2.out', clearProps: 'transform' }, impactLabel + '+=0.14');
     }
     if(els.hitCallout){
+      if(isFinisher){
+        els.hitCallout.classList.add('is-ult');
+      } else {
+        els.hitCallout.classList.remove('is-ult');
+      }
       tl.fromTo(els.hitCallout,
-        { autoAlpha: 0, y: 14, scale: 0.45 },
-        { autoAlpha: 1, y: -16, scale: bossFinisher ? 1.38 : (heavyHit ? 1.28 : 1.15), duration: 0.22, ease: 'back.out(2)' },
+        { autoAlpha: 0, y: 18, scale: isFinisher ? 0.28 : 0.45 },
+        { autoAlpha: 1, y: isFinisher ? -24 : -16, scale: isFinisher ? (bossFinisher ? 1.52 : 1.38) : (heavyHit ? 1.28 : 1.15), duration: 0.24, ease: 'back.out(2.2)' },
         impactLabel
       ).to(els.hitCallout,
-        { autoAlpha: 0, y: -46, scale: 1.08, duration: 0.44, ease: 'power1.in', clearProps: 'transform' },
-        impactLabel + '+=0.74'
+        { autoAlpha: 0, y: isFinisher ? -64 : -46, scale: 1.05, duration: 0.48, ease: 'power1.in', clearProps: 'transform' },
+        impactLabel + '+=' + (isFinisher ? '0.96' : '0.74')
       );
     }
   }
 
   function choreographMeteor(tl, coords, launchAt, isBoss){
     var meteors = els.fxLayer ? els.fxLayer.querySelectorAll('.mqst-ult-meteor') : [];
-    var step = isBoss ? 0.11 : 0.085;
+    var riftX = Math.max(115, coords.tx - 210);
+    var riftY = 30;
+
+    // 1. 高空打開星辰召喚裂縫
+    if(els.ultSkyRift){
+      tl.set(els.ultSkyRift, { x: riftX, y: riftY, xPercent: -50, yPercent: -50, scaleX: 0.15, scaleY: 0.15, rotation: -16, autoAlpha: 0 }, launchAt)
+        .to(els.ultSkyRift, { scaleX: 1.45, scaleY: 1.05, autoAlpha: 1, duration: 0.22, ease: 'back.out(1.8)' }, launchAt)
+        .to(els.ultSkyRift, { scaleX: 1.6, scaleY: 1.15, duration: 0.72, ease: 'sine.inOut' }, launchAt + 0.22)
+        .to(els.ultSkyRift, { scaleX: 0.1, scaleY: 0.05, autoAlpha: 0, duration: 0.24, ease: 'power2.in' }, launchAt + 1.02);
+    }
+
+    var step = 0.092;
     var count = meteors.length;
-    var lastImpact = launchAt + 0.45;
+    var lastImpact = launchAt + 0.95;
+
     for(var i = 0; i < count; i++){
       var m = meteors[i];
       var isLast = (i === count - 1);
-      var startAt = launchAt + i * step + (isLast ? 0.08 : 0);
-      var dur = isLast ? 0.36 : 0.28;
-      var spreadX = isLast ? 0 : ((i % 3) - 1) * 34;
-      var spreadY = isLast ? 0 : ((i % 2) === 0 ? -18 : 14);
+      var spreadX = isLast ? 0 : (((i % 3) - 1) * 42);
+      var spreadY = isLast ? 0 : (((i % 2) === 0 ? -24 : 18));
       var endX = coords.tx + spreadX;
       var endY = coords.ty + spreadY;
-      var startX = endX - 180 - (i % 3) * 28;
-      var startY = -55 - (i % 2) * 24;
+      var startX = riftX + (((i % 3) - 1) * 48);
+      var startY = riftY - 22;
 
-      tl.set(m, { x: startX, y: startY, xPercent: -50, yPercent: -50, scale: isLast ? 1.15 : 0.85, rotation: 0, autoAlpha: 0 }, startAt)
-        .to(m, { autoAlpha: 1, duration: 0.05 }, startAt)
-        .to(m, { x: endX, y: endY, rotation: isLast ? 120 : 90, duration: dur, ease: 'power2.in' }, startAt)
-        .to(m, { autoAlpha: 0, scale: isLast ? 1.75 : 1.3, duration: 0.09, ease: 'power1.out' }, startAt + dur);
+      if(!isLast){
+        var startAt = launchAt + 0.14 + i * step;
+        var dur = 0.24;
+        tl.set(m, { x: startX, y: startY, xPercent: -50, yPercent: -50, scale: 0.9 + (i % 2) * 0.2, rotation: 0, autoAlpha: 0 }, startAt)
+          .to(m, { autoAlpha: 1, duration: 0.04 }, startAt)
+          .to(m, { x: endX, y: endY, rotation: 110, duration: dur, ease: 'power2.in' }, startAt)
+          .to(m, { autoAlpha: 0, scale: 1.55, duration: 0.09, ease: 'power1.out' }, startAt + dur);
 
-      if(!isLast && els.enemyActor){
-        tl.to(els.enemyActor, { x: 8, y: 2, duration: 0.05 }, startAt + dur)
-          .to(els.enemyActor, { x: 0, y: 0, duration: 0.07 }, startAt + dur + 0.05);
+        if(els.enemyActor){
+          tl.to(els.enemyActor, { x: 10, y: 3, rotation: 5, duration: 0.045 }, startAt + dur)
+            .to(els.enemyActor, { x: 0, y: 0, rotation: 0, duration: 0.055 }, startAt + dur + 0.045);
+        }
+      } else {
+        // 壓軸終極巨星：在裂縫中心先發光蓄力放大再暴衝重砸
+        var chargeBigAt = launchAt + 0.56;
+        var dropAt = chargeBigAt + 0.16;
+        var dropDur = 0.26;
+        tl.set(m, { x: riftX, y: riftY, xPercent: -50, yPercent: -50, scale: 0.3, rotation: -30, autoAlpha: 0 }, chargeBigAt)
+          .to(m, { autoAlpha: 1, scale: isBoss ? 1.55 : 1.35, rotation: 15, duration: 0.15, ease: 'back.out(2)' }, chargeBigAt)
+          .to(m, { x: endX, y: endY, scale: isBoss ? 1.75 : 1.5, rotation: 165, duration: dropDur, ease: 'power3.in' }, dropAt)
+          .to(m, { autoAlpha: 0, scale: 2.4, duration: 0.12, ease: 'power2.out' }, dropAt + dropDur);
+        lastImpact = dropAt + dropDur;
       }
-      if(isLast) lastImpact = startAt + dur;
     }
     return lastImpact;
   }
 
   function choreographRainbow(tl, coords, launchAt, isBoss){
-    if(!els.ultBeam) return launchAt + 0.48;
+    if(!els.ultBeam) return launchAt + 0.68;
     var orb = els.ultBeam.querySelector('.mqst-ult-beam-orb');
+    var aura = els.ultBeam.querySelector('.mqst-ult-beam-aura');
     var shaft = els.ultBeam.querySelector('.mqst-ult-beam-shaft');
+    var rings = els.ultBeam.querySelectorAll('.mqst-ult-beam-ring');
     var dx = coords.tx - coords.sx;
     var dy = coords.ty - coords.sy;
-    var dist = Math.max(220, Math.sqrt(dx * dx + dy * dy) + 65);
+    var dist = Math.max(240, Math.sqrt(dx * dx + dy * dy) + 75);
     var deg = Math.atan2(dy, dx) * (180 / Math.PI);
-    var targetScaleX = dist / 520;
-    var holdDur = isBoss ? 0.56 : 0.36;
+    var targetScaleX = dist / 540;
+    var fireAt = launchAt + 0.22;
+    var holdDur = isBoss ? 0.58 : 0.44;
 
     tl.set(els.ultBeam, { x: coords.sx, y: coords.sy, rotation: deg, autoAlpha: 1 }, launchAt);
     if(orb){
-      tl.fromTo(orb, { scale: 0.25, autoAlpha: 0 }, { scale: isBoss ? 1.35 : 1.15, autoAlpha: 1, duration: 0.20, ease: 'back.out(2)' }, launchAt)
-        .to(orb, { scale: 0.4, autoAlpha: 0, duration: 0.18 }, launchAt + 0.24 + holdDur);
+      // 能量球迅速膨脹後極限壓縮蓄能，再爆射光柱
+      tl.fromTo(orb, { scale: 0.2, autoAlpha: 0 }, { scale: isBoss ? 1.65 : 1.45, autoAlpha: 1, duration: 0.14, ease: 'power2.out' }, launchAt)
+        .to(orb, { scale: 0.65, duration: 0.08, ease: 'power2.in' }, launchAt + 0.14)
+        .to(orb, { scale: isBoss ? 1.55 : 1.35, duration: 0.14, ease: 'back.out(2)' }, fireAt)
+        .to(orb, { scale: 0.3, autoAlpha: 0, duration: 0.18 }, fireAt + holdDur + 0.08);
+    }
+    if(aura){
+      tl.fromTo(aura,
+        { scaleX: 0.04, scaleY: 0.4, autoAlpha: 0 },
+        { scaleX: targetScaleX * 1.04, scaleY: isBoss ? 1.48 : 1.25, autoAlpha: 0.92, duration: 0.18, ease: 'power3.out' },
+        fireAt
+      )
+      .to(aura, { scaleY: isBoss ? 1.72 : 1.45, duration: holdDur * 0.48, yoyo: true, repeat: 1, ease: 'sine.inOut' }, fireAt + 0.18)
+      .to(aura, { scaleY: 0.1, autoAlpha: 0, duration: 0.18, ease: 'power2.in' }, fireAt + holdDur + 0.08);
     }
     if(shaft){
       tl.fromTo(shaft,
-        { scaleX: 0.03, scaleY: 0.55, autoAlpha: 0.95 },
-        { scaleX: targetScaleX, scaleY: isBoss ? 1.18 : 0.96, duration: 0.22, ease: 'power3.out' },
-        launchAt + 0.14
+        { scaleX: 0.04, scaleY: 0.5, autoAlpha: 0.98 },
+        { scaleX: targetScaleX, scaleY: isBoss ? 1.35 : 1.15, duration: 0.16, ease: 'power3.out' },
+        fireAt
       )
-      .to(shaft, { scaleY: isBoss ? 1.38 : 1.1, duration: holdDur * 0.5, yoyo: true, repeat: 1, ease: 'sine.inOut' }, launchAt + 0.36)
-      .to(shaft, { scaleY: 0.05, autoAlpha: 0, duration: 0.20, ease: 'power2.in' }, launchAt + 0.36 + holdDur);
+      .to(shaft, { scaleY: isBoss ? 1.55 : 1.32, duration: holdDur * 0.45, yoyo: true, repeat: 1, ease: 'sine.inOut' }, fireAt + 0.16)
+      .to(shaft, { scaleY: 0.05, autoAlpha: 0, duration: 0.18, ease: 'power2.in' }, fireAt + holdDur + 0.08);
     }
-    tl.set(els.ultBeam, { autoAlpha: 0 }, launchAt + 0.58 + holdDur);
-    return launchAt + 0.40 + holdDur * 0.55;
+    // 4 個能量衝擊環沿光束軸線高速奔湧撞向敵人
+    for(var r = 0; r < rings.length; r++){
+      var ring = rings[r];
+      var rAt = fireAt + 0.04 + r * 0.10;
+      tl.fromTo(ring,
+        { x: 12, scale: 0.48, autoAlpha: 0 },
+        { x: dist * 0.92, scale: isBoss ? 1.55 : 1.32, autoAlpha: 1, duration: 0.28, ease: 'power1.in' },
+        rAt
+      ).to(ring, { autoAlpha: 0, scale: 1.85, duration: 0.08 }, rAt + 0.26);
+    }
+    if(els.enemyActor){
+      tl.to(els.enemyActor, { x: 16, rotation: 6, duration: 0.08, repeat: 4, yoyo: true, ease: 'sine.inOut' }, fireAt + 0.10);
+    }
+    tl.set(els.ultBeam, { autoAlpha: 0 }, fireAt + holdDur + 0.28);
+    return fireAt + holdDur * 0.72;
   }
 
   function choreographCarrot(tl, coords, launchAt, isBoss){
-    if(!els.ultCarrot) return launchAt + 0.55;
-    var hoverY = Math.max(22, coords.ty - 148);
-    var targetScale = isBoss ? 1.28 : 1.08;
-    var slamAt = launchAt + 0.36;
-    var impactAt = slamAt + 0.22;
+    if(!els.ultCarrot) return launchAt + 0.65;
+    var hoverY = Math.max(16, coords.ty - 165);
+    var targetScale = isBoss ? 2.15 : 1.85;
+    var slamAt = launchAt + 0.40;
+    var impactAt = slamAt + 0.20;
 
-    tl.set(els.ultCarrot, { x: coords.tx, y: hoverY - 40, xPercent: -50, yPercent: -50, scale: 0.2, rotation: -180, autoAlpha: 0 }, launchAt)
-      .to(els.ultCarrot, { y: hoverY, scale: targetScale, rotation: 0, autoAlpha: 1, duration: 0.28, ease: 'back.out(2)' }, launchAt)
-      .to(els.ultCarrot, { y: hoverY - 14, scaleY: targetScale * 1.08, duration: 0.08, ease: 'sine.out' }, launchAt + 0.28)
-      .to(els.ultCarrot, { y: coords.ty - 10, scaleX: targetScale * 1.16, scaleY: targetScale * 0.88, duration: 0.22, ease: 'power3.in' }, slamAt)
-      .to(els.ultCarrot, { y: coords.ty - 36, rotation: 16, scale: targetScale * 0.7, autoAlpha: 0, duration: 0.24, ease: 'power2.out' }, impactAt + 0.08);
+    // 地面鎖定紅色預警圈
+    if(els.ultTargetRing){
+      tl.set(els.ultTargetRing, { x: coords.tx, y: coords.ty + 36, xPercent: -50, yPercent: -50, scale: 1.55, autoAlpha: 0 }, launchAt)
+        .to(els.ultTargetRing, { scale: 0.85, autoAlpha: 0.95, duration: 0.34, ease: 'power2.out' }, launchAt)
+        .to(els.ultTargetRing, { scale: 1.25, autoAlpha: 0, duration: 0.12 }, impactAt);
+    }
+
+    // 巨無霸胡蘿蔔旋轉降臨 → 微往上蓄力 → 千斤重墜砸扁！
+    tl.set(els.ultCarrot, { x: coords.tx, y: hoverY - 56, xPercent: -50, yPercent: -50, scale: 0.2, rotation: -210, autoAlpha: 0 }, launchAt)
+      .to(els.ultCarrot, { y: hoverY, scale: targetScale, rotation: 0, autoAlpha: 1, duration: 0.30, ease: 'back.out(1.9)' }, launchAt)
+      .to(els.ultCarrot, { y: hoverY - 22, scaleX: targetScale * 0.92, scaleY: targetScale * 1.12, duration: 0.09, ease: 'sine.out' }, launchAt + 0.30)
+      .to(els.ultCarrot, { y: coords.ty - 6, scaleX: targetScale * 1.32, scaleY: targetScale * 0.68, duration: 0.20, ease: 'power3.in' }, slamAt)
+      .to(els.ultCarrot, { y: coords.ty - 52, rotation: 18, scaleX: targetScale * 0.75, scaleY: targetScale * 0.75, autoAlpha: 0, duration: 0.28, ease: 'power2.out' }, impactAt + 0.10);
+
+    // 砸地瞬間爆開大地衝擊波與碎片
+    if(els.ultShockwave){
+      tl.set(els.ultShockwave, { x: coords.tx, y: coords.ty + 34, xPercent: -50, yPercent: -50, scale: 0.2, autoAlpha: 0 }, impactAt)
+        .to(els.ultShockwave, { scaleX: 2.35, scaleY: 1.65, autoAlpha: 1, duration: 0.12, ease: 'power3.out' }, impactAt)
+        .to(els.ultShockwave, { scaleX: 3.1, scaleY: 2.0, autoAlpha: 0, duration: 0.32, ease: 'power2.out' }, impactAt + 0.12);
+    }
+    if(els.fxLayer){
+      var chips = els.fxLayer.querySelectorAll('.mqst-ult-carrot-chip');
+      var chipDirs = [
+        { dx: -95, dy: -88, rot: -260 },
+        { dx: -48, dy: -120, rot: -180 },
+        { dx: 52,  dy: -115, rot: 210 },
+        { dx: 96,  dy: -82, rot: 280 }
+      ];
+      for(var c = 0; c < chips.length; c++){
+        var cd = chipDirs[c % chipDirs.length];
+        tl.set(chips[c], { x: coords.tx, y: coords.ty + 18, xPercent: -50, yPercent: -50, scale: 0.5, rotation: 0, autoAlpha: 0 }, impactAt)
+          .to(chips[c], { x: coords.tx + cd.dx, y: coords.ty + cd.dy, scale: 1.35, rotation: cd.rot, autoAlpha: 1, duration: 0.26, ease: 'power2.out' }, impactAt)
+          .to(chips[c], { y: coords.ty + 32, scale: 0.4, autoAlpha: 0, duration: 0.28, ease: 'power2.in' }, impactAt + 0.26);
+      }
+    }
     return impactAt;
   }
 
   function choreographSlash(tl, coords, launchAt, isBoss){
-    if(!els.ultSlash) return launchAt + 0.55;
+    if(!els.ultSlash) return launchAt + 0.80;
     var bladeA = els.ultSlash.querySelector('.mqst-ult-slash-blade.a');
     var bladeB = els.ultSlash.querySelector('.mqst-ult-slash-blade.b');
-    var crossEl = els.ultSlash.querySelector('.mqst-ult-slash-cross');
-    var impactAt = launchAt + 0.54;
+    var bladeC = els.ultSlash.querySelector('.mqst-ult-slash-blade.c');
+    var bladeD = els.ultSlash.querySelector('.mqst-ult-slash-blade.d');
+    var crossSub = els.ultSlash.querySelector('.mqst-ult-slash-cross.sub');
+    var crossMain = els.ultSlash.querySelector('.mqst-ult-slash-cross.main');
+    var dashDist = Math.max(120, coords.tx - coords.sx + 56);
+    var impactAt = launchAt + 0.78;
 
-    tl.set(els.ultSlash, { x: coords.tx, y: coords.ty, xPercent: -50, yPercent: -50, scale: isBoss ? 1.18 : 1.0, autoAlpha: 1 }, launchAt);
-    if(bladeA){
-      tl.fromTo(bladeA,
-        { scale: 0.3, rotation: -35, autoAlpha: 0 },
-        { scale: 1.15, rotation: 0, autoAlpha: 1, duration: 0.16, ease: 'power3.out' },
-        launchAt
-      ).to(bladeA, { autoAlpha: 0, scale: 1.3, duration: 0.18 }, launchAt + 0.26);
+    // 粉紅小兔留下發光殘影，極速衝刺貫穿敵人後方！
+    if(els.heroAfterimage){
+      els.heroAfterimage.innerHTML = getPinkBunnySvg('fever');
+      tl.set(els.heroAfterimage, { x: coords.sx - 24, y: coords.sy + 8, xPercent: -50, yPercent: -50, scale: 1, autoAlpha: 0.85 }, launchAt)
+        .to(els.heroAfterimage, { scale: 1.28, autoAlpha: 0, duration: 0.34, ease: 'power2.out' }, launchAt + 0.04);
     }
-    if(els.enemyActor){
-      tl.to(els.enemyActor, { x: 10, rotation: 6, duration: 0.07 }, launchAt + 0.10)
-        .to(els.enemyActor, { x: 0, rotation: 0, duration: 0.09 }, launchAt + 0.17);
+    if(els.heroActor){
+      tl.to(els.heroActor, { x: dashDist, y: -16, scaleX: 1.15, scaleY: 0.92, rotation: 16, duration: 0.14, ease: 'power3.out' }, launchAt)
+        .to(els.heroActor, { x: dashDist + 18, y: -6, rotation: 8, duration: 0.48, ease: 'none' }, launchAt + 0.14)
+        .to(els.heroActor, { x: 0, y: 0, scaleX: 1, scaleY: 1, rotation: 0, duration: 0.24, ease: 'back.out(1.6)', clearProps: 'transform' }, impactAt - 0.12);
     }
-    if(bladeB){
-      tl.fromTo(bladeB,
-        { scale: 0.3, rotation: 35, autoAlpha: 0 },
-        { scale: 1.18, rotation: 0, autoAlpha: 1, duration: 0.16, ease: 'power3.out' },
-        launchAt + 0.26
-      ).to(bladeB, { autoAlpha: 0, scale: 1.35, duration: 0.22 }, launchAt + 0.50);
+
+    tl.set(els.ultSlash, { x: coords.tx, y: coords.ty, xPercent: -50, yPercent: -50, scale: isBoss ? 1.28 : 1.12, autoAlpha: 1 }, launchAt);
+
+    var blades = [
+      { el: bladeA, at: launchAt + 0.05, rotFrom: -45, rotTo: 0 },
+      { el: bladeB, at: launchAt + 0.18, rotFrom: 45,  rotTo: 0 },
+      { el: bladeC, at: launchAt + 0.31, rotFrom: -18, rotTo: 0 },
+      { el: bladeD, at: launchAt + 0.44, rotFrom: 18,  rotTo: 0 }
+    ];
+    for(var b = 0; b < blades.length; b++){
+      var item = blades[b];
+      if(item.el){
+        tl.fromTo(item.el,
+          { scale: 0.25, rotation: item.rotFrom, autoAlpha: 0 },
+          { scale: 1.22, rotation: item.rotTo, autoAlpha: 1, duration: 0.12, ease: 'power3.out' },
+          item.at
+        ).to(item.el, { autoAlpha: 0, scale: 1.45, duration: 0.18 }, item.at + 0.18);
+      }
+      if(els.enemyActor){
+        var shakeDir = (b % 2 === 0) ? 11 : -8;
+        tl.to(els.enemyActor, { x: shakeDir, rotation: (b % 2 === 0 ? 7 : -6), duration: 0.045 }, item.at + 0.03)
+          .to(els.enemyActor, { x: 0, rotation: 0, duration: 0.055 }, item.at + 0.075);
+      }
     }
-    if(crossEl){
-      tl.fromTo(crossEl,
+
+    // 停頓蓄勢後 → 雙層星辰十字同時大爆裂
+    if(crossSub){
+      tl.fromTo(crossSub,
         { scale: 0.2, rotation: 0, autoAlpha: 0 },
-        { scale: isBoss ? 1.45 : 1.2, rotation: 45, autoAlpha: 1, duration: 0.18, ease: 'back.out(2)' },
-        impactAt - 0.04
-      ).to(crossEl, { scale: 1.65, autoAlpha: 0, duration: 0.26, ease: 'power2.in' }, impactAt + 0.16);
+        { scale: isBoss ? 1.75 : 1.45, rotation: 90, autoAlpha: 1, duration: 0.18, ease: 'back.out(2)' },
+        impactAt - 0.03
+      ).to(crossSub, { scale: 2.1, autoAlpha: 0, duration: 0.28, ease: 'power2.in' }, impactAt + 0.16);
     }
-    tl.set(els.ultSlash, { autoAlpha: 0 }, impactAt + 0.45);
+    if(crossMain){
+      tl.fromTo(crossMain,
+        { scale: 0.2, rotation: 45, autoAlpha: 0 },
+        { scale: isBoss ? 1.55 : 1.3, rotation: 0, autoAlpha: 1, duration: 0.18, ease: 'back.out(2.2)' },
+        impactAt - 0.02
+      ).to(crossMain, { scale: 1.9, autoAlpha: 0, duration: 0.28, ease: 'power2.in' }, impactAt + 0.16);
+    }
+    tl.set(els.ultSlash, { autoAlpha: 0 }, impactAt + 0.50);
     return impactAt;
   }
 
@@ -2014,10 +2196,13 @@
     var def = FINISHER_DEFS[finisherId] || FINISHER_DEFS.meteor;
     var hasPartner = Boolean(partner);
     if(els.ultCutinTag){
-      els.ultCutinTag.textContent = isBoss ? '⚡ 終極必殺' : '✨ 必殺技';
+      els.ultCutinTag.textContent = isBoss ? '⚡ 終極奧義' : '✨ 必殺技';
     }
     if(els.ultCutinTitle){
       els.ultCutinTitle.textContent = def.title;
+    }
+    if(els.ultCutinHero){
+      els.ultCutinHero.innerHTML = getPinkBunnySvg('fever');
     }
     if(els.hitCallout){
       els.hitCallout.textContent = def.badge;
@@ -2029,6 +2214,7 @@
     if(motionReduced || typeof window.gsap === 'undefined'){
       updateBattleMoods('fever', isBoss ? 'dizzy' : 'open', 'happy');
       if(els.hitCallout){
+        els.hitCallout.classList.add('is-ult');
         els.hitCallout.style.opacity = '1';
         els.hitCallout.style.visibility = 'visible';
       }
@@ -2038,7 +2224,7 @@
     runAnim(function(gsap){
       stopAttackAnim();
       var coords = measureStageCoords(hasPartner);
-      var chargeDur = isBoss ? 0.42 : 0.24;
+      var chargeDur = isBoss ? 0.48 : 0.36;
       var launchAt = chargeDur;
 
       var tl = gsap.timeline({
@@ -2048,60 +2234,75 @@
       });
       attackTimeline = tl;
 
-      /* ---- 階段 1：背景聚光／Cut-in 橫幅與小兔蓄力 ---- */
+      /* ---- 階段 1：聚光暗場＋漫畫集中線＋魔法陣＋小兔特寫 Cut-in ---- */
       tl.addLabel('charge', 0);
-      if(isBoss && els.ultBackdrop){
-        tl.fromTo(els.ultBackdrop, { autoAlpha: 0 }, { autoAlpha: 1, duration: 0.26, ease: 'power2.out' }, 'charge');
+      if(els.ultBackdrop){
+        tl.fromTo(els.ultBackdrop,
+          { autoAlpha: 0 },
+          { autoAlpha: isBoss ? 1 : 0.82, duration: 0.24, ease: 'power2.out' },
+          'charge'
+        );
       }
+      if(els.ultSpeedlines){
+        tl.fromTo(els.ultSpeedlines,
+          { xPercent: -50, yPercent: -50, rotation: 0, scale: 0.85, autoAlpha: 0.4 },
+          { xPercent: -50, yPercent: -50, rotation: 95, scale: 1.1, autoAlpha: 1, duration: 1.55, ease: 'none' },
+          'charge'
+        );
+      }
+      if(els.stageBgImg){
+        tl.to(els.stageBgImg, { scale: isBoss ? 1.08 : 1.05, duration: chargeDur, ease: 'power2.out' }, 'charge');
+      }
+      if(els.ultMagicRing){
+        tl.set(els.ultMagicRing, { x: coords.sx - 20, y: coords.sy + 30, xPercent: -50, yPercent: -50, scale: 0.2, rotation: 0, autoAlpha: 0 }, 'charge')
+          .to(els.ultMagicRing, { scale: isBoss ? 1.25 : 1.08, rotation: 180, autoAlpha: 1, duration: chargeDur, ease: 'back.out(1.6)' }, 'charge')
+          .to(els.ultMagicRing, { scale: 1.65, rotation: 300, autoAlpha: 0, duration: 0.32, ease: 'power2.out' }, launchAt + 0.08);
+      }
+
       if(els.ultCutin){
-        if(isBoss){
-          tl.fromTo(els.ultCutin,
-            { xPercent: -120, yPercent: -50, scale: 0.9, autoAlpha: 0 },
-            { xPercent: -50, yPercent: -50, scale: 1.05, autoAlpha: 1, duration: 0.26, ease: 'back.out(1.6)' },
-            'charge'
-          ).to(els.ultCutin,
-            { xPercent: 25, autoAlpha: 0, duration: 0.24, ease: 'power2.in' },
-            'charge+=1.05'
-          );
-        } else {
-          tl.fromTo(els.ultCutin,
-            { xPercent: -50, yPercent: -30, scale: 0.75, autoAlpha: 0 },
-            { xPercent: -50, yPercent: -50, scale: 0.94, autoAlpha: 1, duration: 0.20, ease: 'back.out(1.7)' },
-            'charge'
-          ).to(els.ultCutin,
-            { yPercent: -70, autoAlpha: 0, duration: 0.22, ease: 'power1.in' },
-            'charge+=0.82'
-          );
+        var shine = els.ultCutin.querySelector('.mqst-ult-cutin-shine');
+        tl.fromTo(els.ultCutin,
+          { xPercent: -145, yPercent: -50, skewX: -8, scale: 0.9, autoAlpha: 0 },
+          { xPercent: -50, yPercent: -50, skewX: -8, scale: isBoss ? 1.06 : 0.98, autoAlpha: 1, duration: 0.24, ease: 'back.out(1.5)' },
+          'charge'
+        ).to(els.ultCutin,
+          { xPercent: 45, autoAlpha: 0, duration: 0.22, ease: 'power2.in' },
+          'charge+=' + (isBoss ? '1.12' : '0.96')
+        );
+        if(shine){
+          tl.fromTo(shine, { x: -40 }, { x: 460, duration: 0.42, ease: 'power1.inOut' }, 'charge+=0.20');
         }
       }
 
       if(els.heroActor){
-        tl.to(els.heroActor, { x: -16, y: 7, scaleX: 1.18, scaleY: 0.82, rotation: -12, duration: chargeDur * 0.85, ease: 'power2.out' }, 'charge')
-          .to(els.heroActor, { x: 28, y: -24, scaleX: 0.92, scaleY: 1.12, rotation: 10, duration: 0.20, ease: 'back.out(2)' }, launchAt)
-          .to(els.heroActor, { x: 0, y: 0, scaleX: 1, scaleY: 1, rotation: 0, duration: 0.36, ease: 'power2.out', clearProps: 'transform' }, launchAt + 0.24);
+        tl.to(els.heroActor, { x: -18, y: 8, scaleX: 1.22, scaleY: 0.80, rotation: -14, duration: chargeDur * 0.85, ease: 'power2.out' }, 'charge');
+        if(finisherId !== 'slash'){
+          tl.to(els.heroActor, { x: 30, y: -26, scaleX: 0.90, scaleY: 1.15, rotation: 12, duration: 0.20, ease: 'back.out(2)' }, launchAt)
+            .to(els.heroActor, { x: 0, y: 0, scaleX: 1, scaleY: 1, rotation: 0, duration: 0.36, ease: 'power2.out', clearProps: 'transform' }, launchAt + 0.24);
+        }
       }
       if(els.heroAura){
-        tl.fromTo(els.heroAura, { autoAlpha: 0, scale: 0.65 }, { autoAlpha: 1, scale: isBoss ? 1.55 : 1.35, duration: chargeDur, ease: 'power1.out' }, 'charge')
-          .to(els.heroAura, { autoAlpha: 0, scale: 1.1, duration: 0.45, clearProps: 'opacity,transform' }, launchAt + 0.30);
+        tl.fromTo(els.heroAura, { autoAlpha: 0, scale: 0.65 }, { autoAlpha: 1, scale: isBoss ? 1.75 : 1.5, duration: chargeDur, ease: 'power1.out' }, 'charge')
+          .to(els.heroAura, { autoAlpha: 0, scale: 1.15, duration: 0.45, clearProps: 'opacity,transform' }, launchAt + 0.32);
       }
 
       // 守護精靈同步浮起發光助陣並射出輔助星光
       if(hasPartner && els.partnerActor){
-        tl.to(els.partnerActor, { y: -14, scale: 1.14, rotation: -6, duration: chargeDur * 0.85, ease: 'power2.out' }, 'charge')
-          .to(els.partnerActor, { x: 14, y: -20, scale: 1.2, rotation: 8, duration: 0.20, ease: 'back.out(2)' }, launchAt)
+        tl.to(els.partnerActor, { y: -16, scale: 1.18, rotation: -8, duration: chargeDur * 0.85, ease: 'power2.out' }, 'charge')
+          .to(els.partnerActor, { x: 16, y: -22, scale: 1.25, rotation: 10, duration: 0.20, ease: 'back.out(2)' }, launchAt)
           .to(els.partnerActor, { x: 0, y: 0, scale: 1, rotation: 0, duration: 0.36, ease: 'power2.out', clearProps: 'transform' }, launchAt + 0.26);
       }
       if(hasPartner && els.partnerProjectile){
-        var pPeak = Math.min(coords.py, coords.ty) - 76;
-        tl.set(els.partnerProjectile, { x: coords.px, y: coords.py, xPercent: -50, yPercent: -50, scale: 0.65, autoAlpha: 1 }, launchAt + 0.05)
-          .to(els.partnerProjectile, { x: coords.tx, rotation: -540, duration: 0.50, ease: 'power1.inOut' }, launchAt + 0.05)
-          .to(els.partnerProjectile, { y: pPeak, scale: 1.35, duration: 0.24, ease: 'sine.out' }, launchAt + 0.05)
-          .to(els.partnerProjectile, { y: coords.ty, scale: 1.5, autoAlpha: 0, duration: 0.26, ease: 'sine.in' }, launchAt + 0.29);
+        var pPeak = Math.min(coords.py, coords.ty) - 82;
+        tl.set(els.partnerProjectile, { x: coords.px, y: coords.py, xPercent: -50, yPercent: -50, scale: 0.7, autoAlpha: 1 }, launchAt + 0.05)
+          .to(els.partnerProjectile, { x: coords.tx, rotation: -600, duration: 0.50, ease: 'power1.inOut' }, launchAt + 0.05)
+          .to(els.partnerProjectile, { y: pPeak, scale: 1.55, duration: 0.24, ease: 'sine.out' }, launchAt + 0.05)
+          .to(els.partnerProjectile, { y: coords.ty, scale: 1.75, autoAlpha: 0, duration: 0.26, ease: 'sine.in' }, launchAt + 0.29);
       }
 
       /* ---- 階段 2：依隨機抽出的必殺技編排主體演出 ---- */
       tl.addLabel('launch', launchAt);
-      var impactAt = launchAt + 0.72;
+      var impactAt = launchAt + 0.80;
       if(finisherId === 'meteor'){
         impactAt = choreographMeteor(tl, coords, launchAt, isBoss);
       } else if(finisherId === 'rainbow'){
@@ -2112,15 +2313,15 @@
         impactAt = choreographSlash(tl, coords, launchAt, isBoss);
       }
 
-      /* ---- 階段 3：總爆破命中、敵人擊潰表情切換與聚光退場 ---- */
+      /* ---- 階段 3：終極爆破命中、敵人擊潰表情切換與聚光退場 ---- */
       tl.addLabel('impact', impactAt);
       tl.add(function(){
         updateBattleMoods('fever', isBoss ? 'dizzy' : 'open', 'happy');
       }, 'impact');
-      appendImpactBurst(tl, 'impact', coords.tx, coords.ty, true, isBoss);
+      appendImpactBurst(tl, 'impact', coords.tx, coords.ty, true, isBoss, true);
 
-      if(isBoss && els.ultBackdrop){
-        tl.to(els.ultBackdrop, { autoAlpha: 0, duration: 0.45, ease: 'power2.inOut' }, 'impact+=0.68');
+      if(els.ultBackdrop){
+        tl.to(els.ultBackdrop, { autoAlpha: 0, duration: 0.48, ease: 'power2.inOut' }, 'impact+=0.74');
       }
     });
   }
@@ -2335,7 +2536,7 @@
       els.nextBtn.disabled = true;
       els.nextBtn.classList.add('ult-waiting');
       els.nextBtn.textContent = '⚡ 必殺技施放中…';
-      var unlockDelayMs = motionReduced ? 550 : (isBoss ? 1900 : 1450);
+      var unlockDelayMs = motionReduced ? 550 : (isBoss ? 2250 : 1850);
       nextUnlockTimer = setTimeout(function(){
         nextUnlockTimer = null;
         session.nextLocked = false;
@@ -2357,7 +2558,7 @@
     }
 
     // 必殺技期間將朗讀口訣延至命中爆破後，避免與必殺技音效互搶聲音
-    var speakDelayMs = isFinalBlow ? (motionReduced ? 360 : (isBoss ? 1700 : 1200)) : 340;
+    var speakDelayMs = isFinalBlow ? (motionReduced ? 360 : (isBoss ? 2000 : 1600)) : 340;
     scheduleSpeak('答對了！' + q.mantra, speakDelayMs);
   }
 

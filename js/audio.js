@@ -350,53 +350,71 @@
   function sfxFinisher(kind, isBoss){
     if(!soundOn) return;
     var boost = isBoss ? 1.15 : 1.0;
+    var baseShift = isBoss ? 0.12 : 0;
 
-    // 1. 共通蓄力聚能上升音
-    tone(330, 0.02, 0.12, 'triangle', 0.09 * boost);
-    tone(440, 0.10, 0.14, 'triangle', 0.10 * boost);
-    tone(587.33, 0.18, 0.16, 'sine', 0.11 * boost);
+    // 1. 共通蓄力聚能上升音與 Cut-in 亮音
+    tone(330, 0.02, 0.13, 'triangle', 0.09 * boost);
+    tone(440, 0.09, 0.14, 'triangle', 0.10 * boost);
+    tone(587.33, 0.16, 0.16, 'sine', 0.11 * boost);
+    tone(880, 0.23, 0.18, 'sine', 0.10 * boost);
+    if(isBoss) tone(1174.66, 0.30, 0.22, 'triangle', 0.09);
 
     if(kind === 'meteor'){
-      // 多顆流星連續呼嘯墜落 + 收尾爆裂和弦
-      var drops = [0.46, 0.58, 0.70, 0.82, 0.96, 1.12];
+      // 第一波流星群連續呼嘯砸落 + 壓軸巨星引爆和弦
+      var drops = [0.46, 0.56, 0.66, 0.76, 0.86, 0.96];
       for(var i = 0; i < drops.length; i++){
-        var d = drops[i];
-        tone(1180 - i * 65, d, 0.11, 'sine', 0.09 * boost);
-        tone(240 + (i % 2) * 40, d + 0.09, 0.10, 'triangle', 0.09 * boost);
+        var d = drops[i] + baseShift;
+        tone(1260 - i * 70, d, 0.10, 'sine', 0.09 * boost);
+        tone(220 + (i % 2) * 55, d + 0.09, 0.10, 'triangle', 0.09 * boost);
       }
-      if(isBoss) tone(110, 1.35, 0.28, 'sawtooth', 0.09);
-      tone(523.25, 1.35, 0.22, 'triangle', 0.13 * boost);
-      tone(783.99, 1.40, 0.24, 'sine', 0.12 * boost);
-      tone(1046.5, 1.46, 0.30, 'sine', 0.12 * boost);
+      var endM = 1.24 + baseShift;
+      tone(98, endM, 0.32, 'sawtooth', 0.10 * boost);
+      tone(523.25, endM, 0.24, 'triangle', 0.13 * boost);
+      tone(783.99, endM + 0.05, 0.26, 'sine', 0.12 * boost);
+      tone(1046.5, endM + 0.11, 0.32, 'sine', 0.13 * boost);
+      tone(1567.98, endM + 0.17, 0.28, 'sine', 0.09 * boost);
     } else if(kind === 'rainbow'){
-      // 聚光和弦長鳴 + 彩虹光束推進共鳴
-      tone(523.25, 0.38, 0.45, 'triangle', 0.11 * boost);
-      tone(659.25, 0.44, 0.45, 'sine', 0.11 * boost);
-      tone(783.99, 0.50, 0.48, 'sine', 0.11 * boost);
-      tone(1046.5, 0.58, 0.52, 'triangle', 0.12 * boost);
-      if(isBoss) tone(130.81, 0.62, 0.42, 'sawtooth', 0.08);
-      tone(1318.51, 0.95, 0.34, 'sine', 0.11 * boost);
-      tone(1567.98, 1.04, 0.36, 'sine', 0.10 * boost);
+      // 能量聚縮高音 + 宏亮彩虹炮長鳴 + 雙八度閃亮破敵和弦
+      tone(1046.5, 0.34 + baseShift, 0.14, 'sine', 0.10 * boost);
+      tone(1318.51, 0.42 + baseShift, 0.14, 'sine', 0.11 * boost);
+      var beamStart = 0.54 + baseShift;
+      tone(523.25, beamStart, 0.52, 'triangle', 0.11 * boost);
+      tone(659.25, beamStart + 0.06, 0.52, 'sine', 0.11 * boost);
+      tone(783.99, beamStart + 0.12, 0.54, 'sine', 0.11 * boost);
+      tone(1046.5, beamStart + 0.18, 0.56, 'triangle', 0.12 * boost);
+      if(isBoss) tone(130.81, beamStart + 0.10, 0.48, 'sawtooth', 0.09);
+      tone(1318.51, beamStart + 0.42, 0.36, 'sine', 0.12 * boost);
+      tone(1567.98, beamStart + 0.49, 0.38, 'sine', 0.11 * boost);
     } else if(kind === 'carrot'){
-      // 懸浮召喚閃音 + 高空重墜滑落 + 厚重震地低音 + 閃亮噴星
-      tone(783.99, 0.34, 0.14, 'sine', 0.10 * boost);
-      tone(1046.5, 0.44, 0.16, 'sine', 0.11 * boost);
-      tone(460, 0.72, 0.14, 'triangle', 0.10 * boost);
-      tone(290, 0.84, 0.16, 'triangle', 0.11 * boost);
-      tone(isBoss ? 88 : 110, 0.98, 0.30, 'sawtooth', 0.12 * boost);
-      tone(196, 1.00, 0.26, 'square', 0.08 * boost);
-      tone(659.25, 1.06, 0.20, 'sine', 0.11 * boost);
-      tone(987.77, 1.14, 0.24, 'sine', 0.11 * boost);
+      // 高空鎖定召喚音 + 千斤墜急墜音 + 超厚重震地低音 + 彈跳星塵
+      tone(783.99, 0.38 + baseShift, 0.14, 'sine', 0.10 * boost);
+      tone(1046.5, 0.47 + baseShift, 0.16, 'sine', 0.11 * boost);
+      tone(520, 0.72 + baseShift, 0.12, 'triangle', 0.10 * boost);
+      tone(310, 0.83 + baseShift, 0.15, 'triangle', 0.11 * boost);
+      var slamT = 0.96 + baseShift;
+      tone(isBoss ? 78 : 96, slamT, 0.34, 'sawtooth', 0.13 * boost);
+      tone(185, slamT + 0.02, 0.28, 'square', 0.08 * boost);
+      tone(659.25, slamT + 0.08, 0.22, 'sine', 0.11 * boost);
+      tone(987.77, slamT + 0.15, 0.26, 'sine', 0.12 * boost);
+      tone(1318.51, slamT + 0.22, 0.26, 'sine', 0.10 * boost);
     } else {
-      // slash 星辰十字斬：第一斬 → 第二斬 → 十字總爆裂
-      tone(987.77, 0.46, 0.12, 'sawtooth', 0.08 * boost);
-      tone(1318.51, 0.50, 0.14, 'sine', 0.11 * boost);
-      tone(1174.66, 0.74, 0.12, 'sawtooth', 0.09 * boost);
-      tone(1567.98, 0.78, 0.16, 'sine', 0.12 * boost);
-      if(isBoss) tone(110, 1.00, 0.28, 'sawtooth', 0.09);
-      tone(523.25, 1.00, 0.22, 'triangle', 0.12 * boost);
-      tone(1046.5, 1.04, 0.28, 'sine', 0.13 * boost);
-      tone(1318.51, 1.12, 0.30, 'sine', 0.11 * boost);
+      // slash 星辰十字斬：四連斬音階攀升 → Hit-stop 停頓 → 終極十字爆裂
+      var s0 = 0.40 + baseShift;
+      tone(987.77, s0, 0.10, 'sawtooth', 0.08 * boost);
+      tone(1318.51, s0 + 0.03, 0.11, 'sine', 0.10 * boost);
+      tone(1108.73, s0 + 0.14, 0.10, 'sawtooth', 0.08 * boost);
+      tone(1479.98, s0 + 0.17, 0.11, 'sine', 0.10 * boost);
+      tone(1244.51, s0 + 0.28, 0.10, 'sawtooth', 0.09 * boost);
+      tone(1661.22, s0 + 0.31, 0.12, 'sine', 0.11 * boost);
+      tone(1396.91, s0 + 0.42, 0.11, 'sawtooth', 0.09 * boost);
+      tone(1864.66, s0 + 0.45, 0.14, 'sine', 0.12 * boost);
+
+      var burstT = s0 + 0.72;
+      tone(104, burstT, 0.30, 'sawtooth', 0.10 * boost);
+      tone(523.25, burstT, 0.24, 'triangle', 0.12 * boost);
+      tone(1046.5, burstT + 0.05, 0.28, 'sine', 0.13 * boost);
+      tone(1318.51, burstT + 0.12, 0.32, 'sine', 0.12 * boost);
+      tone(1567.98, burstT + 0.18, 0.30, 'sine', 0.10 * boost);
     }
   }
 
