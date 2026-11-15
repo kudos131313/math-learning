@@ -514,6 +514,47 @@
 
         return '驗證通過 6 組臺灣課綱九九乘法口訣、5 大關卡與單段自選題庫及答案驗證器';
       }
+    },
+    {
+      id: 'mul_quest_engine',
+      name: '九九乘法冒險闖關與選擇題誘答引擎 (Multiplication Quest)',
+      run: function(){
+        if(!MathApp.mulQuest || !MathApp.mulQuiz.generateChoices){
+          throw new Error('未找到 MathApp.mulQuest 或 MathApp.mulQuiz.generateChoices 函式');
+        }
+        var islands = MathApp.mulQuest.getIslands();
+        var stages = MathApp.mulQuest.getStages();
+        var badges = MathApp.mulQuest.getBadges();
+        if(islands.length !== 5 || stages.length !== 15 || badges.length !== 10){
+          throw new Error('關卡或圖鑑設定數量異常：島嶼=' + islands.length + ' 關卡=' + stages.length + ' 徽章=' + badges.length);
+        }
+
+        // 驗證每一關題庫產生與選擇題誘答選項不重複且包含正解
+        stages.forEach(function(st){
+          var qs = MathApp.mulQuest.buildStageQuestions(st);
+          if(qs.length !== st.count){
+            throw new Error('關卡 ' + st.id + ' 題數不符預期');
+          }
+          qs.forEach(function(q){
+            if(q.uiMode === 'choice'){
+              var opts = MathApp.mulQuiz.generateChoices(q, 4);
+              if(opts.length !== 4){
+                throw new Error('關卡 ' + st.id + ' 選擇題選項數量不足 4 個');
+              }
+              if(opts.indexOf(q.slots[0].expected) === -1){
+                throw new Error('關卡 ' + st.id + ' 選擇題選項遺漏正解');
+              }
+              var uniq = {};
+              opts.forEach(function(v){
+                if(uniq[v]) throw new Error('關卡 ' + st.id + ' 選擇題選項出現重複值 ' + v);
+                uniq[v] = true;
+              });
+            }
+          });
+        });
+
+        return '驗證通過 5 大島 15 關題庫配置、10 枚徽章定義及選擇題誘答防重複檢查';
+      }
     }
   ];
 

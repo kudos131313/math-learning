@@ -2,7 +2,7 @@
 <html lang="zh-Hant-TW">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>數字積木屋｜國小數學概念探索與運算思維教室</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=ZCOOL+KuaiLe&family=Baloo+2:wght@500;700;800&family=Noto+Sans+TC:wght@400;500;700;900&display=swap" rel="stylesheet">
@@ -30,6 +30,7 @@
 <link rel="stylesheet" href="css/calc.css?v=20260908e">
 <link rel="stylesheet" href="css/calc-quiz.css?v=20260908e">
 <link rel="stylesheet" href="css/mul.css?v=20261020a">
+<link rel="stylesheet" href="css/mul-quest.css?v=20261115a">
 <link rel="stylesheet" href="css/modal.css?v=20260908e">
 </head>
 <body>
@@ -867,6 +868,7 @@
       <div class="unit-sub-tabs" role="tablist" aria-label="九九乘法表單元子分頁">
         <button class="unit-sub-tab active" id="subtab-mul-learn" type="button" role="tab" aria-selected="true" aria-controls="subpanel-mul-learn"><i data-lucide="layout-grid"></i>九九乘法探索台</button>
         <button class="unit-sub-tab" id="subtab-mul-quiz" type="button" role="tab" aria-selected="false" aria-controls="subpanel-mul-quiz"><i data-lucide="trophy"></i>乘法挑戰測驗</button>
+        <button class="unit-sub-tab" id="subtab-mul-quest" type="button" role="tab" aria-selected="false" aria-controls="subpanel-mul-quest"><i data-lucide="map"></i>乘法冒險闖關</button>
       </div>
     </div>
 
@@ -1160,7 +1162,320 @@
         </div>
       </section>
     </div><!-- /#subpanel-mul-quiz -->
+
+    <!-- 子分頁 3：乘法冒險闖關 (MULTIPLICATION ADVENTURE QUEST - FULLSCREEN ARCADE) -->
+    <div class="sub-panel" id="subpanel-mul-quest" role="tabpanel" aria-labelledby="subtab-mul-quest">
+      <!-- 內頁遊戲啟動封面卡（退出全螢幕時顯示） -->
+      <section class="mqst-launcher-card" id="mqst-launcher-card">
+        <div class="mqst-launcher-art">
+          <img src="assets/quest/world-map.jpg" alt="九九乘法奇幻五島冒險世界地圖預覽" class="mqst-launcher-img">
+          <div class="mqst-launcher-bunny" id="mqst-launcher-bunny" aria-hidden="true"></div>
+        </div>
+        <div class="mqst-launcher-info">
+          <span class="mqst-launcher-pill">🐰 粉紅小兔的大冒險</span>
+          <h2>九九乘法冒險島</h2>
+          <p>跟著粉紅小兔子跳上五座童話小島，收集 81 顆乘法寶石、打敗可愛積木怪獸，把 5 隻守護小精靈通通帶回家！</p>
+          <div class="mqst-launcher-stats">
+            <span>⭐ <strong id="mqst-launch-stars">0</strong> / 45 星</span>
+            <span>💎 <strong id="mqst-launch-gems">0</strong> / 81 寶石</span>
+            <span>🐣 <strong id="mqst-launch-sprites">0</strong> / 5 精靈</span>
+          </div>
+          <button type="button" class="mqst-play-big-btn" id="mqst-enter-arcade-btn">
+            <i data-lucide="gamepad-2" aria-hidden="true"></i>
+            <span>打開全螢幕遊戲世界</span>
+          </button>
+        </div>
+      </section>
+
+      <!-- 全螢幕沉浸式小遊戲機台 (ARCADE OVERLAY) -->
+      <div class="mqst-arcade-overlay" id="mqst-arcade-overlay" aria-hidden="true">
+        <!-- 視圖 1：繪本全景世界大地圖 -->
+        <div class="mqst-screen mqst-map-screen active" id="mqst-map-view">
+          <!-- 頂部懸浮遊戲 HUD -->
+          <header class="mqst-hud-bar">
+            <div class="mqst-hud-profile">
+              <div class="mqst-hud-avatar" id="mqst-hud-avatar" aria-hidden="true"></div>
+              <div class="mqst-hud-counters">
+                <span class="mqst-hud-pill star">⭐ <strong id="mqst-total-stars">0</strong>/45</span>
+                <span class="mqst-hud-pill gem">💎 <strong id="mqst-gem-count">0</strong>/81</span>
+                <span class="mqst-hud-pill sprite">🐣 <strong id="mqst-sprite-count">0</strong>/5</span>
+              </div>
+            </div>
+
+            <div class="mqst-hud-actions">
+              <span class="mqst-preview-badge" id="mqst-preview-badge" style="display:none;">🔓 預習模式</span>
+              <button type="button" class="mqst-hud-btn dex" id="mqst-open-dex-btn">
+                <span aria-hidden="true">💎</span><span>圖鑑</span>
+              </button>
+              <button type="button" class="mqst-hud-btn rescue" id="mqst-rescue-btn">
+                <span class="mqst-rescue-dot" aria-hidden="true">🆘</span><span>求救 (<strong id="mqst-rescue-count">0</strong>)</span>
+              </button>
+              <button type="button" class="mqst-hud-btn settings" id="mqst-open-parent-btn" aria-label="預習與家長設定">
+                <span aria-hidden="true">⚙️</span><span>預習</span>
+              </button>
+              <button type="button" class="mqst-hud-btn exit" id="mqst-exit-arcade-btn">
+                <span aria-hidden="true">🏠</span><span>回教室</span>
+              </button>
+            </div>
+          </header>
+
+          <!-- 可捲動/滿屏的 16:9 繪本奇幻世界地圖舞台 -->
+          <div class="mqst-world-viewport" id="mqst-world-viewport">
+            <div class="mqst-world-canvas" id="mqst-world-canvas">
+              <img src="assets/quest/world-map.jpg" alt="九九乘法奇幻冒險世界地圖" class="mqst-world-bg" draggable="false">
+              <!-- 漂浮白雲裝飾 -->
+              <div class="mqst-cloud mqst-cloud-1" aria-hidden="true">☁️</div>
+              <div class="mqst-cloud mqst-cloud-2" aria-hidden="true">☁️</div>
+              <!-- SVG 冒險虛線小徑 -->
+              <svg class="mqst-path-svg" id="mqst-path-svg" viewBox="0 0 1000 562.5" preserveAspectRatio="none" aria-hidden="true"></svg>
+              <!-- 5 座島嶼木牌標籤 -->
+              <div class="mqst-island-signs" id="mqst-island-signs"></div>
+              <!-- 15 個關卡石頭／糖果節點 -->
+              <div class="mqst-nodes-layer" id="mqst-islands-grid"></div>
+              <!-- 可愛粉紅小兔子主角（會跳躍移動到目標關卡） -->
+              <div class="mqst-bunny-avatar" id="mqst-bunny-avatar" aria-hidden="true"></div>
+            </div>
+          </div>
+
+          <div class="mqst-map-hint-toast" id="mqst-map-tip">✨ 點擊發亮的關卡圓牌，粉紅小兔就會跳過去開始冒險喔！</div>
+        </div>
+
+        <!-- 視圖 2：上下繪本戰鬥劇場 -->
+        <div class="mqst-screen mqst-battle-screen" id="mqst-battle-view" style="display:none;">
+          <!-- 頂部迷你遊戲控制列 -->
+          <header class="mqst-battle-hud">
+            <button type="button" class="mqst-hud-btn back" id="mqst-back-map-btn">
+              <span aria-hidden="true">🗺️</span><span>地圖</span>
+            </button>
+
+            <div class="mqst-battle-progress-wrap">
+              <div class="mqst-battle-stage-name" id="mqst-stage-chip">1-1 · 啟程森林</div>
+              <div class="mqst-progress-track" role="progressbar" aria-label="關卡作答進度" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100">
+                <div class="mqst-progress-fill" id="mqst-progress-fill" style="width: 0%;"></div>
+              </div>
+              <span class="mqst-q-counter" id="mqst-q-progress-text">1 / 5</span>
+            </div>
+
+            <div class="mqst-battle-right-hud">
+              <div class="mqst-combo-pill" id="mqst-combo-pill" aria-live="polite">
+                🔥 連擊 <strong id="mqst-combo-count">0</strong>
+              </div>
+              <button type="button" class="mqst-hud-btn helper" id="mqst-helper-toggle-btn">
+                <span aria-hidden="true">🧱</span><span>小幫手</span>
+              </button>
+              <button type="button" class="mqst-hud-btn exit" id="mqst-battle-exit-btn" aria-label="離開遊戲回到數字積木屋">
+                <span aria-hidden="true">🏠</span>
+              </button>
+            </div>
+          </header>
+
+          <!-- 上半部：繪本風景對峙舞台 -->
+          <div class="mqst-stage-arena" id="mqst-stage-arena" data-theme="forest">
+            <img src="assets/quest/bg-forest.jpg" alt="" class="mqst-stage-bg-img" id="mqst-stage-bg-img" aria-hidden="true">
+            <div class="mqst-arena-scrim" aria-hidden="true"></div>
+
+            <!-- 中央上方：魔法木牌算式板 -->
+            <div class="mqst-wood-board" id="mqst-question-stage">
+              <div class="mqst-board-head">
+                <span class="mqst-board-tag" id="mqst-type-badge">乘法冒險</span>
+                <button type="button" class="mqst-board-speak-btn" id="mqst-speak-btn" aria-label="唸出題目">
+                  <i data-lucide="volume-2" aria-hidden="true"></i>
+                </button>
+              </div>
+              <div class="mqst-story-ribbon" id="mqst-story-banner" style="display:none;"></div>
+              <div class="mq-equation-row mqst-equation-row" id="mqst-equation-row"></div>
+              <div class="mqst-board-hint" id="mqst-prompt-text">選出正確答案！</div>
+            </div>
+
+            <!-- 角色對峙區：左側粉紅小兔 + 中央飛彈層 + 右側怪獸／寶箱 -->
+            <div class="mqst-actors-row">
+              <!-- 左側主角：粉紅小兔子 -->
+              <div class="mqst-hero-actor" id="mqst-hero-actor">
+                <div class="mqst-hero-aura" id="mqst-hero-aura" aria-hidden="true"></div>
+                <div class="mqst-hero-svg" id="mqst-hero-svg" aria-hidden="true"></div>
+                <span class="mqst-actor-label">粉紅小兔</span>
+              </div>
+
+              <!-- 攻擊拋物線星星光彈 -->
+              <div class="mqst-projectile" id="mqst-projectile" aria-hidden="true">🌟</div>
+
+              <!-- 右側對手：Boss 怪獸或關卡寶箱怪 -->
+              <div class="mqst-enemy-actor" id="mqst-enemy-actor">
+                <div class="mqst-enemy-hp-card">
+                  <span class="mqst-enemy-name" id="mqst-boss-name">森林寶箱怪</span>
+                  <div class="mqst-boss-hp-bar" id="mqst-boss-hp-bar" aria-label="目標剩餘能量"></div>
+                </div>
+                <div class="mqst-enemy-speech" id="mqst-boss-taunt">「答對這題就給我星星攻擊！」</div>
+                <div class="mqst-enemy-svg" id="mqst-boss-svg" aria-hidden="true"></div>
+                <div class="mqst-hit-callout" id="mqst-hit-callout" aria-hidden="true">GREAT! ✨</div>
+              </div>
+            </div>
+
+            <!-- 懸浮半透明積木提示泡泡（不破壞舞台，答錯或點擊小幫手滑出） -->
+            <div class="mqst-helper-bubble" id="mqst-helper-drawer" aria-live="polite">
+              <div class="mqst-helper-bubble-head">
+                <span>🧱 魔法積木提示泡泡</span>
+                <button type="button" class="mqst-helper-close" id="mqst-helper-close-btn" aria-label="收起積木提示">收起 ✕</button>
+              </div>
+              <div class="mqst-helper-blocks-body" id="mqst-helper-blocks-stage"></div>
+            </div>
+
+            <!-- 舞台底部鼓勵對話膠囊 -->
+            <div class="mqst-stage-toast" id="mqst-feedback" aria-live="polite"></div>
+          </div>
+
+          <!-- 下半部：童趣木框遊戲機台控制台 -->
+          <div class="mqst-console-dock" id="mqst-console-dock">
+            <!-- 模式 A：4 顆糖果雲朵選擇題氣泡 -->
+            <div class="mqst-choices-grid" id="mqst-choices-grid" role="group" aria-label="答案選項"></div>
+
+            <!-- 模式 B：專屬彩色玩具數字按鍵盤 -->
+            <div class="mqst-toy-keypad" id="mqst-keypad-wrap" style="display:none;" role="group" aria-label="彩色玩具數字鍵盤">
+              <div class="mqst-toy-keys-grid" id="mqst-toy-keys-grid">
+                <button type="button" class="mqst-toy-key k1" data-key="1">1</button>
+                <button type="button" class="mqst-toy-key k2" data-key="2">2</button>
+                <button type="button" class="mqst-toy-key k3" data-key="3">3</button>
+                <button type="button" class="mqst-toy-key k4" data-key="4">4</button>
+                <button type="button" class="mqst-toy-key k5" data-key="5">5</button>
+                <button type="button" class="mqst-toy-key k-back" data-key="backspace" aria-label="退格清除">⌫ 退格</button>
+                <button type="button" class="mqst-toy-key k6" data-key="6">6</button>
+                <button type="button" class="mqst-toy-key k7" data-key="7">7</button>
+                <button type="button" class="mqst-toy-key k8" data-key="8">8</button>
+                <button type="button" class="mqst-toy-key k9" data-key="9">9</button>
+                <button type="button" class="mqst-toy-key k0" data-key="0">0</button>
+                <button type="button" class="mqst-toy-key k-go" data-key="enter" id="mqst-check-btn">✨ 發射攻擊！</button>
+              </div>
+            </div>
+
+            <!-- 答對後出現的超大下一題按鈕 -->
+            <div class="mqst-next-dock" id="mqst-next-dock" style="display:none;">
+              <div class="mqst-mantra-banner" id="mqst-explanation-box"></div>
+              <button type="button" class="mqst-next-big-btn" id="mqst-next-btn">
+                下一題 <i data-lucide="arrow-right" aria-hidden="true"></i>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- 視圖 3：勝利大舞台結算畫面 -->
+        <div class="mqst-screen mqst-victory-screen" id="mqst-result-view" style="display:none;">
+          <div class="mqst-victory-stage" id="mqst-result-card">
+            <div class="mqst-victory-actors" id="mqst-victory-actors">
+              <div class="mqst-victory-bunny" id="mqst-victory-bunny" aria-hidden="true"></div>
+              <div class="mqst-victory-sprite" id="mqst-victory-sprite" style="display:none;" aria-hidden="true"></div>
+            </div>
+
+            <div class="mqst-result-stars" id="mqst-result-stars" aria-label="獲得星星">
+              <span class="mqst-star-item" data-star="1">⭐</span>
+              <span class="mqst-star-item" data-star="2">⭐</span>
+              <span class="mqst-star-item" data-star="3">⭐</span>
+            </div>
+
+            <h3 id="mqst-result-title">太棒了！冒險成功！</h3>
+            <p class="mqst-result-sub" id="mqst-result-sub">粉紅小兔子順利拿到了閃亮星星！</p>
+
+            <div class="mqst-unlock-showcase" id="mqst-unlock-showcase"></div>
+
+            <div class="mqst-victory-stats">
+              <div class="mqst-vstat-pill">
+                <span class="lbl">一次答對</span>
+                <strong id="mqst-res-first-acc">5 / 5</strong>
+              </div>
+              <div class="mqst-vstat-pill">
+                <span class="lbl">新亮寶石</span>
+                <strong id="mqst-res-new-gems">+5 💎</strong>
+              </div>
+              <div class="mqst-vstat-pill">
+                <span class="lbl">最高連擊</span>
+                <strong id="mqst-res-max-combo">5 🔥</strong>
+              </div>
+            </div>
+
+            <div class="mqst-result-actions">
+              <button type="button" class="mqst-play-big-btn" id="mqst-res-next-btn">
+                <i data-lucide="play" aria-hidden="true"></i> <span>跳往下一關</span>
+              </button>
+              <button type="button" class="mqst-tool-btn" id="mqst-res-retry-btn">
+                <i data-lucide="rotate-ccw" aria-hidden="true"></i> <span>再挑戰三星</span>
+              </button>
+              <button type="button" class="mqst-tool-btn" id="mqst-res-map-btn">
+                <i data-lucide="map" aria-hidden="true"></i> <span>回世界地圖</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div><!-- /#mqst-arcade-overlay -->
+    </div><!-- /#subpanel-mul-quest -->
   </div><!-- /#panel-mul -->
+
+  <!-- ================= 原生對話框：9×9 寶石圖鑑、小精靈與成就徽章 ================= -->
+  <dialog class="mqst-dialog mqst-dex-dialog" id="mqst-dex-dialog" closedby="any" aria-labelledby="mqst-dex-title">
+    <div class="mqst-dialog-head">
+      <div class="mqst-dialog-title-wrap">
+        <span class="mqst-dialog-ico" aria-hidden="true">✨</span>
+        <h3 id="mqst-dex-title">我的乘法榮譽圖鑑</h3>
+      </div>
+      <form method="dialog">
+        <button type="submit" class="close-modal-btn" value="close" aria-label="關閉榮譽圖鑑" autofocus>✕</button>
+      </form>
+    </div>
+
+    <div class="mqst-dex-tabs" role="tablist" aria-label="圖鑑切換">
+      <button type="button" class="mqst-dex-tab active" data-dex="gems" role="tab" aria-selected="true">💎 9×9 寶石牆</button>
+      <button type="button" class="mqst-dex-tab" data-dex="sprites" role="tab" aria-selected="false">🐣 守護小精靈</button>
+      <button type="button" class="mqst-dex-tab" data-dex="badges" role="tab" aria-selected="false">🏅 成就徽章</button>
+    </div>
+
+    <div class="mqst-dialog-body" id="mqst-dex-body">
+      <div class="mqst-dex-pane active" id="mqst-pane-gems"></div>
+      <div class="mqst-dex-pane" id="mqst-pane-sprites" style="display:none;"></div>
+      <div class="mqst-dex-pane" id="mqst-pane-badges" style="display:none;"></div>
+    </div>
+  </dialog>
+
+  <!-- ================= 原生對話框：防誤觸家長工具與預習開關 ================= -->
+  <dialog class="mqst-dialog mqst-parent-dialog" id="mqst-parent-dialog" closedby="any" aria-labelledby="mqst-parent-title">
+    <div class="mqst-dialog-head">
+      <div class="mqst-dialog-title-wrap">
+        <span class="mqst-dialog-ico" aria-hidden="true">🛠️</span>
+        <h3 id="mqst-parent-title">預習模式 ＆ 家長進度工具</h3>
+      </div>
+      <form method="dialog">
+        <button type="submit" class="close-modal-btn" value="cancel" aria-label="關閉家長設定視窗" autofocus>✕</button>
+      </form>
+    </div>
+
+    <div class="mqst-dialog-body">
+      <div class="mqst-parent-card">
+        <div class="mqst-parent-row">
+          <div>
+            <h4>🔓 自由挑選／預習模式</h4>
+            <p>開啟後可隨時點擊地圖上任何關卡練習（例如學校剛教到 7 的乘法時直接跳關），且不會遺失已取得的星星！</p>
+          </div>
+          <button type="button" class="mqst-switch-btn" id="mqst-preview-toggle-btn" aria-pressed="false">未開啟</button>
+        </div>
+      </div>
+
+      <div class="mqst-parent-card mqst-danger-card">
+        <h4>🧹 重置所有冒險紀錄</h4>
+        <p>為了避免小朋友誤觸把辛苦點亮的 81 格寶石牆與星星清空，請先回答下方小題目解鎖重置按鈕：</p>
+        <div class="mqst-lock-box" id="mqst-parent-lock-box">
+          <span class="mqst-lock-q" id="mqst-parent-lock-q">請計算：14 × 3 ＝</span>
+          <input type="number" inputmode="numeric" class="mqst-lock-input" id="mqst-parent-lock-input" aria-label="家長驗證答案" placeholder="?">
+          <button type="button" class="ghost-btn small" id="mqst-parent-unlock-btn">解鎖</button>
+        </div>
+        <div class="mqst-reset-confirm-row" id="mqst-reset-confirm-row" style="display:none;">
+          <button type="button" class="mqst-danger-btn" id="mqst-reset-all-btn">確定清空全部星星與圖鑑紀錄</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="mqst-dialog-foot">
+      <form method="dialog">
+        <button type="submit" class="primary-btn" value="done">完成</button>
+      </form>
+    </div>
+  </dialog>
 
   <footer class="footer-wrap">
     <!-- 頁尾語音狀態卡片（方便在 iPad 或行動裝置即時檢視調用語音） -->
@@ -1260,10 +1575,11 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/two.js/0.8.14/two.min.js"></script>
 <script src="https://unpkg.com/lucide@latest"></script>
 <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
 
 <!-- 模組化應用腳本（相容本機雙擊開啟） -->
 <script defer src="js/core.js?v=20260906h"></script>
-<script defer src="js/audio.js?v=20260906n"></script>
+<script defer src="js/audio.js?v=20261115a"></script>
 <script defer src="js/utils.js?v=20260906l"></script>
 <script defer src="js/learn.js?v=20260906i"></script>
 <script defer src="js/quiz.js?v=20260907d"></script>
@@ -1271,9 +1587,10 @@
 <script defer src="js/seq-quiz.js?v=20260908a"></script>
 <script defer src="js/calc.js?v=20260907e"></script>
 <script defer src="js/calc-quiz.js?v=20260907d"></script>
-<script defer src="js/mul.js?v=20261020a"></script>
-<script defer src="js/mul-quiz.js?v=20261020a"></script>
-<script defer src="js/diagnostics.js?v=20261020a"></script>
-<script defer src="js/app.js?v=20261020a"></script>
+<script defer src="js/mul.js?v=20261115a"></script>
+<script defer src="js/mul-quiz.js?v=20261115a"></script>
+<script defer src="js/mul-quest.js?v=20261115a"></script>
+<script defer src="js/diagnostics.js?v=20261115a"></script>
+<script defer src="js/app.js?v=20261115a"></script>
 </body>
 </html>

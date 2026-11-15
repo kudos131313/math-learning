@@ -113,6 +113,7 @@
         state.revealedMap[targetA + 'x' + stepB] = true;
       }
       setFactors(targetA, stepB, { silentStopRow: true, speakShort: true });
+      if(stepB === 1 && MathApp.emit) MathApp.emit('mulExplore', { action: 'playRow', a: targetA });
       stepB++;
       state.playRowTimer = setTimeout(playStep, 1950);
     }
@@ -346,6 +347,9 @@
     if(MathApp.utils && MathApp.utils.showToast) MathApp.utils.showToast(msg);
     if(MathApp.speak){
       MathApp.speak(getMantra(state.a, state.b) + '！交換位置後，' + state.a + ' 乘以 ' + state.b + ' 答案一樣是 ' + prod + '！');
+    }
+    if(MathApp.emit){
+      MathApp.emit('mulExplore', { action: 'swap', a: state.a, b: state.b });
     }
   }
 

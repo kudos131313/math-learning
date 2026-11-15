@@ -43,6 +43,26 @@
     if(!soundOn) return;
     if(kind === 'click'){
       tone(700, 0, 0.07, 'triangle', 0.10);
+    } else if(kind === 'pop'){
+      tone(580, 0, 0.055, 'sine', 0.11);
+      tone(860, 0.03, 0.05, 'sine', 0.09);
+    } else if(kind === 'combo'){
+      tone(659, 0, 0.08, 'triangle', 0.13);
+      tone(880, 0.07, 0.08, 'triangle', 0.13);
+      tone(1175, 0.14, 0.14, 'sine', 0.14);
+    } else if(kind === 'hit'){
+      tone(440, 0, 0.06, 'square', 0.08);
+      tone(660, 0.04, 0.08, 'triangle', 0.12);
+      tone(988, 0.09, 0.14, 'sine', 0.13);
+    } else if(kind === 'star'){
+      tone(784, 0, 0.09, 'sine', 0.14);
+      tone(1047, 0.08, 0.18, 'triangle', 0.14);
+    } else if(kind === 'fanfare'){
+      tone(523, 0, 0.10, 'triangle', 0.15);
+      tone(659, 0.10, 0.10, 'triangle', 0.15);
+      tone(784, 0.20, 0.10, 'triangle', 0.15);
+      tone(1047, 0.30, 0.28, 'sine', 0.16);
+      tone(1319, 0.36, 0.30, 'sine', 0.13);
     } else if(kind === 'carry'){
       tone(523, 0, 0.12, 'sine', 0.14);
       tone(659, 0.09, 0.12, 'sine', 0.14);
@@ -529,11 +549,24 @@
   setTimeout(updateVoiceStatusUI, 350);
   setTimeout(updateVoiceStatusUI, 1200);
 
+  /* 立即中斷目前語音朗讀，避免快節奏操作時被拖慢 */
+  function stopSpeak(){
+    if('speechSynthesis' in window){
+      try {
+        window.speechSynthesis.cancel();
+      } catch(e){}
+    }
+    if(voiceStatusCardEl){
+      voiceStatusCardEl.classList.remove('speaking');
+    }
+  }
+
   MathApp.audio = {
     getAudioCtx: getAudioCtx,
     tone: tone,
     sfx: sfx,
     speak: speak,
+    stopSpeak: stopSpeak,
     speakWithVoice: speakWithVoice,
     pickBestVoice: pickBestVoice,
     openVoiceListModal: openVoiceListModal,
@@ -545,6 +578,7 @@
   // 掛載至 MathApp 捷徑
   MathApp.sfx = sfx;
   MathApp.speak = speak;
+  MathApp.stopSpeak = stopSpeak;
 
 })();
 

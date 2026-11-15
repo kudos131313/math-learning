@@ -100,6 +100,16 @@
     } while(sig === lastSignature && tries < 10);
 
     lastSignature = sig;
+    return buildQuestion(a, b, qType);
+  }
+
+  /* 依指定 (a, b, qType) 建立標準化題目物件（供測驗與冒險闖關共用） */
+  function buildQuestion(a, b, qType){
+    qType = qType || 'standard';
+    if(qType === 'commutative' && a === b){
+      qType = 'standard';
+    }
+
     var product = a * b;
     var mantra = (MathApp.mul && MathApp.mul.getMantra)
       ? MathApp.mul.getMantra(a, b)
@@ -115,6 +125,14 @@
       badge = a + ' 的乘法口訣';
       hint = '每組 ' + a + ' 個，共有 ' + b + ' 組（' + b + ' 個 ' + a + ' 相加）是多少呢？';
       spokenPrompt = a + ' 乘以 ' + b + ' 等於多少？';
+      slots = [
+        { id: 'ans', expected: product, maxLen: 2, label: '乘積答案' }
+      ];
+    } else if(qType === 'commutative'){
+      badge = '交換律魔法配對';
+      storyHtml = '✨ 交換律提示：已知 <b>' + b + ' × ' + a + ' ＝ ' + product + '</b>，那反過來呢？';
+      hint = '把兩個數字交換位置，總積木數量還是一樣喔！';
+      spokenPrompt = '已知 ' + b + ' 乘以 ' + a + ' 等於 ' + product + '，那 ' + a + ' 乘以 ' + b + ' 等於多少？';
       slots = [
         { id: 'ans', expected: product, maxLen: 2, label: '乘積答案' }
       ];
@@ -167,6 +185,72 @@
       spokenPrompt: spokenPrompt,
       slots: slots
     };
+  }
+
+  /* 產生 4 顆選擇題氣泡選項（含相鄰口訣與加減混淆誘答，絕不重複） */
+  function generateChoices(q, count){
+    count = count || 4;
+    if(!q || !q.slots || q.slots.length !== 1) return [];
+    var target = q.slots[0].expected;
+    var candidates = [];
+
+    function pushCand(val){
+      if(typeof val !== 'number' || isNaN(val)) return;
+      if(val <= 0 || val > 81) return;
+      if(val === target) return;
+      if(candidates.indexOf(val) === -1) candidates.push(val);
+    }
+
+    if(q.qType === 'missing_a' || q.qType === 'missing_b'){
+      // 未知乘數或被乘數 (1~9)
+      pushCand(target - 1);
+      pushCand(target + 1);
+      pushCand(target - 2);
+      pushCand(target + 2);
+      for(var n = 1; n <= 9; n++){
+        if(candidates.length >= 6) break;
+        pushCand(n);
+      }
+    } else {
+      // 乘積答案：優先納入相鄰口訣、加減混淆與十位/個位易錯數
+      pushCand(q.a * (q.b + 1));
+      pushCand(q.a * (q.b - 1));
+      pushCand((q.a + 1) * q.b);
+      pushCand((q.a - 1) * q.b);
+      pushCand(q.a + q.b);
+      pushCand(target + 10);
+      pushCand(target - 10);
+      pushCand(target + 2);
+      pushCand(target - 2);
+      pushCand(target + 1);
+      pushCand(target - 1);
+    }
+
+    // 洗牌誘答池，取前 count - 1 個
+    for(var i = candidates.length - 1; i > 0; i--){
+      var j = MathApp.utils.randInt(0, i);
+      var tmp = candidates[i];
+      candidates[i] = candidates[j];
+      candidates[j] = tmp;
+    }
+
+    var options = [target];
+    for(var k = 0; k < candidates.length && options.length < count; k++){
+      options.push(candidates[k]);
+    }
+    while(options.length < count){
+      var fallback = MathApp.utils.randInt(1, 81);
+      if(options.indexOf(fallback) === -1) options.push(fallback);
+    }
+
+    // 最後再次洗牌所有選項
+    for(var m = options.length - 1; m > 0; m--){
+      var r = MathApp.utils.randInt(0, m);
+      var swap = options[m];
+      options[m] = options[r];
+      options[r] = swap;
+    }
+    return options;
   }
 
   /* 驗證題目答案（供自檢與答題判定共用） */
@@ -296,9 +380,8 @@
     }
   }
 
-  /* 渲染積木小幫手抽屜內容 */
-  function renderHelperBlocks(q){
-    if(!mqEls.helperBlocksStage) return;
+  /* 建立積木小幫手抽屜 HTML（供測驗與冒險闖關共用） */
+  function buildHelperBlocksHtml(q){
     var a = q.a;
     var b = q.b;
     var html = '<div style="margin-bottom:8px;font-size:13.5px;font-weight:800;color:var(--ink);">' +
@@ -327,7 +410,13 @@
       '<span>💡 <b>口訣提示：</b>' + ['零','一','二','三','四','五','六','七','八','九'][a] + ['零','一','二','三','四','五','六','七','八','九'][b] + '…</span>' +
       '</div>';
 
-    mqEls.helperBlocksStage.innerHTML = html;
+    return html;
+  }
+
+  /* 渲染積木小幫手抽屜內容 */
+  function renderHelperBlocks(q){
+    if(!mqEls.helperBlocksStage) return;
+    mqEls.helperBlocksStage.innerHTML = buildHelperBlocksHtml(q);
   }
 
   /* 開始新一題 */
@@ -847,6 +936,9 @@
   MathApp.mulQuiz = {
     init: init,
     generateQuestion: generateQuestion,
+    buildQuestion: buildQuestion,
+    generateChoices: generateChoices,
+    buildHelperBlocksHtml: buildHelperBlocksHtml,
     validateQuestion: validateQuestion,
     newRound: newRound
   };

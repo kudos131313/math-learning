@@ -34,6 +34,9 @@
     if(MathApp.mulQuiz && typeof MathApp.mulQuiz.init === 'function'){
       MathApp.mulQuiz.init();
     }
+    if(MathApp.mulQuest && typeof MathApp.mulQuest.init === 'function'){
+      MathApp.mulQuest.init();
+    }
     if(MathApp.diagnostics && typeof MathApp.diagnostics.init === 'function'){
       MathApp.diagnostics.init();
     }

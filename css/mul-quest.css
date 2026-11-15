@@ -1,0 +1,1305 @@
+@charset "UTF-8";
+/**
+ * ==========================================================================
+ * 單元 4 子分頁 3：九九乘法冒險闖關（全螢幕童話繪本小遊戲樣式）
+ * 專為 iPad 平板觸控、粉紅小兔主角與繪本場景打造
+ * ==========================================================================
+ */
+
+/* 放寬單元 4 子分頁導覽列以完美容納 3 個分頁按鈕（免水平捲動） */
+#panel-mul .unit-sub-nav {
+  max-width: 820px;
+}
+
+#panel-mul .unit-sub-tabs {
+  flex-wrap: wrap;
+  justify-content: center;
+  border-radius: 26px;
+}
+
+/* ---------------- 內頁遊戲啟動封面卡 ---------------- */
+.mqst-launcher-card {
+  display: grid;
+  grid-template-columns: 1.15fr 1fr;
+  gap: 24px;
+  align-items: center;
+  background: linear-gradient(145deg, #fffdf7 0%, #fef3c7 100%);
+  border: 3px solid var(--ink);
+  border-radius: 26px;
+  padding: 24px;
+  box-shadow: 6px 6px 0 var(--shadow-ink);
+  margin-bottom: 28px;
+}
+
+.mqst-launcher-art {
+  position: relative;
+  border-radius: 20px;
+  border: 3px solid var(--ink);
+  overflow: hidden;
+  box-shadow: 4px 4px 0 var(--shadow-ink);
+  aspect-ratio: 16 / 9;
+  background: #bae6fd;
+}
+
+.mqst-launcher-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.mqst-launcher-bunny {
+  position: absolute;
+  left: 14px;
+  bottom: 10px;
+  width: 86px;
+  height: 86px;
+  filter: drop-shadow(0 4px 0 rgba(51, 43, 34, 0.25));
+}
+
+.mqst-launcher-info {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+.mqst-launcher-pill {
+  padding: 4px 12px;
+  border-radius: 999px;
+  border: 2px solid var(--ink);
+  background: #fce7f3;
+  color: #9d174d;
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.mqst-launcher-info h2 {
+  margin: 0;
+  font-size: clamp(24px, 3vw, 32px);
+  text-wrap: balance;
+}
+
+.mqst-launcher-info p {
+  margin: 0;
+  font-size: 15px;
+  color: var(--ink-soft);
+  text-wrap: pretty;
+}
+
+.mqst-launcher-stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  font-family: "Baloo 2", "Noto Sans TC", sans-serif;
+  font-size: 15px;
+  font-weight: 800;
+}
+
+.mqst-launcher-stats span {
+  padding: 5px 12px;
+  border-radius: 999px;
+  border: 2px solid var(--ink);
+  background: #fff;
+}
+
+.mqst-play-big-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  min-height: 56px;
+  padding: 12px 26px;
+  border-radius: 20px;
+  border: 3px solid var(--ink);
+  background: linear-gradient(180deg, #fb7185 0%, #e11d48 100%);
+  color: #fff;
+  font-size: 18px;
+  font-weight: 900;
+  cursor: pointer;
+  box-shadow: 0 5px 0 #881337, 4px 6px 0 var(--shadow-ink);
+  transition: transform .08s ease, box-shadow .08s ease;
+}
+
+.mqst-play-big-btn:active {
+  transform: translateY(3px);
+  box-shadow: 0 2px 0 #881337, 2px 3px 0 var(--shadow-ink);
+}
+
+/* ---------------- 全螢幕沉浸式遊戲機台 ---------------- */
+.mqst-arcade-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  z-index: 950;
+  background: #e0f7fa;
+  flex-direction: column;
+  overflow: hidden;
+  padding-top: env(safe-area-inset-top, 0px);
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+  padding-left: env(safe-area-inset-left, 0px);
+  padding-right: env(safe-area-inset-right, 0px);
+}
+
+.mqst-arcade-overlay.is-open {
+  display: flex;
+}
+
+.mqst-screen {
+  position: relative;
+  flex: 1;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* ---------------- 遊戲通用懸浮 HUD 控制列 ---------------- */
+.mqst-hud-bar,
+.mqst-battle-hud {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 10px 16px;
+  background: rgba(255, 253, 246, 0.9);
+  backdrop-filter: blur(8px);
+  border-bottom: 3px solid var(--ink);
+  z-index: 20;
+  flex-shrink: 0;
+  flex-wrap: wrap;
+}
+
+.mqst-hud-profile {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.mqst-hud-avatar {
+  width: 46px;
+  height: 46px;
+  border-radius: 50%;
+  border: 2.5px solid var(--ink);
+  background: #fce7f3;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  box-shadow: 2px 2px 0 var(--shadow-ink);
+}
+
+.mqst-hud-avatar svg {
+  width: 40px;
+  height: 40px;
+}
+
+.mqst-hud-counters {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.mqst-hud-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  min-height: 38px;
+  padding: 4px 12px;
+  border-radius: 999px;
+  border: 2px solid var(--ink);
+  font-family: "Baloo 2", "Noto Sans TC", sans-serif;
+  font-size: 15px;
+  font-weight: 800;
+  background: #fff;
+  box-shadow: 2px 2px 0 var(--shadow-ink);
+}
+
+.mqst-hud-pill.star   { background: #fef9c3; }
+.mqst-hud-pill.gem    { background: #e0f2fe; }
+.mqst-hud-pill.sprite { background: #fce7f3; }
+
+.mqst-hud-actions,
+.mqst-battle-right-hud {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.mqst-hud-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  min-width: 46px;
+  min-height: 46px;
+  padding: 6px 14px;
+  border-radius: 15px;
+  border: 2.5px solid var(--ink);
+  background: #ffffff;
+  color: var(--ink);
+  font-size: 14.5px;
+  font-weight: 800;
+  cursor: pointer;
+  box-shadow: 0 3px 0 var(--shadow-ink);
+  transition: transform .08s ease, box-shadow .08s ease;
+}
+
+.mqst-hud-btn:active:not(:disabled) {
+  transform: translateY(2px);
+  box-shadow: 0 1px 0 var(--shadow-ink);
+}
+
+.mqst-hud-btn.dex      { background: #ede9fe; color: #4c1d95; }
+.mqst-hud-btn.rescue   { background: #f1f5f9; color: var(--ink-soft); }
+.mqst-hud-btn.rescue.has-rescue { background: #fee2e2; color: #991b1b; border-color: #991b1b; }
+.mqst-hud-btn.settings { background: #fef3c7; }
+.mqst-hud-btn.helper   { background: #dbeafe; color: #1e40af; }
+.mqst-hud-btn.back     { background: #dcfce7; color: #166534; }
+.mqst-hud-btn.exit     { background: #fff1f2; color: #9f1239; }
+
+.mqst-preview-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: #dcfce7;
+  border: 2px solid #15803d;
+  color: #166534;
+  font-size: 12.5px;
+  font-weight: 800;
+}
+
+/* ---------------- 視圖 1：繪本全景世界大地圖 ---------------- */
+.mqst-world-viewport {
+  position: relative;
+  flex: 1;
+  width: 100%;
+  overflow-x: auto;
+  overflow-y: hidden;
+  background: linear-gradient(180deg, #e0f2fe 0%, #bae6fd 50%, #99f6e4 100%);
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  -webkit-overflow-scrolling: touch;
+}
+
+@media (min-width: 980px) {
+  .mqst-world-viewport {
+    justify-content: center;
+  }
+}
+
+.mqst-world-canvas {
+  position: relative;
+  height: 100%;
+  max-height: 100%;
+  aspect-ratio: 16 / 9;
+  min-width: 940px;
+  margin: 0 auto;
+  flex-shrink: 0;
+  user-select: none;
+}
+
+.mqst-world-bg {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.mqst-cloud {
+  position: absolute;
+  font-size: clamp(28px, 3.5vw, 44px);
+  opacity: 0.78;
+  pointer-events: none;
+}
+.mqst-cloud-1 { left: 18%; top: 7%; }
+.mqst-cloud-2 { left: 62%; top: 9%; }
+
+@media (prefers-reduced-motion: no-preference) {
+  .mqst-cloud-1 { animation: mqstCloudFloat 9s ease-in-out infinite; }
+  .mqst-cloud-2 { animation: mqstCloudFloat 12s ease-in-out infinite reverse; }
+}
+
+@keyframes mqstCloudFloat {
+  0%, 100% { transform: translateX(0); }
+  50% { transform: translateX(22px); }
+}
+
+.mqst-path-svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+.mqst-island-signs {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.mqst-island-sign {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  padding: 4px 12px;
+  border-radius: 999px;
+  border: 2px solid var(--ink);
+  background: rgba(255, 253, 246, 0.94);
+  box-shadow: 2px 3px 0 rgba(51, 43, 34, 0.3);
+  font-size: 13px;
+  font-weight: 900;
+  color: var(--ink);
+  white-space: nowrap;
+}
+
+.mqst-nodes-layer {
+  position: absolute;
+  inset: 0;
+}
+
+.mqst-map-node {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  min-width: 66px;
+  min-height: 66px;
+  padding: 5px 8px;
+  border-radius: 22px;
+  border: 3px solid var(--ink);
+  background: #ffffff;
+  color: var(--ink);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1px;
+  cursor: pointer;
+  box-shadow: 0 5px 0 var(--shadow-ink);
+  transition: transform .1s ease, box-shadow .1s ease;
+  z-index: 6;
+}
+
+.mqst-map-node:active:not(:disabled) {
+  transform: translate(-50%, calc(-50% + 3px));
+  box-shadow: 0 2px 0 var(--shadow-ink);
+}
+
+.mqst-map-node.is-boss {
+  min-width: 74px;
+  min-height: 74px;
+  background: linear-gradient(180deg, #ffe4e6 0%, #fda4af 100%);
+  border-color: #9f1239;
+}
+
+.mqst-map-node.is-current {
+  background: linear-gradient(180deg, #fef08a 0%, #facc15 100%);
+  box-shadow: 0 0 0 5px rgba(250, 204, 21, 0.5), 0 5px 0 var(--shadow-ink);
+  z-index: 8;
+}
+
+.mqst-map-node.is-cleared {
+  background: linear-gradient(180deg, #dcfce7 0%, #86efac 100%);
+}
+
+.mqst-map-node.is-locked {
+  background: rgba(241, 245, 249, 0.85);
+  border-style: dashed;
+  color: #64748b;
+  box-shadow: none;
+  cursor: not-allowed;
+}
+
+.mqst-map-node-id {
+  font-family: "Baloo 2", sans-serif;
+  font-size: 16px;
+  font-weight: 900;
+  line-height: 1.05;
+}
+
+.mqst-map-node-stars {
+  font-size: 11.5px;
+  line-height: 1;
+  letter-spacing: 0.5px;
+}
+
+.mqst-map-node-title {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(255, 255, 255, 0.92);
+  border: 1.5px solid var(--ink);
+  border-radius: 8px;
+  padding: 1px 6px;
+  font-size: 11px;
+  font-weight: 800;
+  white-space: nowrap;
+  pointer-events: none;
+}
+
+/* 粉紅小兔子地圖主角 */
+.mqst-bunny-avatar {
+  position: absolute;
+  width: 66px;
+  height: 66px;
+  transform: translate(-50%, -105%);
+  z-index: 12;
+  pointer-events: none;
+  filter: drop-shadow(0 5px 0 rgba(51, 43, 34, 0.3));
+}
+
+.mqst-bunny-avatar svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+.mqst-map-hint-toast {
+  position: absolute;
+  bottom: 14px;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 7px 18px;
+  border-radius: 999px;
+  border: 2.5px solid var(--ink);
+  background: rgba(255, 253, 246, 0.95);
+  font-size: 14px;
+  font-weight: 800;
+  color: var(--ink);
+  box-shadow: 3px 3px 0 var(--shadow-ink);
+  z-index: 15;
+  white-space: nowrap;
+  max-width: calc(100vw - 24px);
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* ---------------- 視圖 2：上下繪本戰鬥劇場 ---------------- */
+.mqst-battle-progress-wrap {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex: 1;
+  min-width: 190px;
+  max-width: 440px;
+}
+
+.mqst-battle-stage-name {
+  font-size: 14px;
+  font-weight: 900;
+  white-space: nowrap;
+}
+
+.mqst-progress-track {
+  flex: 1;
+  height: 16px;
+  background: #f1ede4;
+  border: 2.5px solid var(--ink);
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.mqst-progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #34d399 0%, #facc15 100%);
+  border-radius: 999px;
+  transition: width .3s ease;
+}
+
+.mqst-q-counter {
+  font-family: "Baloo 2", sans-serif;
+  font-size: 15px;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.mqst-combo-pill {
+  padding: 6px 13px;
+  border-radius: 999px;
+  border: 2.5px solid var(--ink);
+  background: #fff;
+  font-size: 14.5px;
+  font-weight: 900;
+  box-shadow: 2px 2px 0 var(--shadow-ink);
+}
+
+.mqst-combo-pill.fever {
+  background: linear-gradient(135deg, #fde047 0%, #fb923c 100%);
+  color: #451a03;
+}
+
+/* 上半部繪本風景舞台 */
+.mqst-stage-arena {
+  position: relative;
+  flex: 1;
+  min-height: 250px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 12px 18px 10px;
+  overflow: hidden;
+  background: #d1fae5;
+}
+
+.mqst-stage-bg-img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center bottom;
+  z-index: 0;
+}
+
+.mqst-arena-scrim {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.16) 0%, rgba(255, 255, 255, 0) 48%, rgba(255, 255, 255, 0.08) 100%);
+  z-index: 1;
+  pointer-events: none;
+}
+
+/* 魔法木牌算式板 */
+.mqst-wood-board {
+  position: relative;
+  z-index: 5;
+  margin: 0 auto;
+  width: min(560px, 100%);
+  background: rgba(255, 251, 240, 0.94);
+  backdrop-filter: blur(6px);
+  border: 3.5px solid var(--ink);
+  border-radius: 24px;
+  padding: 10px 16px 12px;
+  box-shadow: 0 6px 0 rgba(51, 43, 34, 0.28);
+  text-align: center;
+}
+
+.mqst-board-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 4px;
+}
+
+.mqst-board-tag {
+  padding: 2px 11px;
+  border-radius: 999px;
+  background: #fef3c7;
+  border: 2px solid var(--ink);
+  font-size: 12.5px;
+  font-weight: 900;
+}
+
+.mqst-board-speak-btn {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  border: 2.5px solid var(--ink);
+  background: #e0f2fe;
+  color: #0369a1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 2px 2px 0 var(--shadow-ink);
+}
+
+.mqst-story-ribbon {
+  background: #fffbeb;
+  border: 2px solid #f59e0b;
+  border-radius: 12px;
+  padding: 6px 10px;
+  margin-bottom: 6px;
+  font-size: 14.5px;
+  font-weight: 800;
+  line-height: 1.4;
+}
+
+.mqst-equation-row {
+  gap: 10px;
+  font-size: clamp(30px, 4.5vw, 44px);
+}
+
+.mqst-board-hint {
+  margin-top: 4px;
+  font-size: 13px;
+  font-weight: 800;
+  color: var(--ink-soft);
+}
+
+/* 角色對峙區 */
+.mqst-actors-row {
+  position: relative;
+  z-index: 4;
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  width: min(860px, 100%);
+  margin: auto auto 0;
+  padding: 0 12px 6px;
+}
+
+.mqst-hero-actor,
+.mqst-enemy-actor {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+.mqst-hero-aura {
+  position: absolute;
+  bottom: 16px;
+  width: 118px;
+  height: 118px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(250, 204, 21, 0.55) 0%, transparent 70%);
+  opacity: 0;
+  pointer-events: none;
+}
+
+.mqst-hero-aura.active {
+  opacity: 1;
+}
+
+.mqst-hero-svg {
+  width: clamp(92px, 13vw, 132px);
+  height: clamp(92px, 13vw, 132px);
+  filter: drop-shadow(0 6px 0 rgba(51, 43, 34, 0.25));
+}
+
+.mqst-hero-svg svg,
+.mqst-enemy-svg svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+.mqst-actor-label {
+  padding: 2px 10px;
+  border-radius: 999px;
+  border: 2px solid var(--ink);
+  background: rgba(255, 255, 255, 0.92);
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.mqst-projectile {
+  position: absolute;
+  left: 16%;
+  bottom: 42%;
+  font-size: 38px;
+  pointer-events: none;
+  opacity: 0;
+  z-index: 9;
+}
+
+.mqst-enemy-hp-card {
+  background: rgba(255, 255, 255, 0.92);
+  border: 2px solid var(--ink);
+  border-radius: 14px;
+  padding: 4px 10px;
+  min-width: 148px;
+  text-align: center;
+  box-shadow: 2px 2px 0 rgba(51, 43, 34, 0.25);
+}
+
+.mqst-enemy-name {
+  display: block;
+  font-size: 13px;
+  font-weight: 900;
+  color: #881337;
+  margin-bottom: 3px;
+}
+
+.mqst-boss-hp-bar {
+  display: flex;
+  gap: 4px;
+}
+
+.mqst-hp-pip {
+  flex: 1;
+  height: 10px;
+  border-radius: 999px;
+  border: 1.5px solid var(--ink);
+  background: #fb7185;
+  transition: background-color .2s ease, opacity .2s ease;
+}
+
+.mqst-hp-pip.lost {
+  background: #e2e8f0;
+  opacity: 0.45;
+}
+
+.mqst-enemy-speech {
+  background: #ffffff;
+  border: 2px solid var(--ink);
+  border-radius: 14px;
+  padding: 4px 10px;
+  font-size: 12.5px;
+  font-weight: 800;
+  max-width: 240px;
+  text-align: center;
+  box-shadow: 2px 2px 0 rgba(51, 43, 34, 0.2);
+}
+
+.mqst-enemy-svg {
+  width: clamp(94px, 13.5vw, 138px);
+  height: clamp(94px, 13.5vw, 138px);
+  filter: drop-shadow(0 6px 0 rgba(51, 43, 34, 0.25));
+}
+
+.mqst-hit-callout {
+  position: absolute;
+  top: 20%;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 4px 12px;
+  border-radius: 999px;
+  border: 2.5px solid var(--ink);
+  background: #fef08a;
+  color: #9f1239;
+  font-family: "Baloo 2", "Noto Sans TC", sans-serif;
+  font-size: 20px;
+  font-weight: 900;
+  white-space: nowrap;
+  pointer-events: none;
+  opacity: 0;
+  z-index: 12;
+}
+
+/* 懸浮半透明積木提示泡泡 */
+.mqst-helper-bubble {
+  display: none;
+  position: absolute;
+  left: 50%;
+  bottom: 10px;
+  transform: translateX(-50%);
+  width: min(680px, calc(100% - 24px));
+  max-height: 76%;
+  overflow-y: auto;
+  background: rgba(255, 253, 246, 0.96);
+  backdrop-filter: blur(8px);
+  border: 3px solid var(--ink);
+  border-radius: 22px;
+  padding: 12px 14px;
+  box-shadow: 0 8px 24px rgba(51, 43, 34, 0.26);
+  z-index: 18;
+}
+
+.mqst-helper-bubble.open {
+  display: block;
+}
+
+.mqst-helper-bubble-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-weight: 900;
+  font-size: 14.5px;
+  margin-bottom: 8px;
+}
+
+.mqst-helper-close {
+  min-height: 38px;
+  padding: 4px 12px;
+  border-radius: 999px;
+  border: 2px solid var(--ink);
+  background: #fee2e2;
+  color: #991b1b;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.mqst-stage-toast {
+  position: relative;
+  z-index: 6;
+  margin: 0 auto;
+  font-size: 14.5px;
+  font-weight: 900;
+  min-height: 24px;
+  text-align: center;
+  padding: 2px 14px;
+  border-radius: 999px;
+}
+
+.mqst-stage-toast.good {
+  background: #dcfce7;
+  border: 2px solid #15803d;
+  color: #166534;
+}
+
+.mqst-stage-toast.bad {
+  background: #fee2e2;
+  border: 2px solid #b91c1c;
+  color: #991b1b;
+}
+
+/* 下半部童趣遊戲控制台 */
+.mqst-console-dock {
+  background: linear-gradient(180deg, #fef3c7 0%, #fde68a 100%);
+  border-top: 3.5px solid var(--ink);
+  padding: 12px 16px 14px;
+  z-index: 15;
+  flex-shrink: 0;
+}
+
+.mqst-choices-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(100px, 1fr));
+  gap: 12px;
+  max-width: 680px;
+  margin: 0 auto;
+}
+
+.mqst-choice-bubble {
+  min-height: 76px;
+  padding: 10px 14px;
+  border-radius: 22px;
+  border: 3px solid var(--ink);
+  background: #ffffff;
+  color: var(--ink);
+  font-family: "Baloo 2", "Noto Sans TC", sans-serif;
+  font-size: clamp(28px, 4vw, 36px);
+  font-weight: 900;
+  cursor: pointer;
+  box-shadow: 0 5px 0 var(--shadow-ink);
+  transition: transform .08s ease, box-shadow .08s ease;
+}
+
+.mqst-choice-bubble:nth-child(1) { background: #fffbeb; }
+.mqst-choice-bubble:nth-child(2) { background: #e0f2fe; }
+.mqst-choice-bubble:nth-child(3) { background: #fce7f3; }
+.mqst-choice-bubble:nth-child(4) { background: #dcfce7; }
+
+.mqst-choice-bubble:active:not(:disabled) {
+  transform: translateY(3px);
+  box-shadow: 0 2px 0 var(--shadow-ink);
+}
+
+.mqst-choice-bubble.is-correct {
+  background: #34d399;
+  color: #064e3b;
+  border-color: #065f46;
+}
+
+.mqst-choice-bubble.is-wrong {
+  background: #fecaca;
+  color: #991b1b;
+  opacity: 0.65;
+}
+
+/* 專屬彩色玩具數字鍵盤（6×2 寬屏佈局，不遮擋上方小兔子） */
+.mqst-toy-keypad {
+  max-width: 720px;
+  margin: 0 auto;
+}
+
+.mqst-toy-keys-grid {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 8px;
+}
+
+.mqst-toy-key {
+  min-height: 54px;
+  border-radius: 16px;
+  border: 2.5px solid var(--ink);
+  background: #ffffff;
+  color: var(--ink);
+  font-family: "Baloo 2", "Noto Sans TC", sans-serif;
+  font-size: 24px;
+  font-weight: 900;
+  cursor: pointer;
+  box-shadow: 0 4px 0 var(--shadow-ink);
+  transition: transform .08s ease, box-shadow .08s ease;
+}
+
+.mqst-toy-key:active {
+  transform: translateY(3px);
+  box-shadow: 0 1px 0 var(--shadow-ink);
+}
+
+.mqst-toy-key.k1, .mqst-toy-key.k6 { background: #fef08a; }
+.mqst-toy-key.k2, .mqst-toy-key.k7 { background: #bae6fd; }
+.mqst-toy-key.k3, .mqst-toy-key.k8 { background: #fbcfe8; }
+.mqst-toy-key.k4, .mqst-toy-key.k9 { background: #bbf7d0; }
+.mqst-toy-key.k5, .mqst-toy-key.k0 { background: #e9d5ff; }
+
+.mqst-toy-key.k-back {
+  background: #fed7aa;
+  color: #9a3412;
+  font-size: 16px;
+}
+
+.mqst-toy-key.k-go {
+  background: linear-gradient(180deg, #34d399 0%, #10b981 100%);
+  color: #064e3b;
+  font-size: 16px;
+}
+
+.mqst-next-dock {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  flex-wrap: wrap;
+  max-width: 720px;
+  margin: 0 auto;
+}
+
+.mqst-mantra-banner {
+  padding: 8px 16px;
+  border-radius: 16px;
+  border: 2px solid var(--ink);
+  background: #ffffff;
+  font-size: 15.5px;
+  font-weight: 800;
+}
+
+.mqst-next-big-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 56px;
+  padding: 10px 26px;
+  border-radius: 18px;
+  border: 3px solid var(--ink);
+  background: linear-gradient(180deg, #60a5fa 0%, #2563eb 100%);
+  color: #fff;
+  font-size: 18px;
+  font-weight: 900;
+  cursor: pointer;
+  box-shadow: 0 4px 0 #1e3a8a;
+}
+
+/* ---------------- 視圖 3：勝利大舞台結算 ---------------- */
+.mqst-victory-screen {
+  background: radial-gradient(circle at center, #fffbeb 0%, #fde68a 60%, #fbcfe8 100%);
+  align-items: center;
+  justify-content: center;
+  padding: 18px;
+  overflow-y: auto;
+}
+
+.mqst-victory-stage {
+  width: min(640px, 100%);
+  background: rgba(255, 255, 255, 0.95);
+  border: 3.5px solid var(--ink);
+  border-radius: 28px;
+  padding: 22px 20px;
+  text-align: center;
+  box-shadow: 7px 7px 0 var(--shadow-ink);
+}
+
+.mqst-victory-actors {
+  display: flex;
+  justify-content: center;
+  align-items: flex-end;
+  gap: 16px;
+  margin-bottom: 6px;
+}
+
+.mqst-victory-bunny {
+  width: 96px;
+  height: 96px;
+}
+
+.mqst-victory-sprite {
+  width: 86px;
+  height: 86px;
+}
+
+.mqst-victory-bunny svg,
+.mqst-victory-sprite svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+.mqst-result-stars {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  font-size: 46px;
+  margin-bottom: 6px;
+}
+
+.mqst-star-item {
+  display: inline-block;
+  filter: grayscale(1) opacity(0.28);
+}
+
+.mqst-star-item.earned {
+  filter: none;
+}
+
+.mqst-victory-stage h3 {
+  margin: 0 0 4px;
+  font-size: clamp(22px, 3vw, 28px);
+  text-wrap: balance;
+}
+
+.mqst-result-sub {
+  margin: 0 0 12px;
+  color: var(--ink-soft);
+  font-size: 14.5px;
+  text-wrap: pretty;
+}
+
+.mqst-unlock-showcase {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+
+.mqst-unlock-banner {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 10px 14px;
+  border-radius: 18px;
+  border: 2.5px solid var(--ink);
+  background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+  text-align: left;
+  font-size: 14.5px;
+  font-weight: 800;
+}
+
+.mqst-unlock-banner svg {
+  width: 48px;
+  height: 48px;
+  flex-shrink: 0;
+}
+
+.mqst-victory-stats {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+.mqst-vstat-pill {
+  min-width: 110px;
+  padding: 8px 14px;
+  border-radius: 16px;
+  border: 2px solid var(--ink);
+  background: var(--surface-dim);
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.mqst-vstat-pill .lbl {
+  font-size: 12px;
+  font-weight: 800;
+  color: var(--ink-soft);
+}
+
+.mqst-vstat-pill strong {
+  font-family: "Baloo 2", "Noto Sans TC", sans-serif;
+  font-size: 20px;
+}
+
+.mqst-result-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 10px;
+}
+
+.mqst-tool-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  min-height: 48px;
+  padding: 8px 16px;
+  border-radius: 16px;
+  border: 2.5px solid var(--ink);
+  background: #ffffff;
+  color: var(--ink);
+  font-size: 15px;
+  font-weight: 800;
+  cursor: pointer;
+  box-shadow: 0 3px 0 var(--shadow-ink);
+}
+
+/* ---------------- 原生 <dialog> 圖鑑與家長設定 ---------------- */
+dialog.mqst-dialog {
+  width: min(760px, calc(100vw - 28px));
+  max-height: min(86dvh, 760px);
+  margin: auto;
+  padding: 0;
+  border: 3px solid var(--ink);
+  border-radius: 24px;
+  background: var(--card);
+  color: var(--ink);
+  box-shadow: 6px 6px 0 var(--shadow-ink);
+  flex-direction: column;
+  overflow: hidden;
+}
+
+dialog.mqst-dialog[open] { display: flex; }
+dialog.mqst-dialog:modal { overscroll-behavior: contain; }
+dialog.mqst-dialog::backdrop {
+  background: rgba(51, 43, 34, 0.52);
+  backdrop-filter: blur(2px);
+  overflow: hidden;
+  overscroll-behavior: contain;
+}
+
+.mqst-dialog-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 18px;
+  border-bottom: 2px solid rgba(51, 43, 34, 0.12);
+  background: #fff8eb;
+}
+
+.mqst-dialog-title-wrap {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.mqst-dialog-ico { font-size: 22px; }
+.mqst-dialog-head h3 { margin: 0; font-size: 20px; text-wrap: balance; }
+.mqst-dialog-head .close-modal-btn { min-width: 44px; min-height: 44px; }
+
+.mqst-dex-tabs {
+  display: flex;
+  gap: 8px;
+  padding: 10px 18px;
+  background: var(--surface-dim);
+  border-bottom: 2px solid rgba(51, 43, 34, 0.1);
+  flex-wrap: wrap;
+}
+
+.mqst-dex-tab {
+  min-height: 44px;
+  padding: 6px 14px;
+  border-radius: 999px;
+  border: 2px solid var(--ink);
+  background: var(--surface);
+  color: var(--ink);
+  font-size: 14px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.mqst-dex-tab.active { background: var(--ink); color: #fff; }
+.mqst-dialog-body { padding: 16px 18px 20px; overflow-y: auto; flex: 1; }
+.mqst-dialog-foot {
+  padding: 12px 18px;
+  border-top: 2px solid rgba(51, 43, 34, 0.1);
+  display: flex;
+  justify-content: flex-end;
+  background: #fff8eb;
+}
+
+.mqst-gem-summary {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 12px;
+  font-size: 14.5px;
+  font-weight: 800;
+}
+
+.mqst-gem-grid {
+  display: grid;
+  grid-template-columns: 32px repeat(9, minmax(30px, 1fr));
+  gap: 4px;
+}
+
+.mqst-gem-cell {
+  min-height: 38px;
+  border-radius: 10px;
+  border: 1.5px solid rgba(51, 43, 34, 0.25);
+  background: #f1ede4;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: "Baloo 2", sans-serif;
+  font-size: 13px;
+  font-weight: 800;
+  color: #94a3b8;
+}
+
+.mqst-gem-cell.head { background: var(--ink); color: #fff; border-color: var(--ink); }
+.mqst-gem-cell.lit {
+  background: linear-gradient(135deg, #fef08a 0%, #fde047 100%);
+  border-color: #b45309;
+  color: #78350f;
+  box-shadow: 0 2px 0 #b45309;
+}
+
+.mqst-collection-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(195px, 1fr));
+  gap: 12px;
+}
+
+.mqst-collect-card {
+  border: 2px solid var(--ink);
+  border-radius: 18px;
+  padding: 12px;
+  background: #ffffff;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 6px;
+  box-shadow: 2.5px 2.5px 0 var(--shadow-ink);
+}
+
+.mqst-collect-card.locked { background: var(--surface-dim); opacity: 0.72; }
+.mqst-collect-card.locked .mqst-collect-art { filter: grayscale(1) opacity(0.4); }
+.mqst-collect-art { width: 64px; height: 64px; display: flex; align-items: center; justify-content: center; font-size: 38px; }
+.mqst-collect-art svg { width: 60px; height: 60px; }
+.mqst-collect-name { font-size: 15.5px; font-weight: 900; color: var(--ink); }
+.mqst-collect-desc { font-size: 12.5px; color: var(--ink-soft); margin: 0; text-wrap: pretty; }
+
+.mqst-parent-card { border: 2px solid var(--ink); border-radius: 18px; padding: 14px 16px; background: #fff; margin-bottom: 14px; }
+.mqst-parent-card h4 { margin: 0 0 4px; font-size: 16px; }
+.mqst-parent-card p { margin: 0 0 10px; font-size: 13.5px; color: var(--ink-soft); text-wrap: pretty; }
+.mqst-parent-row { display: flex; align-items: center; justify-content: space-between; gap: 14px; }
+.mqst-switch-btn { min-width: 96px; min-height: 48px; padding: 8px 14px; border-radius: 999px; border: 2.5px solid var(--ink); background: var(--surface-dim); font-weight: 800; cursor: pointer; flex-shrink: 0; }
+.mqst-switch-btn[aria-pressed="true"] { background: #4ade80; color: #064e3b; }
+.mqst-danger-card { background: #fff5f5; }
+.mqst-lock-box { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; }
+.mqst-lock-q { font-weight: 800; font-size: 15px; }
+.mqst-lock-input { width: 82px; min-height: 44px; border: 2px solid var(--ink); border-radius: 12px; text-align: center; font-family: "Baloo 2", sans-serif; font-size: 18px; font-weight: 800; }
+.mqst-danger-btn { min-height: 48px; padding: 10px 18px; border-radius: 14px; border: 2.5px solid #7f1d1d; background: #ef4444; color: #fff; font-size: 14.5px; font-weight: 800; cursor: pointer; }
+
+/* ---------------- 直向平板 / 窄螢幕適配 ---------------- */
+@media (max-width: 780px) {
+  .mqst-launcher-card {
+    grid-template-columns: 1fr;
+  }
+  .mqst-choices-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .mqst-toy-keys-grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+  .mqst-toy-key.k-back { grid-column: span 2; }
+  .mqst-toy-key.k-go   { grid-column: span 2; }
+  .mqst-gem-grid {
+    grid-template-columns: 26px repeat(9, minmax(24px, 1fr));
+    gap: 3px;
+  }
+  .mqst-gem-cell { min-height: 32px; font-size: 11.5px; }
+}
