@@ -1760,7 +1760,9 @@
 
 /* ---------------- 原生 <dialog> 圖鑑與家長設定 ---------------- */
 dialog.mqst-dialog {
+  box-sizing: border-box;
   width: min(760px, calc(100vw - 28px));
+  max-height: min(86vh, 760px);
   max-height: min(86dvh, 760px);
   margin: auto;
   padding: 0;
@@ -1850,7 +1852,14 @@ dialog.mqst-dialog::backdrop {
   inset: auto 18px 4px;
   border-block-end: 3px solid #f59e0b;
 }
-.mqst-dialog-body { padding: 16px 18px 20px; overflow-y: auto; flex: 1; min-height: 0; }
+/* 採用 flex-basis: auto 避免 WebKit/iPadOS Safari 在 fit-content 原生 <dialog> 中把內容區高度計算為 0 */
+.mqst-dialog-body {
+  padding: 16px 18px 20px;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  flex: 1 1 auto;
+  min-height: 0;
+}
 .mqst-dialog-foot {
   flex-shrink: 0;
   padding: 12px 18px;
@@ -2201,15 +2210,33 @@ button.mqst-gem-cell:active {
 }
 
 .mqst-parent-card { border: 2px solid var(--ink); border-radius: 18px; padding: 14px 16px; background: #fff; margin-bottom: 14px; }
+.mqst-parent-card:last-child { margin-bottom: 0; }
 .mqst-parent-card h4 { margin: 0 0 4px; font-size: 16px; }
 .mqst-parent-card p { margin: 0 0 10px; font-size: 13.5px; color: var(--ink-soft); text-wrap: pretty; }
+.mqst-parent-card p:last-child { margin-bottom: 0; }
 .mqst-parent-row { display: flex; align-items: center; justify-content: space-between; gap: 14px; }
+.mqst-parent-row > div { flex: 1; min-width: 0; }
 .mqst-switch-btn { min-width: 96px; min-height: 48px; padding: 8px 14px; border-radius: 999px; border: 2.5px solid var(--ink); background: var(--surface-dim); font-weight: 800; cursor: pointer; flex-shrink: 0; }
 .mqst-switch-btn[aria-pressed="true"] { background: #4ade80; color: #064e3b; }
+.mqst-parent-status {
+  margin: 8px 0 0 !important;
+  font-size: 13px !important;
+  font-weight: 700;
+  color: #475569 !important;
+}
+.mqst-parent-status.is-active { color: #047857 !important; }
 .mqst-danger-card { background: #fff5f5; }
 .mqst-lock-box { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; }
 .mqst-lock-q { font-weight: 800; font-size: 15px; }
 .mqst-lock-input { width: 82px; min-height: 44px; border: 2px solid var(--ink); border-radius: 12px; text-align: center; font-family: "Baloo 2", sans-serif; font-size: 18px; font-weight: 800; }
+.mqst-parent-feedback {
+  margin: 8px 0 0 !important;
+  min-height: 20px;
+  font-size: 13px !important;
+  font-weight: 700;
+  color: #b91c1c !important;
+}
+.mqst-parent-feedback:empty { display: none; }
 .mqst-danger-btn { min-height: 48px; padding: 10px 18px; border-radius: 14px; border: 2.5px solid #7f1d1d; background: #ef4444; color: #fff; font-size: 14.5px; font-weight: 800; cursor: pointer; }
 
 /* ---------------- 直向平板 / 窄螢幕適配 ---------------- */
@@ -2242,4 +2269,14 @@ button.mqst-gem-cell:active {
   .mqst-partner-svg { width: 52px; height: 52px; }
   .mqst-partner-speech { display: none; }
   .mqst-partner-skill-btn { min-height: 44px; font-size: 11.5px; padding: 6px 8px; }
+}
+
+@media (max-width: 560px) {
+  .mqst-parent-row {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .mqst-switch-btn {
+    align-self: flex-start;
+  }
 }

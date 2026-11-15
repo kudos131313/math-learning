@@ -1127,10 +1127,12 @@
 
     els.parentDialog   = document.getElementById('mqst-parent-dialog');
     els.previewToggle  = document.getElementById('mqst-preview-toggle-btn');
+    els.previewStatusMsg = document.getElementById('mqst-preview-status-msg');
     els.parentLockBox  = document.getElementById('mqst-parent-lock-box');
     els.parentLockQ    = document.getElementById('mqst-parent-lock-q');
     els.parentLockIn   = document.getElementById('mqst-parent-lock-input');
     els.parentUnlockBtn= document.getElementById('mqst-parent-unlock-btn');
+    els.parentFeedback = document.getElementById('mqst-parent-feedback');
     els.resetConfirmRow= document.getElementById('mqst-reset-confirm-row');
     els.resetAllBtn    = document.getElementById('mqst-reset-all-btn');
   }
@@ -2843,6 +2845,7 @@
     parentChallengeAns = a * b;
     if(els.parentLockQ) els.parentLockQ.textContent = '請計算：' + a + ' × ' + b + ' ＝';
     if(els.parentLockIn) els.parentLockIn.value = '';
+    if(els.parentFeedback) els.parentFeedback.textContent = '';
     if(els.parentLockBox) els.parentLockBox.style.display = 'flex';
     if(els.resetConfirmRow) els.resetConfirmRow.style.display = 'none';
   }
@@ -2851,6 +2854,12 @@
     if(!els.previewToggle) return;
     els.previewToggle.setAttribute('aria-pressed', String(saveData.previewAll));
     els.previewToggle.textContent = saveData.previewAll ? '已開啟' : '未開啟';
+    if(els.previewStatusMsg){
+      els.previewStatusMsg.classList.toggle('is-active', Boolean(saveData.previewAll));
+      els.previewStatusMsg.textContent = saveData.previewAll
+        ? '目前狀態：已開啟自由挑選／預習模式'
+        : '目前狀態：依序闖關模式';
+    }
   }
 
   /* ---------------- 事件綁定 ---------------- */
@@ -3235,21 +3244,43 @@
       });
     }
     if(els.parentUnlockBtn){
-      els.parentUnlockBtn.addEventListener('click', function(){
-        var val = Number((els.parentLockIn && els.parentLockIn.value) || '');
+      var verifyParentUnlock = function(){
+        var raw = els.parentLockIn ? els.parentLockIn.value.trim() : '';
+        if(!raw){
+          if(MathApp.sfx) MathApp.sfx('wrong');
+          if(els.parentFeedback) els.parentFeedback.textContent = '請先輸入驗證答案！';
+          if(els.parentLockIn) els.parentLockIn.focus();
+          return;
+        }
+        var val = Number(raw);
         if(val === parentChallengeAns){
           if(MathApp.sfx) MathApp.sfx('correct');
+          if(els.parentFeedback) els.parentFeedback.textContent = '';
           if(els.parentLockBox) els.parentLockBox.style.display = 'none';
           if(els.resetConfirmRow) els.resetConfirmRow.style.display = 'block';
         } else {
           if(MathApp.sfx) MathApp.sfx('wrong');
-    updateBattleMoods('oops', 'normal', 'normal');
-    if(getActivePartnerIsland()){
-      setPartnerSpeech('沒關係！看看積木再試一次！');
-    }
-          if(MathApp.utils && MathApp.utils.showToast) MathApp.utils.showToast('驗證答案不正確，請再算算看！');
+          if(els.parentFeedback) els.parentFeedback.textContent = '驗證答案不正確，請再算算看！';
+          if(els.parentLockIn){
+            els.parentLockIn.focus();
+            els.parentLockIn.select();
+          }
         }
-      });
+      };
+      els.parentUnlockBtn.addEventListener('click', verifyParentUnlock);
+      if(els.parentLockIn){
+        els.parentLockIn.addEventListener('keydown', function(e){
+          if(e.key === 'Enter'){
+            e.preventDefault();
+            verifyParentUnlock();
+          }
+        });
+        els.parentLockIn.addEventListener('input', function(){
+          if(els.parentFeedback && els.parentFeedback.textContent){
+            els.parentFeedback.textContent = '';
+          }
+        });
+      }
     }
     if(els.resetAllBtn){
       els.resetAllBtn.addEventListener('click', function(){

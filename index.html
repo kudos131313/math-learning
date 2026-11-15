@@ -30,7 +30,7 @@
 <link rel="stylesheet" href="css/calc.css?v=20260908e">
 <link rel="stylesheet" href="css/calc-quiz.css?v=20260908e">
 <link rel="stylesheet" href="css/mul.css?v=20261020a">
-<link rel="stylesheet" href="css/mul-quest.css?v=20261115m">
+<link rel="stylesheet" href="css/mul-quest.css?v=20261115n">
 <link rel="stylesheet" href="css/modal.css?v=20260908e">
 </head>
 <body>
@@ -1571,6 +1571,7 @@
           <div>
             <h4>🔓 自由挑選／預習模式</h4>
             <p>開啟後可隨時點擊地圖上任何關卡練習（例如學校剛教到 7 的乘法時直接跳關），且不會遺失已取得的星星！</p>
+            <p class="mqst-parent-status" id="mqst-preview-status-msg" aria-live="polite"></p>
           </div>
           <button type="button" class="mqst-switch-btn" id="mqst-preview-toggle-btn" aria-pressed="false">未開啟</button>
         </div>
@@ -1581,9 +1582,10 @@
         <p>為了避免小朋友誤觸把辛苦點亮的 81 格寶石牆與星星清空，請先回答下方小題目解鎖重置按鈕：</p>
         <div class="mqst-lock-box" id="mqst-parent-lock-box">
           <span class="mqst-lock-q" id="mqst-parent-lock-q">請計算：14 × 3 ＝</span>
-          <input type="number" inputmode="numeric" class="mqst-lock-input" id="mqst-parent-lock-input" aria-label="家長驗證答案" placeholder="?">
+          <input type="number" inputmode="numeric" autocomplete="off" class="mqst-lock-input" id="mqst-parent-lock-input" aria-label="家長驗證答案" placeholder="?">
           <button type="button" class="ghost-btn small" id="mqst-parent-unlock-btn">解鎖</button>
         </div>
+        <p class="mqst-parent-feedback" id="mqst-parent-feedback" role="status" aria-live="polite"></p>
         <div class="mqst-reset-confirm-row" id="mqst-reset-confirm-row" style="display:none;">
           <button type="button" class="mqst-danger-btn" id="mqst-reset-all-btn">確定清空全部星星與圖鑑紀錄</button>
         </div>
@@ -1709,7 +1711,7 @@
 <script defer src="js/calc-quiz.js?v=20260907d"></script>
 <script defer src="js/mul.js?v=20261115a"></script>
 <script defer src="js/mul-quiz.js?v=20261115c"></script>
-<script defer src="js/mul-quest.js?v=20261115m"></script>
+<script defer src="js/mul-quest.js?v=20261115n"></script>
 <script defer src="js/diagnostics.js?v=20261115c"></script>
 <script defer src="js/app.js?v=20261115a"></script>
 </body>
