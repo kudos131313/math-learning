@@ -342,6 +342,64 @@
     tone(630, 0.045, 0.075, 'triangle', 0.11);
   }
 
+  /**
+   * 最後一擊必殺技專屬多段合成音效
+   * @param {string} kind 'meteor' | 'rainbow' | 'carrot' | 'slash'
+   * @param {boolean} isBoss 是否為 Boss 關卡豪華版
+   */
+  function sfxFinisher(kind, isBoss){
+    if(!soundOn) return;
+    var boost = isBoss ? 1.15 : 1.0;
+
+    // 1. 共通蓄力聚能上升音
+    tone(330, 0.02, 0.12, 'triangle', 0.09 * boost);
+    tone(440, 0.10, 0.14, 'triangle', 0.10 * boost);
+    tone(587.33, 0.18, 0.16, 'sine', 0.11 * boost);
+
+    if(kind === 'meteor'){
+      // 多顆流星連續呼嘯墜落 + 收尾爆裂和弦
+      var drops = [0.46, 0.58, 0.70, 0.82, 0.96, 1.12];
+      for(var i = 0; i < drops.length; i++){
+        var d = drops[i];
+        tone(1180 - i * 65, d, 0.11, 'sine', 0.09 * boost);
+        tone(240 + (i % 2) * 40, d + 0.09, 0.10, 'triangle', 0.09 * boost);
+      }
+      if(isBoss) tone(110, 1.35, 0.28, 'sawtooth', 0.09);
+      tone(523.25, 1.35, 0.22, 'triangle', 0.13 * boost);
+      tone(783.99, 1.40, 0.24, 'sine', 0.12 * boost);
+      tone(1046.5, 1.46, 0.30, 'sine', 0.12 * boost);
+    } else if(kind === 'rainbow'){
+      // 聚光和弦長鳴 + 彩虹光束推進共鳴
+      tone(523.25, 0.38, 0.45, 'triangle', 0.11 * boost);
+      tone(659.25, 0.44, 0.45, 'sine', 0.11 * boost);
+      tone(783.99, 0.50, 0.48, 'sine', 0.11 * boost);
+      tone(1046.5, 0.58, 0.52, 'triangle', 0.12 * boost);
+      if(isBoss) tone(130.81, 0.62, 0.42, 'sawtooth', 0.08);
+      tone(1318.51, 0.95, 0.34, 'sine', 0.11 * boost);
+      tone(1567.98, 1.04, 0.36, 'sine', 0.10 * boost);
+    } else if(kind === 'carrot'){
+      // 懸浮召喚閃音 + 高空重墜滑落 + 厚重震地低音 + 閃亮噴星
+      tone(783.99, 0.34, 0.14, 'sine', 0.10 * boost);
+      tone(1046.5, 0.44, 0.16, 'sine', 0.11 * boost);
+      tone(460, 0.72, 0.14, 'triangle', 0.10 * boost);
+      tone(290, 0.84, 0.16, 'triangle', 0.11 * boost);
+      tone(isBoss ? 88 : 110, 0.98, 0.30, 'sawtooth', 0.12 * boost);
+      tone(196, 1.00, 0.26, 'square', 0.08 * boost);
+      tone(659.25, 1.06, 0.20, 'sine', 0.11 * boost);
+      tone(987.77, 1.14, 0.24, 'sine', 0.11 * boost);
+    } else {
+      // slash 星辰十字斬：第一斬 → 第二斬 → 十字總爆裂
+      tone(987.77, 0.46, 0.12, 'sawtooth', 0.08 * boost);
+      tone(1318.51, 0.50, 0.14, 'sine', 0.11 * boost);
+      tone(1174.66, 0.74, 0.12, 'sawtooth', 0.09 * boost);
+      tone(1567.98, 0.78, 0.16, 'sine', 0.12 * boost);
+      if(isBoss) tone(110, 1.00, 0.28, 'sawtooth', 0.09);
+      tone(523.25, 1.00, 0.22, 'triangle', 0.12 * boost);
+      tone(1046.5, 1.04, 0.28, 'sine', 0.13 * boost);
+      tone(1318.51, 1.12, 0.30, 'sine', 0.11 * boost);
+    }
+  }
+
   // 偏好語音清單（越前面越優先）
   var VOICE_PREFS = [
     // 1. Google 雲端神經語音（Chrome 免費支援，自然度極高）
@@ -858,6 +916,7 @@
     sfx: sfx,
     sfxCombo: sfxCombo,
     sfxJump: sfxJump,
+    sfxFinisher: sfxFinisher,
     startBgm: startBgm,
     stopBgm: stopBgm,
     duckBgm: duckBgm,

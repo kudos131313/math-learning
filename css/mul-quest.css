@@ -722,7 +722,7 @@
   justify-content: space-between;
   width: min(860px, 100%);
   margin: auto auto 0;
-  padding: 0 12px 6px;
+  padding: 0 12px clamp(24px, 5.5vh, 52px);
 }
 
 .mqst-hero-duo {
@@ -749,6 +749,8 @@
   width: clamp(58px, 8vw, 76px);
   height: clamp(58px, 8vw, 76px);
   filter: drop-shadow(0 5px 0 rgba(51, 43, 34, 0.22));
+  will-change: transform;
+  transform-origin: 50% 90%;
 }
 
 .mqst-partner-svg svg {
@@ -834,6 +836,9 @@
   width: clamp(92px, 13vw, 132px);
   height: clamp(92px, 13vw, 132px);
   filter: drop-shadow(0 6px 0 rgba(51, 43, 34, 0.25));
+  will-change: transform;
+  transform-origin: 50% 90%;
+  cursor: pointer;
 }
 
 .mqst-hero-svg svg,
@@ -852,21 +857,336 @@
   font-weight: 900;
 }
 
+/* ---------------- 魔法光彈與命中爆破 FX 圖層 ---------------- */
+.mqst-fx-layer {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 10;
+  overflow: hidden;
+}
+
 .mqst-projectile,
 .mqst-partner-projectile {
   position: absolute;
-  left: 16%;
-  bottom: 42%;
-  font-size: 38px;
+  left: 0;
+  top: 0;
   pointer-events: none;
   opacity: 0;
-  z-index: 9;
+  visibility: hidden;
+  will-change: transform, opacity;
 }
 
-.mqst-partner-projectile {
-  left: 24%;
-  bottom: 34%;
-  font-size: 30px;
+.mqst-fx-bolt {
+  width: 68px;
+  height: 68px;
+  filter: drop-shadow(0 0 12px rgba(249, 115, 22, 0.95));
+}
+
+.mqst-fx-bolt svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+.mqst-fx-partner-bolt {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.96) 20%, rgba(14, 165, 233, 0.72) 64%, rgba(56, 189, 248, 0) 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 28px;
+  filter: drop-shadow(0 0 10px rgba(14, 165, 233, 0.9));
+}
+
+.mqst-fx-trail {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: radial-gradient(circle, #ffffff 12%, #facc15 48%, #f97316 78%, rgba(249, 115, 22, 0) 100%);
+  opacity: 0;
+  visibility: hidden;
+  will-change: transform, opacity;
+}
+
+.mqst-fx-impact {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 176px;
+  height: 176px;
+  pointer-events: none;
+  opacity: 0;
+  visibility: hidden;
+}
+
+.mqst-fx-ring {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  border: 6px solid #f97316;
+  box-shadow: 0 0 18px rgba(250, 204, 21, 0.95);
+  will-change: transform, opacity;
+}
+
+.mqst-fx-ring.inner {
+  inset: 28px;
+  border-width: 5px;
+  border-color: #ffffff;
+  box-shadow: 0 0 14px rgba(249, 115, 22, 0.9);
+}
+
+.mqst-fx-flash {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 124px;
+  height: 124px;
+  transform: translate(-50%, -50%);
+  will-change: transform, opacity;
+}
+
+.mqst-fx-spark {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 15px;
+  height: 15px;
+  margin-left: -7.5px;
+  margin-top: -7.5px;
+  border-radius: 3px;
+  background: #facc15;
+  border: 2px solid #ea580c;
+  box-shadow: 0 0 10px rgba(249, 115, 22, 0.95);
+  will-change: transform, opacity;
+}
+
+.mqst-fx-spark:nth-child(even) {
+  background: #fb7185;
+  border-radius: 50%;
+}
+
+.mqst-fx-spark:nth-child(3n) {
+  background: #38bdf8;
+}
+
+/* ---------------- 最後一擊必殺技 FX 樣式 ---------------- */
+.mqst-ult-backdrop {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  background: radial-gradient(ellipse at 50% 65%, rgba(30, 41, 59, 0.36) 0%, rgba(15, 23, 42, 0.78) 100%);
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  will-change: opacity;
+}
+
+.mqst-ult-cutin {
+  position: absolute;
+  left: 50%;
+  top: 30%;
+  transform: translate(-50%, -50%);
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 20px;
+  border-radius: 999px;
+  border: 3.5px solid #fde047;
+  background: linear-gradient(135deg, #581c87 0%, #be123c 55%, #ea580c 100%);
+  color: #ffffff;
+  box-shadow: 0 6px 0 rgba(15, 23, 42, 0.55), 0 0 24px rgba(250, 204, 21, 0.78);
+  white-space: nowrap;
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  z-index: 12;
+  will-change: transform, opacity;
+}
+
+.mqst-ult-cutin-tag {
+  padding: 2px 9px;
+  border-radius: 999px;
+  background: #fde047;
+  color: #451a03;
+  font-size: 12.5px;
+  font-weight: 900;
+}
+
+.mqst-ult-cutin-title {
+  font-family: "Baloo 2", "Noto Sans TC", sans-serif;
+  font-size: clamp(18px, 2.8vw, 24px);
+  font-weight: 900;
+  letter-spacing: 0.04em;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.45);
+}
+
+.mqst-ult-meteor {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 58px;
+  height: 58px;
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  filter: drop-shadow(0 0 12px rgba(249, 115, 22, 0.95));
+  will-change: transform, opacity;
+}
+
+.mqst-ult-meteor.big {
+  width: 88px;
+  height: 88px;
+  filter: drop-shadow(0 0 18px rgba(250, 204, 21, 1));
+}
+
+.mqst-ult-meteor svg {
+  position: relative;
+  z-index: 2;
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+.mqst-ult-meteor-tail {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 96px;
+  height: 18px;
+  border-radius: 999px;
+  background: linear-gradient(90deg, rgba(255, 255, 255, 0.95) 0%, rgba(250, 204, 21, 0.85) 35%, rgba(249, 115, 22, 0) 100%);
+  transform-origin: 0 50%;
+  transform: translate(0, -50%) rotate(-135deg);
+  z-index: 1;
+}
+
+.mqst-ult-meteor.big .mqst-ult-meteor-tail {
+  width: 145px;
+  height: 26px;
+}
+
+.mqst-ult-beam {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 0;
+  height: 0;
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transform-origin: 0 0;
+  will-change: transform, opacity;
+}
+
+.mqst-ult-beam-orb {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 74px;
+  height: 74px;
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  background: radial-gradient(circle, #ffffff 22%, #fde047 52%, #ec4899 78%, rgba(56, 189, 248, 0) 100%);
+  box-shadow: 0 0 24px rgba(255, 255, 255, 0.95), 0 0 38px rgba(236, 72, 153, 0.85);
+}
+
+.mqst-ult-beam-shaft {
+  position: absolute;
+  left: 0;
+  top: -32px;
+  width: 520px;
+  height: 64px;
+  border-radius: 999px;
+  background: linear-gradient(180deg,
+    rgba(244, 63, 94, 0.92) 0%,
+    rgba(251, 146, 60, 0.94) 18%,
+    rgba(250, 204, 21, 0.96) 36%,
+    rgba(52, 211, 153, 0.96) 54%,
+    rgba(56, 189, 248, 0.95) 74%,
+    rgba(168, 85, 247, 0.92) 100%);
+  box-shadow: 0 0 26px rgba(250, 204, 21, 0.9), 0 0 42px rgba(56, 189, 248, 0.85);
+  transform-origin: 0 50%;
+  display: flex;
+  align-items: center;
+  will-change: transform, opacity;
+}
+
+.mqst-ult-beam-core {
+  width: 100%;
+  height: 20px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.92);
+  box-shadow: 0 0 12px #ffffff;
+}
+
+.mqst-ult-carrot {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 112px;
+  height: 142px;
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  filter: drop-shadow(0 0 18px rgba(249, 115, 22, 0.95));
+  will-change: transform, opacity;
+}
+
+.mqst-ult-carrot svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+.mqst-ult-slash {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 196px;
+  height: 196px;
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  will-change: transform, opacity;
+}
+
+.mqst-ult-slash-blade,
+.mqst-ult-slash-cross {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  will-change: transform, opacity;
+}
+
+.mqst-ult-slash-blade {
+  width: 184px;
+  height: 184px;
+  filter: drop-shadow(0 0 12px rgba(250, 204, 21, 0.95));
+}
+
+.mqst-ult-slash-blade.b {
+  filter: drop-shadow(0 0 14px rgba(56, 189, 248, 0.95));
+}
+
+.mqst-ult-slash-cross {
+  width: 140px;
+  height: 140px;
+  filter: drop-shadow(0 0 16px rgba(249, 115, 22, 0.95));
+}
+
+.mqst-next-big-btn.ult-waiting {
+  background: linear-gradient(135deg, #fde68a 0%, #fbcfe8 100%);
+  color: #7c2d12;
+  opacity: 0.88;
+  cursor: wait;
+  box-shadow: 0 2px 0 rgba(51, 43, 34, 0.25);
 }
 
 .mqst-enemy-hp-card {
@@ -953,6 +1273,37 @@
   width: clamp(94px, 13.5vw, 138px);
   height: clamp(94px, 13.5vw, 138px);
   filter: drop-shadow(0 6px 0 rgba(51, 43, 34, 0.25));
+  will-change: transform;
+  transform-origin: 50% 90%;
+  cursor: pointer;
+}
+
+/* GSAP 未載入時的離線待機呼吸動畫降級 */
+@keyframes mqst-idle-bob {
+  0%, 100% { transform: translateY(0) scaleY(0.97) scaleX(1.02); }
+  50%      { transform: translateY(-6px) scaleY(1.03) scaleX(0.98); }
+}
+
+@keyframes mqst-idle-float {
+  0%, 100% { transform: translateY(-2px) rotate(-3deg); }
+  50%      { transform: translateY(-9px) rotate(3deg); }
+}
+
+.mqst-stage-arena.no-gsap-idle .mqst-hero-svg,
+.mqst-stage-arena.no-gsap-idle .mqst-enemy-svg {
+  animation: mqst-idle-bob 1.4s ease-in-out infinite;
+}
+
+.mqst-stage-arena.no-gsap-idle .mqst-partner-svg {
+  animation: mqst-idle-float 1.8s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mqst-stage-arena.no-gsap-idle .mqst-hero-svg,
+  .mqst-stage-arena.no-gsap-idle .mqst-enemy-svg,
+  .mqst-stage-arena.no-gsap-idle .mqst-partner-svg {
+    animation: none;
+  }
 }
 
 .mqst-hit-callout {
@@ -1886,6 +2237,7 @@ button.mqst-gem-cell:active {
     gap: 3px;
   }
   .mqst-gem-cell { min-height: 32px; font-size: 11.5px; }
+  .mqst-actors-row { padding: 0 8px 16px; }
   .mqst-hero-duo { gap: 4px; }
   .mqst-partner-svg { width: 52px; height: 52px; }
   .mqst-partner-speech { display: none; }

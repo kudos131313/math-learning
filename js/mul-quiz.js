@@ -45,6 +45,33 @@
     { icon: '🚗', unit: '輛玩具車，每輛有', item: '個輪子', flowerMode: true }
   ];
 
+  /* 降低 1 乘法在隨機抽題中的權重（單段專練 1 段時不影響） */
+  var ONE_FACTOR_WEIGHT = 0.15;
+
+  /* 依權重從陣列中隨機抽出一個元素 */
+  function pickWeightedItem(items, weightFn){
+    var total = 0;
+    var weights = [];
+    for(var i = 0; i < items.length; i++){
+      var w = Math.max(0.001, weightFn(items[i]));
+      weights.push(w);
+      total += w;
+    }
+    var r = Math.random() * total;
+    for(var j = 0; j < items.length; j++){
+      r -= weights[j];
+      if(r <= 0) return items[j];
+    }
+    return items[items.length - 1];
+  }
+
+  /* 取得乘數候選值 (1~9)，大幅降低 1 出現機率 */
+  function pickFactorB(){
+    return pickWeightedItem([1, 2, 3, 4, 5, 6, 7, 8, 9], function(n){
+      return n === 1 ? ONE_FACTOR_WEIGHT : 1;
+    });
+  }
+
   /* 取得指定關卡對應的被乘數候選池 */
   function getPoolByLevel(level, tableFilter){
     if(tableFilter !== 'all'){
@@ -67,8 +94,10 @@
     var tries = 0;
 
     do {
-      a = poolA[MathApp.utils.randInt(0, poolA.length - 1)];
-      b = MathApp.utils.randInt(1, 9);
+      a = pickWeightedItem(poolA, function(n){
+        return n === 1 ? ONE_FACTOR_WEIGHT : 1;
+      });
+      b = pickFactorB();
 
       var roll = Math.random();
       if(level === 'concept'){
@@ -93,6 +122,11 @@
           qType = 'concept';
           b = MathApp.utils.randInt(2, 6);
         }
+      }
+
+      // 全範圍隨機出題時避免無意義的 1×1
+      if(tableFilter === 'all' && a === 1 && b === 1 && qType !== 'concept'){
+        b = MathApp.utils.randInt(2, 9);
       }
 
       sig = a + 'x' + b + ':' + qType;

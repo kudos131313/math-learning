@@ -30,7 +30,7 @@
 <link rel="stylesheet" href="css/calc.css?v=20260908e">
 <link rel="stylesheet" href="css/calc-quiz.css?v=20260908e">
 <link rel="stylesheet" href="css/mul.css?v=20261020a">
-<link rel="stylesheet" href="css/mul-quest.css?v=20261115h">
+<link rel="stylesheet" href="css/mul-quest.css?v=20261115m">
 <link rel="stylesheet" href="css/modal.css?v=20260908e">
 </head>
 <body>
@@ -1297,6 +1297,7 @@
           <div class="mqst-stage-arena" id="mqst-stage-arena" data-theme="forest">
             <img src="assets/quest/bg-forest.jpg" alt="" class="mqst-stage-bg-img" id="mqst-stage-bg-img" aria-hidden="true">
             <div class="mqst-arena-scrim" aria-hidden="true"></div>
+            <div class="mqst-ult-backdrop" id="mqst-ult-backdrop" aria-hidden="true"></div>
 
             <!-- 中央上方：魔法木牌算式板 -->
             <div class="mqst-wood-board" id="mqst-question-stage">
@@ -1332,10 +1333,6 @@
                 </div>
               </div>
 
-              <!-- 攻擊拋物線星星光彈與精靈雙重光彈 -->
-              <div class="mqst-projectile" id="mqst-projectile" aria-hidden="true">🌟</div>
-              <div class="mqst-partner-projectile" id="mqst-partner-projectile" aria-hidden="true">🌿</div>
-
               <!-- 右側對手：Boss 怪獸或關卡寶箱怪 -->
               <div class="mqst-enemy-actor" id="mqst-enemy-actor">
                 <div class="mqst-enemy-hp-card">
@@ -1346,6 +1343,89 @@
                 <div class="mqst-enemy-speech" id="mqst-boss-taunt">「答對這題就給我星星攻擊！」</div>
                 <div class="mqst-enemy-svg" id="mqst-boss-svg" aria-hidden="true"></div>
                 <div class="mqst-hit-callout" id="mqst-hit-callout" aria-hidden="true">GREAT! ✨</div>
+              </div>
+            </div>
+
+            <!-- 魔法光彈與命中爆破特效圖層 -->
+            <div class="mqst-fx-layer" id="mqst-fx-layer" aria-hidden="true">
+              <div class="mqst-fx-trail" data-trail="0"></div>
+              <div class="mqst-fx-trail" data-trail="1"></div>
+              <div class="mqst-fx-trail" data-trail="2"></div>
+              <div class="mqst-fx-trail" data-trail="3"></div>
+              <div class="mqst-fx-trail" data-trail="4"></div>
+              <div class="mqst-projectile mqst-fx-bolt" id="mqst-projectile">
+                <svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
+                  <circle cx="32" cy="32" r="27" fill="#fb923c" opacity="0.45"/>
+                  <polygon points="32,3 39,21 59,22 44,35 49,55 32,44 15,55 20,35 5,22 25,21" fill="#facc15" stroke="#ea580c" stroke-width="4" stroke-linejoin="round"/>
+                  <polygon points="32,9 37,23 53,24 41,34 45,49 32,40 19,49 23,34 11,24 27,23" fill="#fde047" stroke="#ffffff" stroke-width="2" stroke-linejoin="round"/>
+                  <polygon points="32,16 35,26 45,27 37,33 40,42 32,37 24,42 27,33 19,27 29,26" fill="#fffbeb"/>
+                </svg>
+              </div>
+              <div class="mqst-partner-projectile mqst-fx-partner-bolt" id="mqst-partner-projectile"></div>
+              <div class="mqst-fx-impact" id="mqst-fx-impact">
+                <div class="mqst-fx-ring outer"></div>
+                <div class="mqst-fx-ring inner"></div>
+                <svg class="mqst-fx-flash" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+                  <polygon points="50,2 58,40 98,50 58,60 50,98 42,60 2,50 42,40" fill="#ffffff" stroke="#f97316" stroke-width="4" stroke-linejoin="round"/>
+                </svg>
+                <span class="mqst-fx-spark"></span>
+                <span class="mqst-fx-spark"></span>
+                <span class="mqst-fx-spark"></span>
+                <span class="mqst-fx-spark"></span>
+                <span class="mqst-fx-spark"></span>
+                <span class="mqst-fx-spark"></span>
+                <span class="mqst-fx-spark"></span>
+                <span class="mqst-fx-spark"></span>
+              </div>
+
+              <!-- 最後一擊必殺技 Cut-in 橫幅 -->
+              <div class="mqst-ult-cutin" id="mqst-ult-cutin">
+                <span class="mqst-ult-cutin-tag" id="mqst-ult-cutin-tag">⚡ 必殺技</span>
+                <strong class="mqst-ult-cutin-title" id="mqst-ult-cutin-title">超級流星雨！</strong>
+              </div>
+
+              <!-- 必殺技 1：超級流星雨（7 顆大流星） -->
+              <div class="mqst-ult-meteor" data-meteor="0"><span class="mqst-ult-meteor-tail"></span><svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg"><polygon points="32,3 39,21 59,22 44,35 49,55 32,44 15,55 20,35 5,22 25,21" fill="#facc15" stroke="#ea580c" stroke-width="4" stroke-linejoin="round"/><polygon points="32,14 36,25 47,26 38,33 41,44 32,38 23,44 26,33 17,26 28,25" fill="#fffbeb"/></svg></div>
+              <div class="mqst-ult-meteor" data-meteor="1"><span class="mqst-ult-meteor-tail"></span><svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg"><polygon points="32,3 39,21 59,22 44,35 49,55 32,44 15,55 20,35 5,22 25,21" fill="#facc15" stroke="#ea580c" stroke-width="4" stroke-linejoin="round"/><polygon points="32,14 36,25 47,26 38,33 41,44 32,38 23,44 26,33 17,26 28,25" fill="#fffbeb"/></svg></div>
+              <div class="mqst-ult-meteor" data-meteor="2"><span class="mqst-ult-meteor-tail"></span><svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg"><polygon points="32,3 39,21 59,22 44,35 49,55 32,44 15,55 20,35 5,22 25,21" fill="#facc15" stroke="#ea580c" stroke-width="4" stroke-linejoin="round"/><polygon points="32,14 36,25 47,26 38,33 41,44 32,38 23,44 26,33 17,26 28,25" fill="#fffbeb"/></svg></div>
+              <div class="mqst-ult-meteor" data-meteor="3"><span class="mqst-ult-meteor-tail"></span><svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg"><polygon points="32,3 39,21 59,22 44,35 49,55 32,44 15,55 20,35 5,22 25,21" fill="#facc15" stroke="#ea580c" stroke-width="4" stroke-linejoin="round"/><polygon points="32,14 36,25 47,26 38,33 41,44 32,38 23,44 26,33 17,26 28,25" fill="#fffbeb"/></svg></div>
+              <div class="mqst-ult-meteor" data-meteor="4"><span class="mqst-ult-meteor-tail"></span><svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg"><polygon points="32,3 39,21 59,22 44,35 49,55 32,44 15,55 20,35 5,22 25,21" fill="#facc15" stroke="#ea580c" stroke-width="4" stroke-linejoin="round"/><polygon points="32,14 36,25 47,26 38,33 41,44 32,38 23,44 26,33 17,26 28,25" fill="#fffbeb"/></svg></div>
+              <div class="mqst-ult-meteor" data-meteor="5"><span class="mqst-ult-meteor-tail"></span><svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg"><polygon points="32,3 39,21 59,22 44,35 49,55 32,44 15,55 20,35 5,22 25,21" fill="#facc15" stroke="#ea580c" stroke-width="4" stroke-linejoin="round"/><polygon points="32,14 36,25 47,26 38,33 41,44 32,38 23,44 26,33 17,26 28,25" fill="#fffbeb"/></svg></div>
+              <div class="mqst-ult-meteor big" data-meteor="6"><span class="mqst-ult-meteor-tail"></span><svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg"><polygon points="32,3 39,21 59,22 44,35 49,55 32,44 15,55 20,35 5,22 25,21" fill="#facc15" stroke="#ea580c" stroke-width="4" stroke-linejoin="round"/><polygon points="32,14 36,25 47,26 38,33 41,44 32,38 23,44 26,33 17,26 28,25" fill="#fffbeb"/></svg></div>
+
+              <!-- 必殺技 2：彩虹光束砲 -->
+              <div class="mqst-ult-beam" id="mqst-ult-beam">
+                <div class="mqst-ult-beam-orb"></div>
+                <div class="mqst-ult-beam-shaft">
+                  <div class="mqst-ult-beam-core"></div>
+                </div>
+              </div>
+
+              <!-- 必殺技 3：巨無霸胡蘿蔔砸擊 -->
+              <div class="mqst-ult-carrot" id="mqst-ult-carrot">
+                <svg viewBox="0 0 110 140" xmlns="http://www.w3.org/2000/svg">
+                  <ellipse cx="55" cy="78" rx="44" ry="52" fill="#fb923c" opacity="0.28"/>
+                  <path d="M55 36 C44 18, 30 16, 28 6 C40 6, 50 18, 55 28 C55 12, 60 4, 68 4 C68 15, 62 24, 58 32 C68 18, 82 14, 86 22 C76 28, 66 32, 59 38 Z" fill="#22c55e" stroke="#14532d" stroke-width="3.5" stroke-linejoin="round"/>
+                  <path d="M30 42 C30 30, 80 30, 80 42 C82 72, 66 118, 55 134 C44 118, 28 72, 30 42 Z" fill="#f97316" stroke="#7c2d12" stroke-width="4" stroke-linejoin="round"/>
+                  <path d="M38 46 C42 40, 68 40, 72 46 C73 66, 63 102, 55 118 C48 100, 38 66, 38 46 Z" fill="#fb923c"/>
+                  <path d="M40 58 L54 58 M60 72 L70 72 M44 86 L56 86" stroke="#fed7aa" stroke-width="3.5" stroke-linecap="round"/>
+                  <polygon points="55,58 58,66 66,67 60,72 62,80 55,75 48,80 50,72 44,67 52,66" fill="#fef08a" stroke="#fff" stroke-width="1.5"/>
+                </svg>
+              </div>
+
+              <!-- 必殺技 4：星辰十字斬 -->
+              <div class="mqst-ult-slash" id="mqst-ult-slash">
+                <svg class="mqst-ult-slash-blade a" viewBox="0 0 180 180" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M18 20 Q92 84 166 164 Q102 108 18 20 Z" fill="#ffffff" stroke="#f59e0b" stroke-width="6" stroke-linejoin="round"/>
+                  <path d="M10 14 Q95 75 170 168 Q85 95 10 14 Z" fill="#fde047" opacity="0.85"/>
+                </svg>
+                <svg class="mqst-ult-slash-blade b" viewBox="0 0 180 180" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M162 20 Q88 84 14 164 Q78 108 162 20 Z" fill="#ffffff" stroke="#38bdf8" stroke-width="6" stroke-linejoin="round"/>
+                  <path d="M170 14 Q85 75 10 168 Q95 95 170 14 Z" fill="#7dd3fc" opacity="0.85"/>
+                </svg>
+                <svg class="mqst-ult-slash-cross" viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg">
+                  <polygon points="60,2 70,48 118,60 70,72 60,118 50,72 2,60 50,48" fill="#ffffff" stroke="#f97316" stroke-width="4" stroke-linejoin="round"/>
+                </svg>
               </div>
             </div>
 
@@ -1619,7 +1699,7 @@
 
 <!-- 模組化應用腳本（相容本機雙擊開啟） -->
 <script defer src="js/core.js?v=20260906h"></script>
-<script defer src="js/audio.js?v=20261115d"></script>
+<script defer src="js/audio.js?v=20261115e"></script>
 <script defer src="js/utils.js?v=20260906l"></script>
 <script defer src="js/learn.js?v=20260906i"></script>
 <script defer src="js/quiz.js?v=20260907d"></script>
@@ -1628,9 +1708,9 @@
 <script defer src="js/calc.js?v=20260907e"></script>
 <script defer src="js/calc-quiz.js?v=20260907d"></script>
 <script defer src="js/mul.js?v=20261115a"></script>
-<script defer src="js/mul-quiz.js?v=20261115b"></script>
-<script defer src="js/mul-quest.js?v=20261115g"></script>
-<script defer src="js/diagnostics.js?v=20261115b"></script>
+<script defer src="js/mul-quiz.js?v=20261115c"></script>
+<script defer src="js/mul-quest.js?v=20261115m"></script>
+<script defer src="js/diagnostics.js?v=20261115c"></script>
 <script defer src="js/app.js?v=20261115a"></script>
 </body>
 </html>

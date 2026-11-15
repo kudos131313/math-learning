@@ -512,7 +512,19 @@
           }
         }
 
-        return '驗證通過 6 組臺灣課綱九九乘法口訣、5 大關卡與單段自選題庫及答案驗證器';
+        // 4. 驗證全範圍抽題時，含 1 的乘法題比例顯著低於均勻隨機基準 (21%)
+        var oneCount = 0;
+        var sampleTotal = 300;
+        for(var s = 0; s < sampleTotal; s++){
+          var qs = MathApp.mulQuiz.generateQuestion('all', 'all');
+          if(qs.a === 1 || qs.b === 1) oneCount++;
+        }
+        var oneRatio = oneCount / sampleTotal;
+        if(oneRatio >= 0.12){
+          throw new Error('全範圍含 1 乘法比例過高：' + Math.round(oneRatio * 100) + '%');
+        }
+
+        return '驗證通過 6 組臺灣課綱九九乘法口訣、5 大關卡、單段自選與低 1 乘法機率（實測 ' + Math.round(oneRatio * 100) + '%）';
       }
     },
     {
@@ -554,7 +566,31 @@
           });
         });
 
-        return '驗證通過 5 大島 15 關題庫配置、10 枚徽章定義及選擇題誘答防重複檢查';
+        // 驗證全段混戰與暖身關卡已大幅降低 1 的乘法出現機率
+        var stage51 = stages.filter(function(s){ return s.id === '5-1'; })[0];
+        var stage11 = stages.filter(function(s){ return s.id === '1-1'; })[0];
+        var one51 = 0, total51 = 0;
+        for(var r51 = 0; r51 < 30; r51++){
+          MathApp.mulQuest.buildStageQuestions(stage51).forEach(function(q){
+            total51++;
+            if(q.a === 1 || q.b === 1) one51++;
+          });
+        }
+        if(one51 / total51 >= 0.08){
+          throw new Error('關卡 5-1 含 1 乘法比例過高：' + Math.round((one51 / total51) * 100) + '%');
+        }
+        var one11 = 0, total11 = 0;
+        for(var r11 = 0; r11 < 20; r11++){
+          MathApp.mulQuest.buildStageQuestions(stage11).forEach(function(q){
+            total11++;
+            if(q.a === 1 || q.b === 1) one11++;
+          });
+        }
+        if(one11 / total11 >= 0.42){
+          throw new Error('關卡 1-1 含 1 乘法比例過高：' + Math.round((one11 / total11) * 100) + '%');
+        }
+
+        return '驗證通過 5 大島 15 關題庫配置、10 枚徽章定義、選擇題誘答及低 1 乘法比例（5-1: ' + Math.round((one51 / total51) * 100) + '%, 1-1: ' + Math.round((one11 / total11) * 100) + '%）';
       }
     }
   ];

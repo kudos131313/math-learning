@@ -530,14 +530,61 @@
     partnerUsedSkill: false,
     battleTheme: 'forest',
     battleBossObj: null,
-    activeInput: null
+    activeInput: null,
+    nextLocked: false
   };
 
   var els = {};
   var motionReduced = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   var bunnyIdleTween = null;
   var partnerIdleTween = null;
+  var battleIdleAnims = [];
+  var attackTimeline = null;
   var speakTimer = null;
+  var nextUnlockTimer = null;
+
+  var FINISHER_DEFS = {
+    meteor:  { id: 'meteor',  title: '超級流星雨！',     badge: '🌠 超級流星雨！' },
+    rainbow: { id: 'rainbow', title: '彩虹光束砲！',     badge: '🌈 彩虹光束砲！' },
+    carrot:  { id: 'carrot',  title: '巨無霸胡蘿蔔砸擊！', badge: '🥕 巨蘿蔔重砸！' },
+    slash:   { id: 'slash',   title: '星辰十字斬！',     badge: '⚔️ 星辰十字斬！' }
+  };
+  var FINISHER_KEYS = ['meteor', 'rainbow', 'carrot', 'slash'];
+  var finisherBag = [];
+  var lastFinisherId = '';
+
+  function pickNextFinisher(){
+    if(finisherBag.length === 0){
+      finisherBag = FINISHER_KEYS.slice();
+      for(var i = finisherBag.length - 1; i > 0; i--){
+        var j = Math.floor(Math.random() * (i + 1));
+        var tmp = finisherBag[i];
+        finisherBag[i] = finisherBag[j];
+        finisherBag[j] = tmp;
+      }
+      // 避免新一輪第一張剛好跟上一輪最後一招重複
+      if(lastFinisherId && finisherBag.length > 1 && finisherBag[finisherBag.length - 1] === lastFinisherId){
+        var swapTmp = finisherBag[0];
+        finisherBag[0] = finisherBag[finisherBag.length - 1];
+        finisherBag[finisherBag.length - 1] = swapTmp;
+      }
+    }
+    var picked = finisherBag.pop();
+    lastFinisherId = picked;
+    return picked;
+  }
+
+  function clearNextUnlockTimer(){
+    if(nextUnlockTimer){
+      clearTimeout(nextUnlockTimer);
+      nextUnlockTimer = null;
+    }
+    session.nextLocked = false;
+    if(els.nextBtn){
+      els.nextBtn.disabled = false;
+      els.nextBtn.classList.remove('ult-waiting');
+    }
+  }
 
   function getActivePartnerIsland(){
     if(!saveData.activePartner) return null;
@@ -578,7 +625,101 @@
       var mm = window.gsap.matchMedia();
       mm.add({ reduce: '(prefers-reduced-motion: reduce)' }, function(ctx){
         motionReduced = Boolean(ctx.conditions.reduce);
+        if(motionReduced) stopBattleIdleAnims();
       });
+    }
+  }
+
+  function stopAttackAnim(){
+    clearNextUnlockTimer();
+    if(attackTimeline){
+      try { attackTimeline.kill(); } catch(e){}
+      attackTimeline = null;
+    }
+    if(typeof window.gsap !== 'undefined'){
+      var resetNodes = [
+        els.projectile, els.partnerProjectile, els.fxImpact,
+        els.ultBackdrop, els.ultCutin, els.ultBeam, els.ultCarrot, els.ultSlash
+      ].filter(Boolean);
+      if(resetNodes.length > 0){
+        try { window.gsap.set(resetNodes, { autoAlpha: 0, clearProps: 'transform' }); } catch(e){}
+      }
+      if(els.fxLayer){
+        var fxResetNodes = els.fxLayer.querySelectorAll('.mqst-fx-trail, .mqst-ult-meteor, .mqst-ult-slash-blade, .mqst-ult-slash-cross');
+        if(fxResetNodes.length > 0){
+          try { window.gsap.set(fxResetNodes, { autoAlpha: 0, clearProps: 'transform' }); } catch(e){}
+        }
+      }
+      if(els.ultBeam){
+        var shaft = els.ultBeam.querySelector('.mqst-ult-beam-shaft');
+        if(shaft){
+          try { window.gsap.set(shaft, { clearProps: 'transform,opacity' }); } catch(e){}
+        }
+      }
+      var actorNodes = [els.heroActor, els.partnerActor, els.enemyActor, els.stageArena, els.heroAura].filter(Boolean);
+      if(actorNodes.length > 0){
+        try { window.gsap.set(actorNodes, { clearProps: 'transform,opacity' }); } catch(e){}
+      }
+      if(els.bossSvg){
+        try { window.gsap.set(els.bossSvg, { clearProps: 'filter' }); } catch(e){}
+      }
+    }
+  }
+
+  function stopBattleIdleAnims(){
+    stopAttackAnim();
+    for(var i = 0; i < battleIdleAnims.length; i++){
+      try { battleIdleAnims[i].kill(); } catch(e){}
+    }
+    battleIdleAnims = [];
+    if(els.stageArena) els.stageArena.classList.remove('no-gsap-idle');
+    if(typeof window.gsap !== 'undefined'){
+      var targets = [els.heroSvg, els.partnerSvg, els.bossSvg].filter(Boolean);
+      if(targets.length > 0){
+        try { window.gsap.set(targets, { clearProps: 'transform' }); } catch(e){}
+      }
+    }
+  }
+
+  function startBattleIdleAnims(){
+    stopBattleIdleAnims();
+    if(motionReduced) return;
+    if(typeof window.gsap === 'undefined'){
+      if(els.stageArena) els.stageArena.classList.add('no-gsap-idle');
+      return;
+    }
+    var gsap = window.gsap;
+    if(els.heroSvg){
+      battleIdleAnims.push(
+        gsap.fromTo(els.heroSvg,
+          { y: 0, scaleX: 1.02, scaleY: 0.97, rotation: -1.5 },
+          { y: -6, scaleX: 0.98, scaleY: 1.03, rotation: 1.5, duration: 0.68, ease: 'sine.inOut', repeat: -1, yoyo: true }
+        )
+      );
+    }
+    if(els.partnerSvg && getActivePartnerIsland()){
+      battleIdleAnims.push(
+        gsap.fromTo(els.partnerSvg,
+          { y: -2, rotation: -3.5 },
+          { y: -10, rotation: 3.5, duration: 0.95, delay: 0.2, ease: 'sine.inOut', repeat: -1, yoyo: true }
+        )
+      );
+    }
+    if(els.bossSvg){
+      if(session.battleBossObj){
+        battleIdleAnims.push(
+          gsap.fromTo(els.bossSvg,
+            { y: 0, scaleX: 1.04, scaleY: 0.96, rotation: 1.2 },
+            { y: -5, scaleX: 0.98, scaleY: 1.03, rotation: -1.2, duration: 0.85, delay: 0.15, ease: 'sine.inOut', repeat: -1, yoyo: true }
+          )
+        );
+      } else {
+        var chestTl = gsap.timeline({ repeat: -1, repeatDelay: 0.75 });
+        chestTl.to(els.bossSvg, { y: -6, scaleY: 1.05, rotation: -3, duration: 0.22, ease: 'power1.out' })
+               .to(els.bossSvg, { y: 0, scaleY: 0.95, rotation: 3, duration: 0.2, ease: 'power1.inOut' })
+               .to(els.bossSvg, { y: 0, scaleY: 1, rotation: 0, duration: 0.28, ease: 'elastic.out(1, 0.4)' });
+        battleIdleAnims.push(chestTl);
+      }
     }
   }
 
@@ -735,31 +876,50 @@
   }
 
   /* ---------------- 題庫生成 ---------------- */
-  function shuffleArr(arr){
-    for(var i = arr.length - 1; i > 0; i--){
-      var j = MathApp.utils.randInt(0, i);
-      var t = arr[i]; arr[i] = arr[j]; arr[j] = t;
+  /* 依權重進行無放回隨機排序，降低「1 的乘法」在各關卡頻繁出現 */
+  function weightedSortPairs(pairs, weightFn){
+    return pairs
+      .map(function(p){
+        var w = Math.max(0.001, weightFn(p));
+        var u = Math.max(1e-9, Math.random());
+        return {
+          pair: p,
+          key: Math.pow(u, 1 / w)
+        };
+      })
+      .sort(function(x, y){
+        return y.key - x.key;
+      })
+      .map(function(x){
+        return x.pair;
+      });
+  }
+
+  /* 計算單題在冒險關卡中的抽題權重：非 1 乘法優先，未點亮寶石加權 */
+  function getStagePairWeight(pair, isLit){
+    var hasOne = (pair.a === 1 || pair.b === 1);
+    var bothOne = (pair.a === 1 && pair.b === 1);
+    if(!hasOne){
+      return isLit ? 1.0 : 3.0;
     }
-    return arr;
+    if(bothOne){
+      return isLit ? 0.03 : 0.12;
+    }
+    return isLit ? 0.06 : 0.25;
   }
 
   function buildStageQuestions(stage){
-    var unlitPairs = [];
-    var litPairs = [];
+    var candidatePairs = [];
     stage.tables.forEach(function(a){
       for(var b = 1; b <= 9; b++){
-        var pair = { a: a, b: b };
-        if(saveData.gems[a + 'x' + b]){
-          litPairs.push(pair);
-        } else {
-          unlitPairs.push(pair);
-        }
+        var isLit = Boolean(saveData.gems[a + 'x' + b]);
+        candidatePairs.push({ a: a, b: b, isLit: isLit });
       }
     });
-    // 優先抽選尚未點亮寶石的算式，再以已點亮算式補齊複習，避免重刷關卡總是撞見同一題
-    shuffleArr(unlitPairs);
-    shuffleArr(litPairs);
-    var poolPairs = unlitPairs.concat(litPairs);
+    // 優先抽選尚未點亮寶石且非 1 的算式，大幅降低 1 乘法出現機率，同時保有收集全部 81 格寶石的機會
+    var poolPairs = weightedSortPairs(candidatePairs, function(p){
+      return getStagePairWeight(p, p.isLit);
+    });
 
     // 若為 Boss 關卡，優先將理解／交換律／未知數題安排在前面作為護盾試煉
     var orderedTypes = [];
@@ -836,8 +996,12 @@
   }
 
   function buildGemHuntQuestions(pairs){
-    shuffleArr(pairs);
-    return pairs.slice(0, 6).map(function(p){
+    var sorted = weightedSortPairs(pairs, function(p){
+      if(p.a === 1 && p.b === 1) return 0.08;
+      if(p.a === 1 || p.b === 1) return 0.2;
+      return 1.0;
+    });
+    return sorted.slice(0, 6).map(function(p){
       var q = MathApp.mulQuiz.buildQuestion(p.a, p.b, 'standard');
       q.uiMode = 'keypad';
       q.badge = '💎 未點亮寶石特訓';
@@ -903,8 +1067,17 @@
     els.partnerSvg     = document.getElementById('mqst-partner-svg');
     els.partnerLabel   = document.getElementById('mqst-partner-label');
     els.partnerSkillBtn= document.getElementById('mqst-partner-skill-btn');
+    els.fxLayer        = document.getElementById('mqst-fx-layer');
+    els.fxImpact       = document.getElementById('mqst-fx-impact');
     els.projectile     = document.getElementById('mqst-projectile');
     els.partnerProjectile = document.getElementById('mqst-partner-projectile');
+    els.ultBackdrop    = document.getElementById('mqst-ult-backdrop');
+    els.ultCutin       = document.getElementById('mqst-ult-cutin');
+    els.ultCutinTag    = document.getElementById('mqst-ult-cutin-tag');
+    els.ultCutinTitle  = document.getElementById('mqst-ult-cutin-title');
+    els.ultBeam        = document.getElementById('mqst-ult-beam');
+    els.ultCarrot      = document.getElementById('mqst-ult-carrot');
+    els.ultSlash       = document.getElementById('mqst-ult-slash');
     els.enemyActor     = document.getElementById('mqst-enemy-actor');
     els.bossSvg        = document.getElementById('mqst-boss-svg');
     els.bossName       = document.getElementById('mqst-boss-name');
@@ -1010,6 +1183,9 @@
   function closeArcade(){
     if(!els.arcadeOverlay) return;
     clearSpeakTimer();
+    stopBattleIdleAnims();
+    if(bunnyIdleTween){ bunnyIdleTween.kill(); bunnyIdleTween = null; }
+    if(partnerIdleTween){ partnerIdleTween.kill(); partnerIdleTween = null; }
     if(MathApp.stopSpeak) MathApp.stopSpeak();
     if(MathApp.audio && MathApp.audio.stopBgm) MathApp.audio.stopBgm();
     session.arcadeOpen = false;
@@ -1186,6 +1362,7 @@
     if(els.resultView) els.resultView.style.display = (viewName === 'result') ? 'flex' : 'none';
 
     if(viewName === 'map'){
+      stopBattleIdleAnims();
       session.active = false;
       session.isMovingOnMap = false;
       renderMap();
@@ -1193,6 +1370,7 @@
         MathApp.audio.startBgm('map');
       }
     } else if(viewName === 'result'){
+      stopBattleIdleAnims();
       if(MathApp.audio && MathApp.audio.stopBgm){
         MathApp.audio.stopBgm();
       }
@@ -1406,6 +1584,7 @@
     renderEnemyHp();
     updateComboUI();
     renderCurrentQuestion();
+    startBattleIdleAnims();
 
     // 若挑戰尚未通關的島嶼魔王，提示孩子打敗即可收服該島守護小精靈
     if(bossObj && session.stage && Number(saveData.stageStars[session.stage.id] || 0) === 0 && els.feedback){
@@ -1626,58 +1805,423 @@
     }
   }
 
+  function measureStageCoords(withPartner){
+    var arenaRect = els.stageArena ? els.stageArena.getBoundingClientRect() : null;
+    var heroRect = els.heroSvg ? els.heroSvg.getBoundingClientRect() : null;
+    var bossRect = els.bossSvg ? els.bossSvg.getBoundingClientRect() : null;
+    var partnerRect = (withPartner && els.partnerSvg) ? els.partnerSvg.getBoundingClientRect() : null;
+
+    var coords = {
+      w: (arenaRect && arenaRect.width > 0) ? arenaRect.width : 800,
+      h: (arenaRect && arenaRect.height > 0) ? arenaRect.height : 320,
+      sx: 120, sy: 180,
+      tx: 480, ty: 170,
+      px: 175, py: 185
+    };
+    if(arenaRect && arenaRect.width > 0){
+      if(heroRect){
+        coords.sx = (heroRect.left - arenaRect.left) + heroRect.width * 0.72;
+        coords.sy = (heroRect.top - arenaRect.top) + heroRect.height * 0.42;
+      }
+      if(bossRect){
+        coords.tx = (bossRect.left - arenaRect.left) + bossRect.width * 0.48;
+        coords.ty = (bossRect.top - arenaRect.top) + bossRect.height * 0.46;
+      }
+      if(partnerRect){
+        coords.px = (partnerRect.left - arenaRect.left) + partnerRect.width * 0.65;
+        coords.py = (partnerRect.top - arenaRect.top) + partnerRect.height * 0.45;
+      }
+    }
+    return coords;
+  }
+
+  function appendImpactBurst(tl, impactLabel, tx, ty, heavyHit, bossFinisher){
+    var mult = bossFinisher ? 1.25 : 1;
+    if(els.fxImpact){
+      var outerRing = els.fxImpact.querySelector('.mqst-fx-ring.outer');
+      var innerRing = els.fxImpact.querySelector('.mqst-fx-ring.inner');
+      var flashEl = els.fxImpact.querySelector('.mqst-fx-flash');
+      var sparks = els.fxImpact.querySelectorAll('.mqst-fx-spark');
+
+      tl.set(els.fxImpact, { x: tx, y: ty, xPercent: -50, yPercent: -50, autoAlpha: 1 }, impactLabel);
+      if(outerRing){
+        tl.fromTo(outerRing, { scale: 0.2, autoAlpha: 1 }, { scale: (heavyHit ? 1.85 : 1.5) * mult, autoAlpha: 0, duration: 0.56, ease: 'power2.out' }, impactLabel);
+      }
+      if(innerRing){
+        tl.fromTo(innerRing, { scale: 0.18, autoAlpha: 1 }, { scale: (heavyHit ? 1.45 : 1.18) * mult, autoAlpha: 0, duration: 0.46, ease: 'power2.out' }, impactLabel + '+=0.06');
+      }
+      if(flashEl){
+        tl.fromTo(flashEl, { scale: 0.3, rotation: 0, autoAlpha: 1 }, { scale: (heavyHit ? 1.65 : 1.35) * mult, rotation: 45, duration: 0.16, ease: 'power3.out' }, impactLabel)
+          .to(flashEl, { autoAlpha: 0, scale: (heavyHit ? 1.85 : 1.5) * mult, duration: 0.26, ease: 'power1.in' }, impactLabel + '+=0.16');
+      }
+      for(var k = 0; k < sparks.length; k++){
+        var sp = sparks[k];
+        var ang = (k / sparks.length) * Math.PI * 2 + (k % 2 === 0 ? 0.18 : -0.15);
+        var rad = ((heavyHit ? 94 : 68) + (k % 3) * 16) * mult;
+        tl.fromTo(sp,
+          { x: 0, y: 0, scale: 1.25 * mult, rotation: 0, autoAlpha: 1 },
+          { x: Math.cos(ang) * rad, y: Math.sin(ang) * rad + 18, scale: 0, rotation: 240, autoAlpha: 0, duration: 0.62, ease: 'power2.out' },
+          impactLabel + '+=' + (k * 0.015)
+        );
+      }
+      tl.set(els.fxImpact, { autoAlpha: 0 }, impactLabel + '+=0.78');
+    }
+
+    if(els.enemyActor){
+      var kickX = bossFinisher ? 28 : (heavyHit ? 22 : 16);
+      tl.to(els.enemyActor, { x: kickX, y: bossFinisher ? -10 : -6, scaleX: 0.76, scaleY: 1.24, rotation: bossFinisher ? 14 : 11, duration: 0.11, ease: 'power2.out' }, impactLabel)
+        .to(els.enemyActor, { x: 0, y: 0, scaleX: 1, scaleY: 1, rotation: 0, duration: 0.58, ease: 'elastic.out(1.15, 0.32)', clearProps: 'transform' }, impactLabel + '+=0.11');
+    }
+    if(els.bossSvg){
+      tl.to(els.bossSvg, { filter: bossFinisher ? 'brightness(2.3) drop-shadow(0 0 22px #fde047)' : 'brightness(2) drop-shadow(0 0 18px #f97316)', duration: 0.12 }, impactLabel)
+        .to(els.bossSvg, { filter: 'drop-shadow(0 6px 0 rgba(51, 43, 34, 0.25))', duration: 0.30, clearProps: 'filter' }, impactLabel + '+=0.14');
+    }
+    if(els.stageArena){
+      var shakeAmp = bossFinisher ? 9 : (heavyHit ? 7 : 3);
+      var shakeY = bossFinisher ? 5 : (heavyHit ? 4 : 2);
+      tl.to(els.stageArena, { x: -shakeAmp, y: shakeY, duration: 0.05 }, impactLabel)
+        .to(els.stageArena, { x: shakeAmp, y: -shakeY, duration: 0.05 }, impactLabel + '+=0.05')
+        .to(els.stageArena, { x: -Math.round(shakeAmp * 0.55), y: 2, duration: 0.05 }, impactLabel + '+=0.10')
+        .to(els.stageArena, { x: 0, y: 0, duration: 0.06, clearProps: 'transform' }, impactLabel + '+=0.15');
+    }
+    if(els.hitCallout){
+      tl.fromTo(els.hitCallout,
+        { autoAlpha: 0, y: 14, scale: 0.45 },
+        { autoAlpha: 1, y: -16, scale: bossFinisher ? 1.38 : (heavyHit ? 1.28 : 1.15), duration: 0.22, ease: 'back.out(2)' },
+        impactLabel
+      ).to(els.hitCallout,
+        { autoAlpha: 0, y: -46, scale: 1.08, duration: 0.44, ease: 'power1.in', clearProps: 'transform' },
+        impactLabel + '+=0.74'
+      );
+    }
+  }
+
+  function choreographMeteor(tl, coords, launchAt, isBoss){
+    var meteors = els.fxLayer ? els.fxLayer.querySelectorAll('.mqst-ult-meteor') : [];
+    var step = isBoss ? 0.11 : 0.085;
+    var count = meteors.length;
+    var lastImpact = launchAt + 0.45;
+    for(var i = 0; i < count; i++){
+      var m = meteors[i];
+      var isLast = (i === count - 1);
+      var startAt = launchAt + i * step + (isLast ? 0.08 : 0);
+      var dur = isLast ? 0.36 : 0.28;
+      var spreadX = isLast ? 0 : ((i % 3) - 1) * 34;
+      var spreadY = isLast ? 0 : ((i % 2) === 0 ? -18 : 14);
+      var endX = coords.tx + spreadX;
+      var endY = coords.ty + spreadY;
+      var startX = endX - 180 - (i % 3) * 28;
+      var startY = -55 - (i % 2) * 24;
+
+      tl.set(m, { x: startX, y: startY, xPercent: -50, yPercent: -50, scale: isLast ? 1.15 : 0.85, rotation: 0, autoAlpha: 0 }, startAt)
+        .to(m, { autoAlpha: 1, duration: 0.05 }, startAt)
+        .to(m, { x: endX, y: endY, rotation: isLast ? 120 : 90, duration: dur, ease: 'power2.in' }, startAt)
+        .to(m, { autoAlpha: 0, scale: isLast ? 1.75 : 1.3, duration: 0.09, ease: 'power1.out' }, startAt + dur);
+
+      if(!isLast && els.enemyActor){
+        tl.to(els.enemyActor, { x: 8, y: 2, duration: 0.05 }, startAt + dur)
+          .to(els.enemyActor, { x: 0, y: 0, duration: 0.07 }, startAt + dur + 0.05);
+      }
+      if(isLast) lastImpact = startAt + dur;
+    }
+    return lastImpact;
+  }
+
+  function choreographRainbow(tl, coords, launchAt, isBoss){
+    if(!els.ultBeam) return launchAt + 0.48;
+    var orb = els.ultBeam.querySelector('.mqst-ult-beam-orb');
+    var shaft = els.ultBeam.querySelector('.mqst-ult-beam-shaft');
+    var dx = coords.tx - coords.sx;
+    var dy = coords.ty - coords.sy;
+    var dist = Math.max(220, Math.sqrt(dx * dx + dy * dy) + 65);
+    var deg = Math.atan2(dy, dx) * (180 / Math.PI);
+    var targetScaleX = dist / 520;
+    var holdDur = isBoss ? 0.56 : 0.36;
+
+    tl.set(els.ultBeam, { x: coords.sx, y: coords.sy, rotation: deg, autoAlpha: 1 }, launchAt);
+    if(orb){
+      tl.fromTo(orb, { scale: 0.25, autoAlpha: 0 }, { scale: isBoss ? 1.35 : 1.15, autoAlpha: 1, duration: 0.20, ease: 'back.out(2)' }, launchAt)
+        .to(orb, { scale: 0.4, autoAlpha: 0, duration: 0.18 }, launchAt + 0.24 + holdDur);
+    }
+    if(shaft){
+      tl.fromTo(shaft,
+        { scaleX: 0.03, scaleY: 0.55, autoAlpha: 0.95 },
+        { scaleX: targetScaleX, scaleY: isBoss ? 1.18 : 0.96, duration: 0.22, ease: 'power3.out' },
+        launchAt + 0.14
+      )
+      .to(shaft, { scaleY: isBoss ? 1.38 : 1.1, duration: holdDur * 0.5, yoyo: true, repeat: 1, ease: 'sine.inOut' }, launchAt + 0.36)
+      .to(shaft, { scaleY: 0.05, autoAlpha: 0, duration: 0.20, ease: 'power2.in' }, launchAt + 0.36 + holdDur);
+    }
+    tl.set(els.ultBeam, { autoAlpha: 0 }, launchAt + 0.58 + holdDur);
+    return launchAt + 0.40 + holdDur * 0.55;
+  }
+
+  function choreographCarrot(tl, coords, launchAt, isBoss){
+    if(!els.ultCarrot) return launchAt + 0.55;
+    var hoverY = Math.max(22, coords.ty - 148);
+    var targetScale = isBoss ? 1.28 : 1.08;
+    var slamAt = launchAt + 0.36;
+    var impactAt = slamAt + 0.22;
+
+    tl.set(els.ultCarrot, { x: coords.tx, y: hoverY - 40, xPercent: -50, yPercent: -50, scale: 0.2, rotation: -180, autoAlpha: 0 }, launchAt)
+      .to(els.ultCarrot, { y: hoverY, scale: targetScale, rotation: 0, autoAlpha: 1, duration: 0.28, ease: 'back.out(2)' }, launchAt)
+      .to(els.ultCarrot, { y: hoverY - 14, scaleY: targetScale * 1.08, duration: 0.08, ease: 'sine.out' }, launchAt + 0.28)
+      .to(els.ultCarrot, { y: coords.ty - 10, scaleX: targetScale * 1.16, scaleY: targetScale * 0.88, duration: 0.22, ease: 'power3.in' }, slamAt)
+      .to(els.ultCarrot, { y: coords.ty - 36, rotation: 16, scale: targetScale * 0.7, autoAlpha: 0, duration: 0.24, ease: 'power2.out' }, impactAt + 0.08);
+    return impactAt;
+  }
+
+  function choreographSlash(tl, coords, launchAt, isBoss){
+    if(!els.ultSlash) return launchAt + 0.55;
+    var bladeA = els.ultSlash.querySelector('.mqst-ult-slash-blade.a');
+    var bladeB = els.ultSlash.querySelector('.mqst-ult-slash-blade.b');
+    var crossEl = els.ultSlash.querySelector('.mqst-ult-slash-cross');
+    var impactAt = launchAt + 0.54;
+
+    tl.set(els.ultSlash, { x: coords.tx, y: coords.ty, xPercent: -50, yPercent: -50, scale: isBoss ? 1.18 : 1.0, autoAlpha: 1 }, launchAt);
+    if(bladeA){
+      tl.fromTo(bladeA,
+        { scale: 0.3, rotation: -35, autoAlpha: 0 },
+        { scale: 1.15, rotation: 0, autoAlpha: 1, duration: 0.16, ease: 'power3.out' },
+        launchAt
+      ).to(bladeA, { autoAlpha: 0, scale: 1.3, duration: 0.18 }, launchAt + 0.26);
+    }
+    if(els.enemyActor){
+      tl.to(els.enemyActor, { x: 10, rotation: 6, duration: 0.07 }, launchAt + 0.10)
+        .to(els.enemyActor, { x: 0, rotation: 0, duration: 0.09 }, launchAt + 0.17);
+    }
+    if(bladeB){
+      tl.fromTo(bladeB,
+        { scale: 0.3, rotation: 35, autoAlpha: 0 },
+        { scale: 1.18, rotation: 0, autoAlpha: 1, duration: 0.16, ease: 'power3.out' },
+        launchAt + 0.26
+      ).to(bladeB, { autoAlpha: 0, scale: 1.35, duration: 0.22 }, launchAt + 0.50);
+    }
+    if(crossEl){
+      tl.fromTo(crossEl,
+        { scale: 0.2, rotation: 0, autoAlpha: 0 },
+        { scale: isBoss ? 1.45 : 1.2, rotation: 45, autoAlpha: 1, duration: 0.18, ease: 'back.out(2)' },
+        impactAt - 0.04
+      ).to(crossEl, { scale: 1.65, autoAlpha: 0, duration: 0.26, ease: 'power2.in' }, impactAt + 0.16);
+    }
+    tl.set(els.ultSlash, { autoAlpha: 0 }, impactAt + 0.45);
+    return impactAt;
+  }
+
+  function playFinisherAnim(finisherId, isBoss, partner){
+    var def = FINISHER_DEFS[finisherId] || FINISHER_DEFS.meteor;
+    var hasPartner = Boolean(partner);
+    if(els.ultCutinTag){
+      els.ultCutinTag.textContent = isBoss ? '⚡ 終極必殺' : '✨ 必殺技';
+    }
+    if(els.ultCutinTitle){
+      els.ultCutinTitle.textContent = def.title;
+    }
+    if(els.hitCallout){
+      els.hitCallout.textContent = def.badge;
+    }
+    if(els.partnerProjectile && hasPartner){
+      els.partnerProjectile.textContent = partner.partnerProjectile || '✨';
+    }
+
+    if(motionReduced || typeof window.gsap === 'undefined'){
+      updateBattleMoods('fever', isBoss ? 'dizzy' : 'open', 'happy');
+      if(els.hitCallout){
+        els.hitCallout.style.opacity = '1';
+        els.hitCallout.style.visibility = 'visible';
+      }
+      return;
+    }
+
+    runAnim(function(gsap){
+      stopAttackAnim();
+      var coords = measureStageCoords(hasPartner);
+      var chargeDur = isBoss ? 0.42 : 0.24;
+      var launchAt = chargeDur;
+
+      var tl = gsap.timeline({
+        onComplete: function(){
+          attackTimeline = null;
+        }
+      });
+      attackTimeline = tl;
+
+      /* ---- 階段 1：背景聚光／Cut-in 橫幅與小兔蓄力 ---- */
+      tl.addLabel('charge', 0);
+      if(isBoss && els.ultBackdrop){
+        tl.fromTo(els.ultBackdrop, { autoAlpha: 0 }, { autoAlpha: 1, duration: 0.26, ease: 'power2.out' }, 'charge');
+      }
+      if(els.ultCutin){
+        if(isBoss){
+          tl.fromTo(els.ultCutin,
+            { xPercent: -120, yPercent: -50, scale: 0.9, autoAlpha: 0 },
+            { xPercent: -50, yPercent: -50, scale: 1.05, autoAlpha: 1, duration: 0.26, ease: 'back.out(1.6)' },
+            'charge'
+          ).to(els.ultCutin,
+            { xPercent: 25, autoAlpha: 0, duration: 0.24, ease: 'power2.in' },
+            'charge+=1.05'
+          );
+        } else {
+          tl.fromTo(els.ultCutin,
+            { xPercent: -50, yPercent: -30, scale: 0.75, autoAlpha: 0 },
+            { xPercent: -50, yPercent: -50, scale: 0.94, autoAlpha: 1, duration: 0.20, ease: 'back.out(1.7)' },
+            'charge'
+          ).to(els.ultCutin,
+            { yPercent: -70, autoAlpha: 0, duration: 0.22, ease: 'power1.in' },
+            'charge+=0.82'
+          );
+        }
+      }
+
+      if(els.heroActor){
+        tl.to(els.heroActor, { x: -16, y: 7, scaleX: 1.18, scaleY: 0.82, rotation: -12, duration: chargeDur * 0.85, ease: 'power2.out' }, 'charge')
+          .to(els.heroActor, { x: 28, y: -24, scaleX: 0.92, scaleY: 1.12, rotation: 10, duration: 0.20, ease: 'back.out(2)' }, launchAt)
+          .to(els.heroActor, { x: 0, y: 0, scaleX: 1, scaleY: 1, rotation: 0, duration: 0.36, ease: 'power2.out', clearProps: 'transform' }, launchAt + 0.24);
+      }
+      if(els.heroAura){
+        tl.fromTo(els.heroAura, { autoAlpha: 0, scale: 0.65 }, { autoAlpha: 1, scale: isBoss ? 1.55 : 1.35, duration: chargeDur, ease: 'power1.out' }, 'charge')
+          .to(els.heroAura, { autoAlpha: 0, scale: 1.1, duration: 0.45, clearProps: 'opacity,transform' }, launchAt + 0.30);
+      }
+
+      // 守護精靈同步浮起發光助陣並射出輔助星光
+      if(hasPartner && els.partnerActor){
+        tl.to(els.partnerActor, { y: -14, scale: 1.14, rotation: -6, duration: chargeDur * 0.85, ease: 'power2.out' }, 'charge')
+          .to(els.partnerActor, { x: 14, y: -20, scale: 1.2, rotation: 8, duration: 0.20, ease: 'back.out(2)' }, launchAt)
+          .to(els.partnerActor, { x: 0, y: 0, scale: 1, rotation: 0, duration: 0.36, ease: 'power2.out', clearProps: 'transform' }, launchAt + 0.26);
+      }
+      if(hasPartner && els.partnerProjectile){
+        var pPeak = Math.min(coords.py, coords.ty) - 76;
+        tl.set(els.partnerProjectile, { x: coords.px, y: coords.py, xPercent: -50, yPercent: -50, scale: 0.65, autoAlpha: 1 }, launchAt + 0.05)
+          .to(els.partnerProjectile, { x: coords.tx, rotation: -540, duration: 0.50, ease: 'power1.inOut' }, launchAt + 0.05)
+          .to(els.partnerProjectile, { y: pPeak, scale: 1.35, duration: 0.24, ease: 'sine.out' }, launchAt + 0.05)
+          .to(els.partnerProjectile, { y: coords.ty, scale: 1.5, autoAlpha: 0, duration: 0.26, ease: 'sine.in' }, launchAt + 0.29);
+      }
+
+      /* ---- 階段 2：依隨機抽出的必殺技編排主體演出 ---- */
+      tl.addLabel('launch', launchAt);
+      var impactAt = launchAt + 0.72;
+      if(finisherId === 'meteor'){
+        impactAt = choreographMeteor(tl, coords, launchAt, isBoss);
+      } else if(finisherId === 'rainbow'){
+        impactAt = choreographRainbow(tl, coords, launchAt, isBoss);
+      } else if(finisherId === 'carrot'){
+        impactAt = choreographCarrot(tl, coords, launchAt, isBoss);
+      } else {
+        impactAt = choreographSlash(tl, coords, launchAt, isBoss);
+      }
+
+      /* ---- 階段 3：總爆破命中、敵人擊潰表情切換與聚光退場 ---- */
+      tl.addLabel('impact', impactAt);
+      tl.add(function(){
+        updateBattleMoods('fever', isBoss ? 'dizzy' : 'open', 'happy');
+      }, 'impact');
+      appendImpactBurst(tl, 'impact', coords.tx, coords.ty, true, isBoss);
+
+      if(isBoss && els.ultBackdrop){
+        tl.to(els.ultBackdrop, { autoAlpha: 0, duration: 0.45, ease: 'power2.inOut' }, 'impact+=0.68');
+      }
+    });
+  }
+
   function playBunnyAttackAnim(isCombo, shieldEvent, partner){
     var dualAttack = Boolean(partner && session.combo >= 2);
-    if(els.projectile){
-      els.projectile.textContent = (isCombo && session.bossShield === 0) ? '💫' : '🌟';
-    }
+    var heavyHit = isCombo || Boolean(shieldEvent);
     if(els.partnerProjectile && dualAttack){
       els.partnerProjectile.textContent = partner.partnerProjectile || '✨';
     }
+    if(els.hitCallout){
+      if(shieldEvent === 'broken-all'){
+        els.hitCallout.textContent = '護盾全破 💥';
+      } else if(shieldEvent === 'crack'){
+        els.hitCallout.textContent = '護盾碎裂 🛡️';
+      } else if(dualAttack){
+        els.hitCallout.textContent = '精靈合擊 ×' + session.combo + ' 🔥';
+      } else {
+        els.hitCallout.textContent = isCombo ? ('COMBO ×' + session.combo + ' 🔥') : 'GREAT! ✨';
+      }
+    }
+
     runAnim(function(gsap){
-      var tl = gsap.timeline();
+      stopAttackAnim();
+      var coords = measureStageCoords(dualAttack);
+      var sx = coords.sx, sy = coords.sy, tx = coords.tx, ty = coords.ty, px = coords.px, py = coords.py;
+
+      var flightDur = 0.62;
+      var halfDur = flightDur * 0.48;
+      var peakY = Math.min(sy, ty) - Math.max(68, Math.abs(tx - sx) * 0.20);
+      var partnerPeakY = Math.min(py, ty) - Math.max(82, Math.abs(tx - px) * 0.23);
+
+      var tl = gsap.timeline({
+        onComplete: function(){
+          attackTimeline = null;
+        }
+      });
+      attackTimeline = tl;
+
+      /* ---- 階段 1：蓄力預備 (Anticipation) ---- */
+      tl.addLabel('charge', 0);
       if(els.heroActor){
-        tl.to(els.heroActor, { y: -18, duration: 0.14, ease: 'power1.out' })
-          .to(els.heroActor, { y: 0, duration: 0.18, ease: 'bounce.out', clearProps: 'transform' });
+        tl.to(els.heroActor, { x: -14, y: 6, scaleX: 1.15, scaleY: 0.84, rotation: -10, duration: 0.22, ease: 'power2.out' }, 'charge');
+      }
+      if(els.heroAura){
+        tl.fromTo(els.heroAura, { autoAlpha: 0, scale: 0.6 }, { autoAlpha: 1, scale: 1.28, duration: 0.24, ease: 'power1.out' }, 'charge')
+          .to(els.heroAura, { autoAlpha: (session.combo >= 3 ? 0.9 : 0), scale: 1, duration: 0.4, clearProps: 'opacity,transform' }, 'charge+=0.26');
       }
       if(els.partnerActor && dualAttack){
-        tl.to(els.partnerActor, { y: -16, duration: 0.14, ease: 'power1.out' }, 0.04)
-          .to(els.partnerActor, { y: 0, duration: 0.18, ease: 'bounce.out', clearProps: 'transform' });
+        tl.to(els.partnerActor, { x: -9, y: 4, scale: 0.88, rotation: -8, duration: 0.22, ease: 'power2.out' }, 'charge');
       }
+
+      /* ---- 階段 2：躍起發射與拋物線曳光流星 (Launch & Arc) ---- */
+      tl.addLabel('launch', 0.24);
+      if(els.heroActor){
+        tl.to(els.heroActor, { x: 26, y: -22, scaleX: 0.92, scaleY: 1.1, rotation: 10, duration: 0.18, ease: 'back.out(2)' }, 'launch')
+          .to(els.heroActor, { x: 0, y: 0, scaleX: 1, scaleY: 1, rotation: 0, duration: 0.34, ease: 'power2.out', clearProps: 'transform' }, 'launch+=0.20');
+      }
+      if(els.partnerActor && dualAttack){
+        tl.to(els.partnerActor, { x: 18, y: -18, scale: 1.15, rotation: 8, duration: 0.18, ease: 'back.out(2)' }, 'launch+=0.05')
+          .to(els.partnerActor, { x: 0, y: 0, scale: 1, rotation: 0, duration: 0.34, ease: 'power2.out', clearProps: 'transform' }, 'launch+=0.25');
+      }
+
       if(els.projectile){
-        tl.fromTo(els.projectile,
-          { autoAlpha: 1, x: 0, y: 0, scale: 0.8, rotation: 0 },
-          { autoAlpha: 0, x: 260, y: -30, scale: isCombo ? 1.8 : 1.5, rotation: 360, duration: 0.34, ease: 'power2.in' },
-          0.05
-        );
+        var boltScale = isCombo ? 1.55 : 1.28;
+        tl.set(els.projectile, { x: sx, y: sy, xPercent: -50, yPercent: -50, scale: 0.55, rotation: -30, autoAlpha: 1 }, 'launch')
+          .to(els.projectile, { x: tx, rotation: isCombo ? 720 : 540, duration: flightDur, ease: 'power1.inOut' }, 'launch')
+          .to(els.projectile, { y: peakY, scale: boltScale, duration: halfDur, ease: 'sine.out' }, 'launch')
+          .to(els.projectile, { y: ty, scale: boltScale * 1.15, duration: flightDur - halfDur, ease: 'sine.in' }, 'launch+=' + halfDur);
       }
-      if(els.partnerProjectile && dualAttack){
-        tl.fromTo(els.partnerProjectile,
-          { autoAlpha: 1, x: 0, y: 0, scale: 0.85, rotation: 0 },
-          { autoAlpha: 0, x: 245, y: -42, scale: 1.55, rotation: -320, duration: 0.34, ease: 'power2.in' },
-          0.09
-        );
-      }
-      if(els.enemyActor){
-        tl.to(els.enemyActor, { scaleX: 1.14, scaleY: 0.86, x: 10, duration: 0.09 }, 0.3)
-          .to(els.enemyActor, { scaleX: 1, scaleY: 1, x: 0, duration: 0.3, ease: 'elastic.out(1, 0.35)', clearProps: 'transform' });
-      }
-      if(els.hitCallout){
-        if(shieldEvent === 'broken-all'){
-          els.hitCallout.textContent = '護盾全破 💥';
-        } else if(shieldEvent === 'crack'){
-          els.hitCallout.textContent = '護盾碎裂 🛡️';
-        } else if(dualAttack){
-          els.hitCallout.textContent = '精靈合擊 ×' + session.combo + ' 🔥';
-        } else {
-          els.hitCallout.textContent = isCombo ? ('COMBO ×' + session.combo + ' 🔥') : 'GREAT! ✨';
+
+      if(els.fxLayer){
+        var trails = els.fxLayer.querySelectorAll('.mqst-fx-trail');
+        for(var t = 0; t < trails.length; t++){
+          var dot = trails[t];
+          var d = 0.055 * (t + 1);
+          var tScale = 1.2 - t * 0.14;
+          var tDur = flightDur * 0.85;
+          var tHalf = tDur * 0.48;
+          tl.set(dot, { x: sx, y: sy, xPercent: -50, yPercent: -50, scale: tScale, autoAlpha: 0 }, 0)
+            .to(dot, { autoAlpha: 0.95, duration: 0.06 }, 'launch+=' + d)
+            .to(dot, { x: tx, scale: 0.25, duration: tDur, ease: 'power1.inOut' }, 'launch+=' + d)
+            .to(dot, { y: peakY, duration: tHalf, ease: 'sine.out' }, 'launch+=' + d)
+            .to(dot, { y: ty, autoAlpha: 0, duration: tDur - tHalf, ease: 'sine.in' }, 'launch+=' + (d + tHalf));
         }
-        tl.fromTo(els.hitCallout,
-          { autoAlpha: 1, y: 10, scale: 0.6 },
-          { autoAlpha: 0, y: -28, scale: 1.15, duration: 0.72, ease: 'back.out(1.6)' },
-          0.28
-        );
       }
+
+      if(els.partnerProjectile && dualAttack){
+        var pDelay = 0.06;
+        var pFlight = flightDur * 0.92;
+        var pHalf = pFlight * 0.48;
+        tl.set(els.partnerProjectile, { x: px, y: py, xPercent: -50, yPercent: -50, scale: 0.6, rotation: 0, autoAlpha: 1 }, 'launch+=' + pDelay)
+          .to(els.partnerProjectile, { x: tx, rotation: -540, duration: pFlight, ease: 'power1.inOut' }, 'launch+=' + pDelay)
+          .to(els.partnerProjectile, { y: partnerPeakY, scale: 1.32, duration: pHalf, ease: 'sine.out' }, 'launch+=' + pDelay)
+          .to(els.partnerProjectile, { y: ty, autoAlpha: 0, scale: 1.55, duration: pFlight - pHalf, ease: 'sine.in' }, 'launch+=' + (pDelay + pHalf));
+      }
+
+      /* ---- 階段 3：精準命中爆破、閃白與受擊彈跳 (Impact) ---- */
+      tl.addLabel('impact', 'launch+=' + flightDur);
+      if(els.projectile){
+        tl.to(els.projectile, { autoAlpha: 0, scale: 2.35, duration: 0.16, ease: 'power2.out' }, 'impact');
+      }
+      appendImpactBurst(tl, 'impact', tx, ty, heavyHit, false);
     });
   }
 
@@ -1731,33 +2275,45 @@
       els.bossTaunt.textContent = (session.enemyHp === 0) ? '「寶箱喀嚓打開啦！太棒了！」' : '「漂亮的一擊！繼續加油！」';
     }
 
-    if(MathApp.audio && MathApp.audio.sfxCombo){
-      MathApp.audio.sfxCombo(session.combo, Boolean(session.stage && session.stage.isBoss));
+    var isFinalBlow = (session.enemyHp === 0);
+    var isBoss = Boolean(session.stage && session.stage.isBoss);
+    var finisherId = isFinalBlow ? pickNextFinisher() : '';
+
+    if(isFinalBlow && MathApp.audio && MathApp.audio.sfxFinisher){
+      MathApp.audio.sfxFinisher(finisherId, isBoss);
+    } else if(MathApp.audio && MathApp.audio.sfxCombo){
+      MathApp.audio.sfxCombo(session.combo, isBoss);
     } else if(MathApp.sfx){
-      MathApp.sfx(session.combo >= 3 ? 'combo' : (session.stage && session.stage.isBoss ? 'hit' : 'correct'));
+      MathApp.sfx(session.combo >= 3 ? 'combo' : (isBoss ? 'hit' : 'correct'));
     }
 
     var partner = getActivePartnerIsland();
     var heroMood = session.combo >= 3 ? 'fever' : 'happy';
-    var enemyMood = session.enemyHp === 0 ? (session.battleBossObj ? 'dizzy' : 'open') : 'hit';
+    var deferEnemyDefeatMood = isFinalBlow && !motionReduced && typeof window.gsap !== 'undefined';
+    var enemyMood = isFinalBlow ? (deferEnemyDefeatMood ? 'hit' : (session.battleBossObj ? 'dizzy' : 'open')) : 'hit';
     updateBattleMoods(heroMood, enemyMood, 'happy');
     if(partner && partner.partnerCheers && partner.partnerCheers.length > 0){
       var cheer = partner.partnerCheers[(session.combo - 1) % partner.partnerCheers.length];
       setPartnerSpeech(cheer);
     }
 
-    playBunnyAttackAnim(session.combo >= 3, shieldEvent, partner);
+    if(isFinalBlow){
+      playFinisherAnim(finisherId, isBoss, partner);
+    } else {
+      playBunnyAttackAnim(session.combo >= 3, shieldEvent, partner);
+    }
 
     var gemNote = session.newGemsThisRun.indexOf(gemKey) !== -1 ? ('（💎 新點亮 ' + q.a + '×' + q.b + ' 寶石！）') : '';
     var shieldNote = shieldEvent === 'broken-all' ? ' 💥 Boss 護盾全破！' : (shieldEvent === 'crack' ? ' 🛡️ 擊碎一層護盾！' : '');
+    var finisherNote = isFinalBlow ? (' 【' + FINISHER_DEFS[finisherId].badge + '】') : '';
     if(els.feedback){
-      els.feedback.textContent = '🎉 答對了！' + shieldNote + gemNote;
+      els.feedback.textContent = '🎉 答對了！' + finisherNote + shieldNote + gemNote;
       els.feedback.className = 'mqst-stage-toast good';
     }
 
     if(els.helperDrawer) els.helperDrawer.classList.remove('open');
 
-    // 切換控制台為超大「下一題」橫幅
+    // 切換控制台為超大「下一題」或「看勝利成績」橫幅
     if(els.choicesGrid) els.choicesGrid.style.display = 'none';
     if(els.keypadWrap)  els.keypadWrap.style.display  = 'none';
     if(els.nextDock)    els.nextDock.style.display    = 'flex';
@@ -1766,20 +2322,41 @@
       els.explanationBox.innerHTML = '✨ <b>' + q.a + ' × ' + q.b + ' ＝ ' + q.product + '</b>（口訣：<b>' + q.mantra + '</b>）';
     }
 
+    clearNextUnlockTimer();
     var isLast = (session.idx + 1 >= session.questions.length);
-    if(els.nextBtn){
-      els.nextBtn.innerHTML = isLast
-        ? '看勝利成績 <i data-lucide="trophy" aria-hidden="true"></i>'
-        : '下一題 <i data-lucide="arrow-right" aria-hidden="true"></i>';
+    var readyHtml = isLast
+      ? '看勝利成績 <i data-lucide="trophy" aria-hidden="true"></i>'
+      : '下一題 <i data-lucide="arrow-right" aria-hidden="true"></i>';
+
+    if(isFinalBlow && els.nextBtn){
+      session.nextLocked = true;
+      els.nextBtn.disabled = true;
+      els.nextBtn.classList.add('ult-waiting');
+      els.nextBtn.textContent = '⚡ 必殺技施放中…';
+      var unlockDelayMs = motionReduced ? 550 : (isBoss ? 1900 : 1450);
+      nextUnlockTimer = setTimeout(function(){
+        nextUnlockTimer = null;
+        session.nextLocked = false;
+        if(!session.active || !els.nextBtn) return;
+        els.nextBtn.disabled = false;
+        els.nextBtn.classList.remove('ult-waiting');
+        els.nextBtn.innerHTML = readyHtml;
+        if(MathApp.refreshIcons) MathApp.refreshIcons();
+        runAnim(function(gsap){
+          gsap.fromTo(els.nextBtn, { scale: 0.85 }, { scale: 1, duration: 0.28, ease: 'back.out(1.8)', clearProps: 'transform' });
+        });
+      }, unlockDelayMs);
+    } else if(els.nextBtn){
+      els.nextBtn.innerHTML = readyHtml;
+      if(MathApp.refreshIcons) MathApp.refreshIcons();
+      runAnim(function(gsap){
+        gsap.fromTo(els.nextBtn, { scale: 0.85 }, { scale: 1, duration: 0.25, ease: 'back.out(1.7)', clearProps: 'transform' });
+      });
     }
-    if(MathApp.refreshIcons) MathApp.refreshIcons();
 
-    // 延遲 340ms 再朗讀口訣，避免與答對叮咚音效重疊互吃聲音
-    scheduleSpeak('答對了！' + q.mantra, 340);
-
-    runAnim(function(gsap){
-      if(els.nextBtn) gsap.fromTo(els.nextBtn, { scale: 0.85 }, { scale: 1, duration: 0.25, ease: 'back.out(1.7)', clearProps: 'transform' });
-    });
+    // 必殺技期間將朗讀口訣延至命中爆破後，避免與必殺技音效互搶聲音
+    var speakDelayMs = isFinalBlow ? (motionReduced ? 360 : (isBoss ? 1700 : 1200)) : 340;
+    scheduleSpeak('答對了！' + q.mantra, speakDelayMs);
   }
 
   function handleWrong(q){
@@ -1928,6 +2505,8 @@
   }
 
   function goNextQuestion(){
+    if(session.nextLocked) return;
+    stopAttackAnim();
     clearSpeakTimer();
     if(MathApp.stopSpeak) MathApp.stopSpeak();
     if(MathApp.sfx) MathApp.sfx('click');
@@ -2373,6 +2952,30 @@
       els.helperCloseBtn.addEventListener('click', function(){
         if(MathApp.sfx) MathApp.sfx('click');
         if(els.helperDrawer) els.helperDrawer.classList.remove('open');
+      });
+    }
+
+    if(els.heroSvg){
+      els.heroSvg.addEventListener('click', function(){
+        if(!session.active) return;
+        if(MathApp.audio && MathApp.audio.sfxJump) MathApp.audio.sfxJump();
+        else if(MathApp.sfx) MathApp.sfx('pop');
+        runAnim(function(gsap){
+          if(els.heroActor){
+            gsap.fromTo(els.heroActor, { y: 0, scale: 1 }, { y: -18, scale: 1.08, duration: 0.16, yoyo: true, repeat: 1, ease: 'power1.out', clearProps: 'transform' });
+          }
+        });
+      });
+    }
+    if(els.bossSvg){
+      els.bossSvg.addEventListener('click', function(){
+        if(!session.active) return;
+        if(MathApp.sfx) MathApp.sfx('pop');
+        runAnim(function(gsap){
+          if(els.enemyActor){
+            gsap.fromTo(els.enemyActor, { scaleX: 1, scaleY: 1, rotation: 0 }, { scaleX: 1.1, scaleY: 0.9, rotation: -4, duration: 0.12, yoyo: true, repeat: 1, ease: 'power1.out', clearProps: 'transform' });
+          }
+        });
       });
     }
 
