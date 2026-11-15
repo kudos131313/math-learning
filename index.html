@@ -1205,14 +1205,8 @@
 
             <div class="mqst-hud-actions">
               <span class="mqst-preview-badge" id="mqst-preview-badge" style="display:none;">🔓 預習模式</span>
-              <button type="button" class="mqst-hud-btn audio-mini" id="mqst-map-bgm-btn" aria-pressed="true" aria-label="切換背景音樂" title="切換背景音樂">
-                <i data-lucide="music" aria-hidden="true"></i><span>音樂</span>
-              </button>
-              <button type="button" class="mqst-hud-btn audio-mini" id="mqst-map-sound-btn" aria-pressed="true" aria-label="切換遊戲音效" title="切換遊戲音效">
-                <i data-lucide="volume-2" aria-hidden="true"></i><span>音效</span>
-              </button>
-              <button type="button" class="mqst-hud-btn audio-mini" id="mqst-map-voice-btn" aria-pressed="true" aria-label="切換語音朗讀" title="切換語音朗讀">
-                <i data-lucide="speech" aria-hidden="true"></i><span>語音</span>
+              <button type="button" class="mqst-hud-btn audio-mini" id="mqst-map-audio-btn" aria-label="開啟聲音設定" title="聲音設定（音樂／音效／語音）">
+                <i data-lucide="volume-2" aria-hidden="true"></i><span>聲音</span>
               </button>
               <button type="button" class="mqst-hud-btn wardrobe" id="mqst-open-wardrobe-btn">
                 <span aria-hidden="true">🎀</span><span>換裝</span>
@@ -1275,14 +1269,8 @@
               <div class="mqst-combo-pill" id="mqst-combo-pill" aria-live="polite">
                 🔥 連擊 <strong id="mqst-combo-count">0</strong>
               </div>
-              <button type="button" class="mqst-hud-btn audio-mini icon-only" id="mqst-battle-bgm-btn" aria-pressed="true" aria-label="切換背景音樂" title="切換背景音樂">
-                <i data-lucide="music" aria-hidden="true"></i>
-              </button>
-              <button type="button" class="mqst-hud-btn audio-mini icon-only" id="mqst-battle-sound-btn" aria-pressed="true" aria-label="切換遊戲音效" title="切換遊戲音效">
+              <button type="button" class="mqst-hud-btn audio-mini icon-only" id="mqst-battle-audio-btn" aria-label="開啟聲音設定" title="聲音設定（音樂／音效／語音）">
                 <i data-lucide="volume-2" aria-hidden="true"></i>
-              </button>
-              <button type="button" class="mqst-hud-btn audio-mini icon-only" id="mqst-battle-voice-btn" aria-pressed="true" aria-label="切換語音朗讀" title="切換語音朗讀">
-                <i data-lucide="speech" aria-hidden="true"></i>
               </button>
               <button type="button" class="mqst-hud-btn helper" id="mqst-helper-toggle-btn">
                 <span aria-hidden="true">🧱</span><span>小幫手</span>
@@ -1633,6 +1621,57 @@
         <p class="mqst-parent-feedback" id="mqst-parent-feedback" role="status" aria-live="polite"></p>
         <div class="mqst-reset-confirm-row" id="mqst-reset-confirm-row" style="display:none;">
           <button type="button" class="mqst-danger-btn" id="mqst-reset-all-btn">確定清空全部星星與圖鑑紀錄</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="mqst-dialog-foot">
+      <form method="dialog">
+        <button type="submit" class="primary-btn" value="done">完成</button>
+      </form>
+    </div>
+  </dialog>
+
+  <!-- ================= 原生對話框：聲音與語音設定 ================= -->
+  <dialog class="mqst-dialog mqst-audio-dialog" id="mqst-audio-dialog" closedby="any" aria-labelledby="mqst-audio-title">
+    <div class="mqst-dialog-head">
+      <div class="mqst-dialog-title-wrap">
+        <span class="mqst-dialog-ico" aria-hidden="true">🔊</span>
+        <h3 id="mqst-audio-title">聲音與語音設定</h3>
+      </div>
+      <form method="dialog">
+        <button type="submit" class="close-modal-btn" value="cancel" aria-label="關閉聲音設定視窗" autofocus>✕</button>
+      </form>
+    </div>
+
+    <div class="mqst-dialog-body">
+      <div class="mqst-parent-card">
+        <div class="mqst-parent-row">
+          <div>
+            <h4>🎵 背景音樂</h4>
+            <p>冒險地圖與對戰時的輕快童話配樂。</p>
+          </div>
+          <button type="button" class="mqst-switch-btn" id="mqst-dlg-bgm-btn" aria-pressed="true">已開啟</button>
+        </div>
+      </div>
+
+      <div class="mqst-parent-card">
+        <div class="mqst-parent-row">
+          <div>
+            <h4>🔊 遊戲音效</h4>
+            <p>點擊按鈕、施放魔法與答對題目時的可愛音效。</p>
+          </div>
+          <button type="button" class="mqst-switch-btn" id="mqst-dlg-sound-btn" aria-pressed="true">已開啟</button>
+        </div>
+      </div>
+
+      <div class="mqst-parent-card">
+        <div class="mqst-parent-row">
+          <div>
+            <h4>🗣️ 語音朗讀</h4>
+            <p>自動唸出題目與九九乘法口訣提示。</p>
+          </div>
+          <button type="button" class="mqst-switch-btn" id="mqst-dlg-voice-btn" aria-pressed="true">已開啟</button>
         </div>
       </div>
     </div>

@@ -1044,12 +1044,12 @@
     els.openWardrobeBtn= document.getElementById('mqst-open-wardrobe-btn');
     els.openDexBtn     = document.getElementById('mqst-open-dex-btn');
     els.openParentBtn  = document.getElementById('mqst-open-parent-btn');
-    els.mapBgmBtn      = document.getElementById('mqst-map-bgm-btn');
-    els.mapSoundBtn    = document.getElementById('mqst-map-sound-btn');
-    els.mapVoiceBtn    = document.getElementById('mqst-map-voice-btn');
-    els.battleBgmBtn   = document.getElementById('mqst-battle-bgm-btn');
-    els.battleSoundBtn = document.getElementById('mqst-battle-sound-btn');
-    els.battleVoiceBtn = document.getElementById('mqst-battle-voice-btn');
+    els.mapAudioBtn    = document.getElementById('mqst-map-audio-btn');
+    els.battleAudioBtn = document.getElementById('mqst-battle-audio-btn');
+    els.audioDialog    = document.getElementById('mqst-audio-dialog');
+    els.dlgBgmBtn      = document.getElementById('mqst-dlg-bgm-btn');
+    els.dlgSoundBtn    = document.getElementById('mqst-dlg-sound-btn');
+    els.dlgVoiceBtn    = document.getElementById('mqst-dlg-voice-btn');
 
     els.mapView        = document.getElementById('mqst-map-view');
     els.previewBadge   = document.getElementById('mqst-preview-badge');
@@ -1164,33 +1164,24 @@
     var bOn = (MathApp.audio && MathApp.audio.isBgmOn) ? MathApp.audio.isBgmOn() : true;
     var sOn = (MathApp.audio && MathApp.audio.isSoundOn) ? MathApp.audio.isSoundOn() : true;
     var vOn = (MathApp.audio && MathApp.audio.isVoiceOn) ? MathApp.audio.isVoiceOn() : true;
+    var allOff = !bOn && !sOn && !vOn;
 
-    [els.mapBgmBtn, els.battleBgmBtn].forEach(function(btn){
+    [els.mapAudioBtn, els.battleAudioBtn].forEach(function(btn){
       if(!btn) return;
       var iconOnly = btn.classList.contains('icon-only');
-      btn.setAttribute('aria-pressed', String(bOn));
-      btn.classList.toggle('is-off', !bOn);
-      btn.innerHTML = '<i data-lucide="music" aria-hidden="true"></i>' +
-        (iconOnly ? '' : '<span>' + (bOn ? '音樂' : '音樂(關)') + '</span>');
+      btn.classList.toggle('is-off', allOff);
+      btn.innerHTML = '<i data-lucide="' + (allOff ? 'volume-x' : 'volume-2') + '" aria-hidden="true"></i>' +
+        (iconOnly ? '' : '<span>聲音</span>');
     });
 
-    [els.mapSoundBtn, els.battleSoundBtn].forEach(function(btn){
+    function updateSwitch(btn, on){
       if(!btn) return;
-      var iconOnly = btn.classList.contains('icon-only');
-      btn.setAttribute('aria-pressed', String(sOn));
-      btn.classList.toggle('is-off', !sOn);
-      btn.innerHTML = '<i data-lucide="' + (sOn ? 'volume-2' : 'volume-x') + '" aria-hidden="true"></i>' +
-        (iconOnly ? '' : '<span>' + (sOn ? '音效' : '靜音') + '</span>');
-    });
-
-    [els.mapVoiceBtn, els.battleVoiceBtn].forEach(function(btn){
-      if(!btn) return;
-      var iconOnly = btn.classList.contains('icon-only');
-      btn.setAttribute('aria-pressed', String(vOn));
-      btn.classList.toggle('is-off', !vOn);
-      btn.innerHTML = '<i data-lucide="' + (vOn ? 'speech' : 'message-square-off') + '" aria-hidden="true"></i>' +
-        (iconOnly ? '' : '<span>' + (vOn ? '語音' : '無聲') + '</span>');
-    });
+      btn.setAttribute('aria-pressed', String(on));
+      btn.textContent = on ? '已開啟' : '已關閉';
+    }
+    updateSwitch(els.dlgBgmBtn, bOn);
+    updateSwitch(els.dlgSoundBtn, sOn);
+    updateSwitch(els.dlgVoiceBtn, vOn);
 
     if(MathApp.refreshIcons) MathApp.refreshIcons();
   }
@@ -3497,29 +3488,41 @@
       });
     }
 
-    [els.mapBgmBtn, els.battleBgmBtn].forEach(function(btn){
+    setupDialogPolyfill(els.audioDialog);
+    function openAudioDialog(){
+      if(!els.audioDialog) return;
+      syncAudioButtons();
+      if(els.audioDialog.showModal) els.audioDialog.showModal();
+      else els.audioDialog.setAttribute('open', '');
+      if(MathApp.sfx) MathApp.sfx('click');
+    }
+    [els.mapAudioBtn, els.battleAudioBtn].forEach(function(btn){
       if(!btn) return;
-      btn.addEventListener('click', function(){
+      btn.addEventListener('click', openAudioDialog);
+    });
+    if(els.dlgBgmBtn){
+      els.dlgBgmBtn.addEventListener('click', function(){
         if(MathApp.audio && MathApp.audio.toggleBgm) MathApp.audio.toggleBgm();
+        syncAudioButtons();
       });
-    });
-    [els.mapSoundBtn, els.battleSoundBtn].forEach(function(btn){
-      if(!btn) return;
-      btn.addEventListener('click', function(){
+    }
+    if(els.dlgSoundBtn){
+      els.dlgSoundBtn.addEventListener('click', function(){
         if(MathApp.audio && MathApp.audio.toggleSound) MathApp.audio.toggleSound();
+        syncAudioButtons();
       });
-    });
-    [els.mapVoiceBtn, els.battleVoiceBtn].forEach(function(btn){
-      if(!btn) return;
-      btn.addEventListener('click', function(){
+    }
+    if(els.dlgVoiceBtn){
+      els.dlgVoiceBtn.addEventListener('click', function(){
         if(MathApp.audio && MathApp.audio.toggleVoice) MathApp.audio.toggleVoice();
+        syncAudioButtons();
       });
-    });
+    }
 
     document.addEventListener('keydown', function(e){
       if(!session.arcadeOpen) return;
       if(e.key === 'Escape'){
-        if((els.dexDialog && els.dexDialog.open) || (els.parentDialog && els.parentDialog.open)) return;
+        if((els.dexDialog && els.dexDialog.open) || (els.parentDialog && els.parentDialog.open) || (els.audioDialog && els.audioDialog.open)) return;
         // 戰鬥中誤按 Esc 僅返回世界地圖，避免直接關閉全螢幕而失去進度
         if(session.active && els.battleView && els.battleView.style.display !== 'none'){
           showView('map');
