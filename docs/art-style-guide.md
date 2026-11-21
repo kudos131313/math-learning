@@ -191,8 +191,8 @@ flowchart TD
 
 為落實 [ADR-0005](adr/0005-popup-storybook-theater-and-sticker-svg-art-direction.md)，在後續維護與擴展 [css/mul-quest.css](../css/mul-quest.css) 及 [index.html](../index.html) 時，須依序完成並遵守以下視覺收斂檢核項：
 
-- [ ] **字型收斂**：移除 `css/mul-quest.css` 中所有 `"ZCOOL KuaiLe"` 字型宣告，將 `#mqst-arcade-overlay` 與各對話框（`#mqst-dex-dialog`、`#mqst-shop-dialog` 等）的標題與內文字型統一指向 `var(--font-display)` 與 `var(--font-body)`；所有算式、直式格、進度計數與鍵盤數字統一加上 `font-family: var(--font-num); font-variant-numeric: tabular-nums;`。
-- [ ] **紙張材質與卡紙厚邊收斂**：將題卡內芯、對話框主體、商店商品卡與委託任務卡統一套用 `var(--color-card)` 背景與 `var(--grain), var(--fibre)` 紙張紋理；按鈕與選項卡統一採用厚卡紙立體底邊與 `:active` 物理下沉回饋。
-- [ ] **四大劇場主題色票變數化**：以 `[data-realm="sunny" | "mul" | "cloud" | "tower"]` 或對應主題屬性驅動舞台外框、頂部 HUD 橫樑與木牌頂飾色彩，消除散落各處的硬編碼漸層色碼。
-- [ ] **位值語意色零覆蓋檢查**：確認迷你直式卡（`.mqst-vcalc-*`）、位值組數卡與 4 種積木小幫手內部完全引用 `--th-*`、`--h-*`、`--t-*`、`--o-*` 語意變數，不受外層 `data-theme` 或 `data-realm` 影響。
-- [ ] **電腦與平板視窗驗收**：在電腦（`1280×800`）與平板橫直向（`1024×768`、`768×1024`）實機驗證：生活應用題高光膠囊不擠壓折行、兩步驟引導上下算式框與下方數字鍵盤在同一畫面內不重疊、粉紅小兔所有頭飾皆滿足 `y <= 34` 不遮臉紅線。
+- [x] **字型收斂**：移除 `css/mul-quest.css` 中所有 `"ZCOOL KuaiLe"` 與 `"Baloo 2"` 字型宣告，將 `#mqst-arcade-overlay` 與各對話框（`#mqst-dex-dialog`、`#mqst-shop-dialog` 等）的標題與內文字型統一指向 `var(--font-display)` 與 `var(--font-body)`；所有算式、直式格、進度計數與鍵盤數字統一加上 `font-family: var(--font-num); font-variant-numeric: tabular-nums;`。
+- [x] **紙張材質與卡紙厚邊收斂**：將題卡內芯、對話框主體、商店商品卡與委託任務卡統一套用 `var(--color-card)` 背景與 `var(--grain), var(--fibre)` 紙張紋理；按鈕與選項卡統一採用厚卡紙立體底邊與 `:active` 物理下沉回饋。
+- [x] **四大劇場主題色票變數化**：以 `[data-realm="sunny" | "mul" | "cloud" | "tower"]` 屬性驅動舞台外框、頂部 HUD 橫樑與木牌頂飾色彩，消除散落各處的硬編碼漸層色碼。
+- [x] **位值語意色零覆蓋檢查**：確認迷你直式卡（`.mqst-vmini-*`）、位值組數卡與 4 種積木小幫手內部完全引用 `--th-*`、`--h-*`、`--t-*`、`--o-*` 語意變數，不受外層 `data-theme` 或 `data-realm` 影響。
+- [x] **電腦與平板視窗驗收**：在電腦（`1280×800`）與平板橫直向（`1024×768`、`768×1024`）實機驗證：生活應用題高光膠囊（`>= 18px`）不擠壓折行、兩步驟引導上下算式框與下方數字鍵盤在同一畫面內不重疊、粉紅小兔所有頭飾皆滿足 `y <= 34` 不遮臉紅線。

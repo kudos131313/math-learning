@@ -149,12 +149,13 @@ export function createBattleFx({
       return;
     }
     const gsap = window.gsap;
+    // 遵守思考期零干擾規範（docs/art-style-guide.md 第 7.1 節）：垂直位移 <= 3px，完整呼吸週期 >= 2.2s
     if (els.heroSvg) {
       battleIdleAnims.push(
         gsap.fromTo(
           els.heroSvg,
-          { y: 0, scaleX: 1.02, scaleY: 0.97, rotation: -1.5 },
-          { y: -6, scaleX: 0.98, scaleY: 1.03, rotation: 1.5, duration: 0.68, ease: 'sine.inOut', repeat: -1, yoyo: true }
+          { y: 0, scaleX: 1.01, scaleY: 0.99, rotation: -0.8 },
+          { y: -2.8, scaleX: 0.99, scaleY: 1.01, rotation: 0.8, duration: 1.25, ease: 'sine.inOut', repeat: -1, yoyo: true }
         )
       );
     }
@@ -162,8 +163,8 @@ export function createBattleFx({
       battleIdleAnims.push(
         gsap.fromTo(
           els.partnerSvg,
-          { y: -2, rotation: -3.5 },
-          { y: -10, rotation: 3.5, duration: 0.95, delay: 0.2, ease: 'sine.inOut', repeat: -1, yoyo: true }
+          { y: 0, rotation: -1.5 },
+          { y: -3, rotation: 1.5, duration: 1.35, delay: 0.2, ease: 'sine.inOut', repeat: -1, yoyo: true }
         )
       );
     }
@@ -172,17 +173,18 @@ export function createBattleFx({
         battleIdleAnims.push(
           gsap.fromTo(
             els.bossSvg,
-            { y: 0, scaleX: 1.04, scaleY: 0.96, rotation: 1.2 },
-            { y: -5, scaleX: 0.98, scaleY: 1.03, rotation: -1.2, duration: 0.85, delay: 0.15, ease: 'sine.inOut', repeat: -1, yoyo: true }
+            { y: 0, scaleX: 1.01, scaleY: 0.99, rotation: 0.8 },
+            { y: -2.8, scaleX: 0.99, scaleY: 1.01, rotation: -0.8, duration: 1.3, delay: 0.15, ease: 'sine.inOut', repeat: -1, yoyo: true }
           )
         );
       } else {
-        const chestTl = gsap.timeline({ repeat: -1, repeatDelay: 0.75 });
-        chestTl
-          .to(els.bossSvg, { y: -6, scaleY: 1.05, rotation: -3, duration: 0.22, ease: 'power1.out' })
-          .to(els.bossSvg, { y: 0, scaleY: 0.95, rotation: 3, duration: 0.2, ease: 'power1.inOut' })
-          .to(els.bossSvg, { y: 0, scaleY: 1, rotation: 0, duration: 0.28, ease: 'elastic.out(1, 0.4)' });
-        battleIdleAnims.push(chestTl);
+        battleIdleAnims.push(
+          gsap.fromTo(
+            els.bossSvg,
+            { y: 0, scaleY: 0.99 },
+            { y: -2.5, scaleY: 1.01, duration: 1.2, ease: 'sine.inOut', repeat: -1, yoyo: true }
+          )
+        );
       }
     }
   }

@@ -31,8 +31,8 @@
   text-align: left;
 }
 
-/* ---------------- 九九乘法冒險島全螢幕與對話框隔離作用域 ---------------- */
-/* 鎖定冒險島專用舊變數與字型，避免受全站 Hum 設計系統影響 */
+/* ---------------- 數學冒險島：立體繪本紙劇場（Pop-up Storybook Theater）作用域 ---------------- */
+/* 與全站 Hum 厚磅卡紙系統同源收斂（ADR-0005 / docs/art-style-guide.md），保留 #332b22 繪本貼紙深褐墨線 */
 #mqst-arcade-overlay,
 #mqst-dex-dialog,
 #mqst-parent-dialog,
@@ -40,14 +40,62 @@
 #mqst-helper-confirm-dialog,
 #mqst-daily-dialog,
 #mqst-shop-dialog {
-  --card: #fffdf8;
-  --surface: #ffffff;
-  --surface-dim: #f1ede4;
+  --card: var(--color-card);
+  --surface: var(--color-card);
+  --surface-dim: var(--color-paper-2);
   --ink: #332b22;
   --ink-soft: #6b6152;
   --shadow-ink: #332b22;
-  font-family: "Noto Sans TC", sans-serif;
+  --theater-frame: #d97706;
+  --theater-tint: rgba(254, 243, 199, 0.94);
+  --theater-dock-top: #fef3c7;
+  --theater-dock-bot: #fde68a;
+  --theater-badge-bg: #ffedd5;
+  --theater-badge-ink: #9a3412;
+  --theater-badge-border: #f97316;
+  font-family: var(--font-body);
   letter-spacing: normal;
+}
+
+/* 四大劇場主題色票（Realm Theater Palettes：僅渲染外框、橫樑與頂飾，不侵入題卡內芯） */
+#mqst-arcade-overlay[data-realm="sunny"] {
+  --theater-frame: #d97706;
+  --theater-tint: rgba(254, 243, 199, 0.94);
+  --theater-dock-top: #fef3c7;
+  --theater-dock-bot: #fde68a;
+  --theater-badge-bg: #ffedd5;
+  --theater-badge-ink: #9a3412;
+  --theater-badge-border: #f97316;
+}
+
+#mqst-arcade-overlay[data-realm="mul"] {
+  --theater-frame: #15803d;
+  --theater-tint: rgba(220, 252, 231, 0.94);
+  --theater-dock-top: #ecfdf5;
+  --theater-dock-bot: #bbf7d0;
+  --theater-badge-bg: #fef3c7;
+  --theater-badge-ink: #78350f;
+  --theater-badge-border: #b45309;
+}
+
+#mqst-arcade-overlay[data-realm="cloud"] {
+  --theater-frame: #0284c7;
+  --theater-tint: rgba(224, 242, 254, 0.94);
+  --theater-dock-top: #f0f9ff;
+  --theater-dock-bot: #bae6fd;
+  --theater-badge-bg: #ede9fe;
+  --theater-badge-ink: #5b21b6;
+  --theater-badge-border: #7c3aed;
+}
+
+#mqst-arcade-overlay[data-realm="tower"] {
+  --theater-frame: #5b21b6;
+  --theater-tint: rgba(237, 233, 254, 0.94);
+  --theater-dock-top: #f5f3ff;
+  --theater-dock-bot: #ddd6fe;
+  --theater-badge-bg: #fef08a;
+  --theater-badge-ink: #713f12;
+  --theater-badge-border: #eab308;
 }
 
 #mqst-arcade-overlay h2,
@@ -65,9 +113,9 @@
 #mqst-daily-dialog h4,
 #mqst-shop-dialog h3,
 #mqst-shop-dialog h4 {
-  font-family: "ZCOOL KuaiLe", "Noto Sans TC", sans-serif;
-  font-weight: 400;
-  letter-spacing: normal;
+  font-family: var(--font-display);
+  font-weight: 700;
+  letter-spacing: var(--tracking-display);
   line-height: 1.35;
 }
 
@@ -262,9 +310,10 @@
   justify-content: space-between;
   gap: 8px;
   padding: 7px 12px;
-  background: rgba(255, 253, 246, 0.9);
-  backdrop-filter: blur(8px);
+  background-color: var(--color-card);
+  background-image: var(--grain), var(--fibre);
   border-bottom: 3px solid var(--ink);
+  box-shadow: inset 0 -3px 0 0 var(--theater-frame, #d97706);
   z-index: 20;
   flex-shrink: 0;
   flex-wrap: wrap;
@@ -325,7 +374,8 @@
   padding: 3px 9px;
   border-radius: 999px;
   border: 2px solid var(--ink);
-  font-family: "Baloo 2", "Noto Sans TC", sans-serif;
+  font-family: var(--font-num);
+  font-variant-numeric: tabular-nums;
   font-size: 13.5px;
   font-weight: 800;
   background: #fff;
@@ -396,7 +446,7 @@
   align-items: center;
   justify-content: center;
   padding: 6px 12px;
-  background: rgba(255, 248, 235, 0.94);
+  background: var(--theater-tint, rgba(255, 248, 235, 0.94));
   border-bottom: 2.5px solid var(--ink);
   flex-shrink: 0;
   z-index: 19;
@@ -828,7 +878,8 @@
 }
 
 .mqst-map-node-id {
-  font-family: "Baloo 2", sans-serif;
+  font-family: var(--font-num);
+  font-variant-numeric: tabular-nums;
   font-size: 16px;
   font-weight: 900;
   line-height: 1.05;
@@ -938,7 +989,8 @@
 }
 
 .mqst-q-counter {
-  font-family: "Baloo 2", sans-serif;
+  font-family: var(--font-num);
+  font-variant-numeric: tabular-nums;
   font-size: 15px;
   font-weight: 800;
   white-space: nowrap;
@@ -991,19 +1043,21 @@
   pointer-events: none;
 }
 
-/* 魔法木牌算式板 */
+/* 魔法木牌算式板：木框鑲嵌厚白卡（Wood-Framed Cardstock） */
 /* ---------------- 魔法木牌算式板增強：橫式⇄直式切換、迷你直式卡、十進位與線段小幫手 ---------------- */
 .mqst-wood-board {
   position: relative;
   z-index: 5;
   margin: 0 auto;
-  width: min(630px, 100%);
-  background: rgba(255, 251, 240, 0.95);
-  backdrop-filter: blur(6px);
+  width: min(640px, 100%);
+  background-color: var(--color-card);
+  background-image: var(--grain), var(--fibre);
   border: 3.5px solid var(--ink);
   border-radius: 24px;
   padding: 10px 16px 12px;
-  box-shadow: 0 6px 0 rgba(51, 43, 34, 0.28);
+  box-shadow:
+    inset 0 0 0 3.5px var(--theater-frame, #d97706),
+    0 6px 0 rgba(51, 43, 34, 0.28);
   text-align: center;
 }
 
@@ -1099,9 +1153,9 @@
   white-space: nowrap;
 }
 
-.mqst-vmini-head.is-h { background: #dbeafe; color: var(--h-color-dark); border-color: #93c5fd; }
-.mqst-vmini-head.is-t { background: #ffedd5; color: var(--t-color-dark); border-color: #fdba74; }
-.mqst-vmini-head.is-o { background: #f8fafc; color: var(--o-color-dark); border-color: #cbd5e1; }
+.mqst-vmini-head.is-h { background: var(--h-soft); color: var(--h-color-dark); border-color: var(--h-border); }
+.mqst-vmini-head.is-t { background: var(--t-soft); color: var(--t-color-dark); border-color: var(--t-border); }
+.mqst-vmini-head.is-o { background: var(--o-soft); color: var(--o-color-dark); border-color: var(--o-border); }
 
 .mqst-vmini-op {
   font-size: 26px;
@@ -1122,9 +1176,9 @@
   line-height: 1;
 }
 
-.mqst-vmini-cell.is-h { background: #dbeafe; color: var(--h-color-dark); }
-.mqst-vmini-cell.is-t { background: #ffedd5; color: var(--t-color-dark); }
-.mqst-vmini-cell.is-o { background: #f8fafc; color: var(--o-color-dark); border: 1.5px solid #e2e8f0; }
+.mqst-vmini-cell.is-h { background: var(--h-soft); color: var(--h-color-dark); }
+.mqst-vmini-cell.is-t { background: var(--t-soft); color: var(--t-color-dark); }
+.mqst-vmini-cell.is-o { background: var(--o-soft); color: var(--o-color-dark); border: 1.5px solid var(--o-border); }
 
 .mqst-vmini-line {
   grid-column: 1 / -1;
@@ -1230,9 +1284,9 @@
   border-radius: 999px;
 }
 
-.mqst-calc-ptag.is-h { background: #dbeafe; color: var(--h-color-dark); }
-.mqst-calc-ptag.is-t { background: #ffedd5; color: var(--t-color-dark); }
-.mqst-calc-ptag.is-o { background: #f8fafc; color: var(--o-color-dark); border: 1px solid #cbd5e1; }
+.mqst-calc-ptag.is-h { background: var(--h-soft); color: var(--h-color-dark); border: 1px solid var(--h-border); }
+.mqst-calc-ptag.is-t { background: var(--t-soft); color: var(--t-color-dark); border: 1px solid var(--t-border); }
+.mqst-calc-ptag.is-o { background: var(--o-soft); color: var(--o-color-dark); border: 1px solid var(--o-border); }
 
 .mqst-calc-pblks {
   display: flex;
@@ -1422,6 +1476,7 @@
 
 .mqst-seq-num {
   font-family: var(--font-num);
+  font-variant-numeric: tabular-nums;
   font-size: 24px;
   font-weight: 900;
   color: #0369a1;
@@ -1483,10 +1538,10 @@
   min-width: 74px;
 }
 
-.mqst-pv-card.tone-h   { background: #dbeafe; color: var(--h-color-dark); }
-.mqst-pv-card.tone-t   { background: #ffedd5; color: var(--t-color-dark); }
-.mqst-pv-card.tone-o   { background: #f8fafc; color: var(--o-color-dark); }
-.mqst-pv-card.tone-th  { background: #f3e8ff; color: #6b21a8; }
+.mqst-pv-card.tone-h   { background: var(--h-soft); color: var(--h-color-dark); border-color: var(--h-border); }
+.mqst-pv-card.tone-t   { background: var(--t-soft); color: var(--t-color-dark); border-color: var(--t-border); }
+.mqst-pv-card.tone-o   { background: var(--o-soft); color: var(--o-color-dark); border-color: var(--o-border); }
+.mqst-pv-card.tone-th  { background: var(--th-soft); color: var(--th-color-dark); border-color: var(--th-border); }
 .mqst-pv-card.tone-word,
 .mqst-pv-card.tone-digit { background: #fef9c3; color: #713f12; }
 
@@ -1498,6 +1553,7 @@
 
 .mqst-pv-card-val {
   font-family: var(--font-num);
+  font-variant-numeric: tabular-nums;
   font-size: 20px;
   font-weight: 900;
 }
@@ -1569,21 +1625,21 @@
 }
 
 .mqst-two-step-row.is-active {
-  background: #fffbeb;
-  border-color: #d97706;
-  box-shadow: 0 3px 0 rgba(180, 83, 9, 0.22);
+  background: var(--color-card);
+  border-color: var(--color-focus);
+  box-shadow: var(--shadow-focus), 0 3px 0 rgba(37, 99, 235, 0.22);
 }
 
 .mqst-two-step-row.is-done {
-  background: #f0fdf4;
-  border-color: #16a34a;
+  background: var(--good-bg);
+  border-color: var(--good-border);
 }
 
 .mqst-two-step-row.is-waiting {
-  background: #f8fafc;
+  background: var(--color-paper-2);
   border-style: dashed;
-  border-color: #94a3b8;
-  opacity: 0.78;
+  border-color: var(--color-rule-strong);
+  opacity: 0.72;
 }
 
 .mqst-two-step-badge {
@@ -1610,6 +1666,7 @@
 
 .mqst-step-locked-val {
   font-family: var(--font-num);
+  font-variant-numeric: tabular-nums;
   font-size: 22px;
   font-weight: 900;
   color: #15803d;
@@ -1626,6 +1683,7 @@
   border: 2px solid #0284c7;
   color: #0c4a6e;
   font-family: var(--font-num);
+  font-variant-numeric: tabular-nums;
   font-size: 18px;
   font-weight: 900;
 }
@@ -1684,6 +1742,7 @@
   background: #e0f2fe;
   color: #0369a1;
   font-family: var(--font-num);
+  font-variant-numeric: tabular-nums;
   font-size: 16px;
   font-weight: 900;
 }
@@ -1777,9 +1836,19 @@
   margin-top: 4px;
 }
 
-.mqst-skill-card.tier-bronze { background: linear-gradient(135deg, #fff7ed 0%, #ffedd5 100%); border-color: #c2410c; }
-.mqst-skill-card.tier-silver { background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%); border-color: #475569; }
-.mqst-skill-card.tier-gold   { background: linear-gradient(135deg, #fefce8 0%, #fef08a 100%); border-color: #b45309; }
+.mqst-skill-card.tier-bronze {
+  background: linear-gradient(135deg, #fff7ed 0%, #fed7aa 100%);
+  border-color: #c2410c;
+}
+.mqst-skill-card.tier-silver {
+  background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+  border-color: #0284c7;
+}
+.mqst-skill-card.tier-gold {
+  background: linear-gradient(135deg, #fefce8 0%, #fef08a 46%, #ffffff 53%, #fde047 100%);
+  border: 2.5px solid #b45309;
+  box-shadow: inset 0 0 0 2px #fde047, 2.5px 3px 0 var(--shadow-ink);
+}
 
 .mqst-skill-tier-pill {
   padding: 2px 10px;
@@ -1791,7 +1860,7 @@
 
 .mqst-skill-tier-pill.tier-none   { background: #f1f5f9; color: #64748b; border-color: #cbd5e1; }
 .mqst-skill-tier-pill.tier-bronze { background: #fed7aa; color: #7c2d12; border-color: #c2410c; }
-.mqst-skill-tier-pill.tier-silver { background: #e2e8f0; color: #1e293b; border-color: #475569; }
+.mqst-skill-tier-pill.tier-silver { background: #e0f2fe; color: #0c4a6e; border-color: #0284c7; }
 .mqst-skill-tier-pill.tier-gold   { background: #fde047; color: #78350f; border-color: #b45309; }
 
 .mqst-skill-ico {
@@ -1809,8 +1878,10 @@
 .mqst-board-tag {
   padding: 2px 11px;
   border-radius: 999px;
-  background: #fef3c7;
+  background: var(--theater-badge-bg, #fef3c7);
+  color: var(--theater-badge-ink, #332b22);
   border: 2px solid var(--ink);
+  box-shadow: 0 2px 0 0 var(--theater-badge-border, #d97706);
   font-size: 12.5px;
   font-weight: 900;
 }
@@ -1830,18 +1901,40 @@
 }
 
 .mqst-story-ribbon {
-  background: #fffbeb;
-  border: 2px solid #f59e0b;
-  border-radius: 12px;
-  padding: 6px 10px;
-  margin-bottom: 6px;
-  font-size: 14.5px;
+  background-color: var(--color-paper);
+  background-image: var(--grain);
+  border: 2px solid var(--theater-frame, #f59e0b);
+  border-radius: 14px;
+  padding: 8px 14px;
+  margin: 0 auto 6px;
+  max-width: 38em;
+  font-size: clamp(1.125rem, 2.05vw, 1.28rem);
+  font-weight: 700;
+  line-height: 1.6;
+  color: var(--ink);
+  text-wrap: pretty;
+}
+
+/* 生活應用題關鍵數量與單位厚卡紙高光膠囊（Highlight Pill） */
+.mqst-story-ribbon b {
+  display: inline-block;
+  padding: 1px 8px;
+  margin: 0 2px;
+  border-radius: 8px;
+  background-color: var(--color-accent-soft);
+  border: 1.5px solid var(--color-accent-deep);
+  box-shadow: 0 2px 0 0 var(--color-edge);
+  color: var(--color-ink);
+  font-family: var(--font-num);
+  font-variant-numeric: tabular-nums;
   font-weight: 800;
-  line-height: 1.4;
+  line-height: 1.32;
 }
 
 .mqst-equation-row {
   gap: 10px;
+  font-family: var(--font-num);
+  font-variant-numeric: tabular-nums;
   font-size: clamp(30px, 4.5vw, 44px);
 }
 
@@ -2289,7 +2382,7 @@
 }
 
 .mqst-ult-cutin-title {
-  font-family: "Baloo 2", "Noto Sans TC", sans-serif;
+  font-family: var(--font-display);
   font-size: clamp(22px, 3.4vw, 32px);
   font-weight: 900;
   letter-spacing: 0.05em;
@@ -2661,24 +2754,24 @@
   cursor: pointer;
 }
 
-/* GSAP 未載入時的離線待機呼吸動畫降級 */
+/* GSAP 未載入時的離線待機呼吸動畫降級（遵守思考期零干擾：位移 <= 3px，週期 >= 2.2s） */
 @keyframes mqst-idle-bob {
-  0%, 100% { transform: translateY(0) scaleY(0.97) scaleX(1.02); }
-  50%      { transform: translateY(-6px) scaleY(1.03) scaleX(0.98); }
+  0%, 100% { transform: translateY(0) scaleY(0.99) scaleX(1.01); }
+  50%      { transform: translateY(-2.5px) scaleY(1.01) scaleX(0.99); }
 }
 
 @keyframes mqst-idle-float {
-  0%, 100% { transform: translateY(-2px) rotate(-3deg); }
-  50%      { transform: translateY(-9px) rotate(3deg); }
+  0%, 100% { transform: translateY(0) rotate(-1.5deg); }
+  50%      { transform: translateY(-3px) rotate(1.5deg); }
 }
 
 .mqst-stage-arena.no-gsap-idle .mqst-hero-svg,
 .mqst-stage-arena.no-gsap-idle .mqst-enemy-svg {
-  animation: mqst-idle-bob 1.4s ease-in-out infinite;
+  animation: mqst-idle-bob 2.4s ease-in-out infinite;
 }
 
 .mqst-stage-arena.no-gsap-idle .mqst-partner-svg {
-  animation: mqst-idle-float 1.8s ease-in-out infinite;
+  animation: mqst-idle-float 2.6s ease-in-out infinite;
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -2699,7 +2792,7 @@
   border: 2.5px solid var(--ink);
   background: #fef08a;
   color: #9f1239;
-  font-family: "Baloo 2", "Noto Sans TC", sans-serif;
+  font-family: var(--font-display);
   font-size: 20px;
   font-weight: 900;
   white-space: nowrap;
@@ -2795,8 +2888,9 @@
 /* 下半部童趣遊戲控制台（固定最小高度，避免出題與攻擊切換時跳動） */
 .mqst-console-dock {
   box-sizing: border-box;
-  background: linear-gradient(180deg, #fef3c7 0%, #fde68a 100%);
+  background: linear-gradient(180deg, var(--theater-dock-top, #fef3c7) 0%, var(--theater-dock-bot, #fde68a) 100%);
   border-top: 3.5px solid var(--ink);
+  box-shadow: inset 0 3px 0 0 var(--theater-frame, #d97706);
   padding: 12px 16px 14px;
   min-height: 148px;
   display: flex;
@@ -2822,7 +2916,8 @@
   border: 3px solid var(--ink);
   background: #ffffff;
   color: var(--ink);
-  font-family: "Baloo 2", "Noto Sans TC", sans-serif;
+  font-family: var(--font-num);
+  font-variant-numeric: tabular-nums;
   font-size: clamp(28px, 4vw, 36px);
   font-weight: 900;
   cursor: pointer;
@@ -2878,7 +2973,8 @@
   border: 2.5px solid var(--ink);
   background: #ffffff;
   color: var(--ink);
-  font-family: "Baloo 2", "Noto Sans TC", sans-serif;
+  font-family: var(--font-num);
+  font-variant-numeric: tabular-nums;
   font-size: 24px;
   font-weight: 900;
   line-height: 1;
@@ -2906,8 +3002,9 @@
 }
 
 .mqst-toy-key.k-go {
-  background: linear-gradient(180deg, #34d399 0%, #10b981 100%);
-  color: #064e3b;
+  background: linear-gradient(180deg, #fde047 0%, #f59e0b 100%);
+  color: #451a03;
+  box-shadow: 0 4px 0 #b45309;
   font-size: clamp(13.5px, 1.4vw, 15.5px);
 }
 
@@ -3125,7 +3222,8 @@
 }
 
 .mqst-vstat-pill strong {
-  font-family: "Baloo 2", "Noto Sans TC", sans-serif;
+  font-family: var(--font-num);
+  font-variant-numeric: tabular-nums;
   font-size: 20px;
 }
 
@@ -3163,7 +3261,8 @@ dialog.mqst-dialog {
   padding: 0;
   border: 3px solid var(--ink);
   border-radius: 24px;
-  background: var(--card);
+  background-color: var(--card);
+  background-image: var(--grain), var(--fibre);
   color: var(--ink);
   box-shadow: 6px 6px 0 var(--shadow-ink);
   flex-direction: column;
@@ -3329,22 +3428,24 @@ dialog.mqst-dialog::backdrop {
   min-height: 38px;
   border-radius: 10px;
   border: 1.5px solid rgba(51, 43, 34, 0.25);
-  background: #f1ede4;
+  background: var(--color-paper-2);
+  box-shadow: inset 0 2px 3px rgba(51, 43, 34, 0.14);
   display: flex;
   align-items: center;
   justify-content: center;
-  font-family: "Baloo 2", sans-serif;
+  font-family: var(--font-num);
+  font-variant-numeric: tabular-nums;
   font-size: 13px;
   font-weight: 800;
   color: #94a3b8;
 }
 
-.mqst-gem-cell.head { background: var(--ink); color: #fff; border-color: var(--ink); }
+.mqst-gem-cell.head { background: var(--ink); color: #fff; border-color: var(--ink); box-shadow: none; }
 .mqst-gem-cell.lit {
   background: linear-gradient(135deg, #fef08a 0%, #fde047 100%);
   border-color: #b45309;
   color: #78350f;
-  box-shadow: 0 2px 0 #b45309;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.85), 0 2.5px 0 #b45309;
 }
 
 button.mqst-gem-cell {
@@ -3667,7 +3768,7 @@ button.mqst-gem-cell:active {
 .mqst-danger-card { background: #fff5f5; }
 .mqst-lock-box { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; }
 .mqst-lock-q { font-weight: 800; font-size: 15px; }
-.mqst-lock-input { width: 82px; min-height: 44px; border: 2px solid var(--ink); border-radius: 12px; text-align: center; font-family: "Baloo 2", sans-serif; font-size: 18px; font-weight: 800; }
+.mqst-lock-input { width: 82px; min-height: 44px; border: 2px solid var(--ink); border-radius: 12px; text-align: center; font-family: var(--font-num); font-variant-numeric: tabular-nums; font-size: 18px; font-weight: 800; }
 .mqst-parent-feedback {
   margin: 8px 0 0 !important;
   min-height: 20px;
@@ -3839,10 +3940,10 @@ button.mqst-gem-cell:active {
     margin-bottom: 3px;
   }
   .mqst-story-ribbon {
-    padding: 4px 10px;
+    padding: 5px 12px;
     margin-bottom: 4px;
-    font-size: 13.5px;
-    line-height: 1.32;
+    font-size: 1.125rem;
+    line-height: 1.48;
   }
   .mqst-wood-board:has(.mqst-two-step-wrap) .mqst-board-hint {
     margin-top: 2px;
@@ -3899,7 +4000,8 @@ button.mqst-gem-cell:active {
   background: #e11d48;
   color: #ffffff;
   border: 1.5px solid #ffffff;
-  font-family: "Baloo 2", sans-serif;
+  font-family: var(--font-num);
+  font-variant-numeric: tabular-nums;
   font-size: 11.5px;
   font-weight: 900;
   line-height: 1;
@@ -3918,7 +4020,8 @@ button.mqst-gem-cell:active {
   border: 2px solid var(--ink);
   background: #fde047;
   color: #451a03;
-  font-family: "Baloo 2", sans-serif;
+  font-family: var(--font-num);
+  font-variant-numeric: tabular-nums;
   font-size: 11.5px;
   font-weight: 900;
   line-height: 1.1;
@@ -4027,10 +4130,10 @@ dialog.mqst-shop-dialog {
   gap: 8px;
 }
 .mqst-stamp-cell {
-  border: 2px dashed rgba(51, 43, 34, 0.3);
+  border: 2px dashed rgba(51, 43, 34, 0.32);
   border-radius: 14px;
   padding: 8px 4px;
-  background: rgba(255, 255, 255, 0.86);
+  background: rgba(255, 255, 255, 0.88);
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -4041,6 +4144,15 @@ dialog.mqst-shop-dialog {
   border-style: solid;
   border-color: #d97706;
   background: linear-gradient(180deg, #fef08a 0%, #fde68a 100%);
+  box-shadow: inset 0 0 0 2px rgba(217, 119, 6, 0.22);
+}
+.mqst-stamp-cell.is-stamped .mqst-stamp-ico {
+  display: inline-block;
+  transform: rotate(-5deg);
+  filter: drop-shadow(0 1px 0 rgba(180, 83, 9, 0.35));
+}
+.mqst-stamp-cell.is-stamped:nth-child(even) .mqst-stamp-ico {
+  transform: rotate(4deg);
 }
 .mqst-stamp-cell.is-milestone {
   border-color: #db2777;
@@ -4279,7 +4391,8 @@ dialog.mqst-shop-dialog {
   border-radius: 999px;
   background: #fde047;
   border: 1.5px solid var(--ink);
-  font-family: "Baloo 2", sans-serif;
+  font-family: var(--font-num);
+  font-variant-numeric: tabular-nums;
   font-size: 12px;
 }
 .mqst-bond-bar-wrap {

@@ -827,6 +827,7 @@ import { createQuestDialogs } from '../src/quest/dialogs.js';
     if(!els.islandsGrid) return;
 
     var activeRealm = getRealmById(saveData.activeRealm || 'mul');
+    if(els.arcadeOverlay) els.arcadeOverlay.setAttribute('data-realm', activeRealm.id);
     var realmOpen = (activeRealm.status === 'active') && isRealmUnlocked(activeRealm.id, saveData);
     if(!realmOpen){
       if(els.worldCanvas) els.worldCanvas.style.display = 'none';
@@ -1376,6 +1377,14 @@ import { createQuestDialogs } from '../src/quest/dialogs.js';
   function beginBattleUI(chipTitle, bgSrc, theme, bossObj){
     session.battleTheme = theme;
     session.battleBossObj = bossObj;
+    var battleRealmId = (session.stage && session.stage.realmId)
+      ? session.stage.realmId
+      : (theme === 'bakery' || theme === 'candy' || theme === 'bay' || theme === 'market' || theme === 'lighthouse')
+        ? 'sunny'
+        : (theme === 'station' || theme === 'vault' || theme === 'park' || theme === 'patisserie' || theme === 'skycastle')
+          ? 'cloud'
+          : (saveData.activeRealm || 'mul');
+    if(els.arcadeOverlay) els.arcadeOverlay.setAttribute('data-realm', battleRealmId);
     showView('battle');
     if(MathApp.audio && MathApp.audio.startBgm){
       MathApp.audio.startBgm(bossObj ? 'boss' : 'battle');
