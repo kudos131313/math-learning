@@ -89,14 +89,15 @@ export function createQuestDialogs({
 
   function getWardrobeProgressMeta(item, saveData, stars, gems) {
     const unlocked = isWardrobeItemUnlocked(saveData, item.id);
+    const realUnlocked = isWardrobeItemUnlocked(saveData, item.id, { ignoreDevMode: true });
     if (item.source !== 'milestone') {
-      return { unlocked, current: 1, target: 1, pct: 100, unit: '' };
+      return { unlocked, realUnlocked, current: 1, target: 1, pct: 100, unit: '' };
     }
     const cur = item.unlockType === 'stars' ? stars : gems;
     const tgt = item.target || 1;
     const pct = Math.min(100, Math.round((cur / tgt) * 100));
     const unit = item.unlockType === 'stars' ? '顆星星' : '顆寶石';
-    return { unlocked, current: cur, target: tgt, pct, unit };
+    return { unlocked, realUnlocked, current: cur, target: tgt, pct, unit };
   }
 
   function renderWardrobePane(filterOverride) {
@@ -205,9 +206,18 @@ export function createQuestDialogs({
         '</p>';
 
       if (prog.unlocked) {
+        const originHint = !prog.realUnlocked
+          ? item.source === 'shop'
+            ? '🧪 開發者免解鎖試穿（原為商店 🪙 ' + item.price + '）'
+            : '🧪 開發者免解鎖試穿（原條件：' + item.goalText + '）'
+          : item.source === 'free'
+            ? '✨ 基礎造型'
+            : item.source === 'shop'
+              ? '🛍️ 商店收藏品'
+              : '🔓 ' + item.goalText;
         wbHtml +=
-          '<p class="mqst-collect-skill">' +
-          (item.source === 'free' ? '✨ 基礎造型' : item.source === 'shop' ? '🛍️ 商店收藏品' : '🔓 ' + item.goalText) +
+          '<p class="mqst-collect-skill' + (!prog.realUnlocked ? ' is-dev-preview' : '') + '">' +
+          originHint +
           '</p>' +
           '<button type="button" class="mqst-costume-equip-btn' +
           (isEquipped ? ' active' : '') +
@@ -289,6 +299,31 @@ export function createQuestDialogs({
       SKILL_TIER_THRESHOLDS.gold +
       ' 題），升階送星星幣！</span>' +
       '</div>';
+
+    if (saveData.devMode) {
+      const curTier = saveData.devSkillTier || '';
+      const tierOpts = [
+        { id: '', label: '真實進度' },
+        { id: 'bronze', label: '🥉 全銅卡預覽' },
+        { id: 'silver', label: '🥈 全銀卡預覽' },
+        { id: 'gold', label: '🥇 全金卡預覽' }
+      ];
+      html += '<div class="mqst-dev-inline-bar"><span>🧪 開發者卡框材質預覽：</span><div class="mqst-dev-pills">';
+      tierOpts.forEach((opt) => {
+        const act = curTier === opt.id;
+        html +=
+          '<button type="button" class="mqst-filter-pill' +
+          (act ? ' is-active' : '') +
+          '" data-dev-skill-tier="' +
+          opt.id +
+          '" aria-pressed="' +
+          String(act) +
+          '">' +
+          opt.label +
+          '</button>';
+      });
+      html += '</div></div>';
+    }
 
     const groups = [
       { id: 'sunny', title: '☀️ 陽光加減群島（10 張）' },
@@ -434,6 +469,31 @@ export function createQuestDialogs({
       '<span style="font-size:13px;color:var(--ink-soft);">四大專長各顯神通！帶牠出戰或到秘密樹屋餵點心升至 Lv.3，即可強化專長並解鎖閃耀星光環！</span>' +
       '</div>';
 
+    if (saveData.devMode) {
+      const curBond = Number(saveData.devBondLevel || 0);
+      const bondOpts = [
+        { lv: 0, label: '真實進度' },
+        { lv: 1, label: 'Lv.1 初識' },
+        { lv: 2, label: 'Lv.2 熟稔' },
+        { lv: 3, label: 'Lv.3 滿級光環✨' }
+      ];
+      spHtml += '<div class="mqst-dev-inline-bar"><span>🧪 開發者精靈親密度＆光環預覽：</span><div class="mqst-dev-pills">';
+      bondOpts.forEach((opt) => {
+        const act = curBond === opt.lv;
+        spHtml +=
+          '<button type="button" class="mqst-filter-pill' +
+          (act ? ' is-active' : '') +
+          '" data-dev-bond="' +
+          opt.lv +
+          '" aria-pressed="' +
+          String(act) +
+          '">' +
+          opt.label +
+          '</button>';
+      });
+      spHtml += '</div></div>';
+    }
+
     const activePartnerFullId = getActivePartnerId(saveData);
     REALMS.forEach(function (realm) {
       const realmIslands = getIslandsByRealm(realm.id);
@@ -450,7 +510,8 @@ export function createQuestDialogs({
         '）</div>';
       spHtml += '<div class="mqst-collection-grid">';
       realmIslands.forEach(function (isl) {
-        const got = getStageStars(saveData, isl.bossStageId) >= 1;
+        const realGot = getStageStars(saveData, isl.bossStageId) >= 1;
+        const got = Boolean(realGot || saveData.devMode);
         const equipped = got && activePartnerFullId === isl.fullId;
         const bond = getPartnerBondInfo(saveData, isl.fullId);
         const specMeta = getSpecialtyMeta(isl.specialty);
@@ -471,6 +532,7 @@ export function createQuestDialogs({
           specMeta.name +
           '</span>' +
           (equipped ? '<span class="mqst-equipped-tag">⭐ 同行夥伴</span>' : '') +
+          (!realGot && saveData.devMode ? '<span class="mqst-dev-preview-tag">🧪 開發者檢視（原需打敗 ' + bossLabel + '）</span>' : '') +
           '<div class="mqst-collect-art">' +
           getCharacterSvg(isl.theme, false, equipped ? 'happy' : 'normal', { bondLevel: got ? bond.level : 1 }) +
           '</div>' +
@@ -534,11 +596,13 @@ export function createQuestDialogs({
 
     let bdHtml = '<div class="mqst-collection-grid">';
     BADGES.forEach(function (b) {
-      const unlocked = Boolean(saveData.badges[b.id]);
+      const realUnlocked = Boolean(saveData.badges[b.id]);
+      const unlocked = Boolean(realUnlocked || saveData.devMode);
       bdHtml +=
         '<div class="mqst-collect-card' +
         (unlocked ? '' : ' locked') +
         '">' +
+        (!realUnlocked && saveData.devMode ? '<span class="mqst-dev-preview-tag">🧪 開發者預覽（尚未達成）</span>' : '') +
         '<div class="mqst-collect-art">' +
         (unlocked ? b.icon : '🔒') +
         '</div>' +
@@ -952,6 +1016,7 @@ export function createQuestDialogs({
 
       TREEHOUSE_ITEMS.filter((it) => it.slot === activeSlot).forEach((item) => {
         const owned = isTreehouseItemUnlocked(saveData, item.id);
+        const realOwned = isTreehouseItemUnlocked(saveData, item.id, { ignoreDevMode: true });
         const equipped = owned && th.slots && th.slots[activeSlot] === item.id;
 
         dHtml +=
@@ -964,6 +1029,7 @@ export function createQuestDialogs({
           '</span>' +
           '<strong class="mqst-th-item-name">' +
           item.name +
+          (!realOwned && saveData.devMode ? ' 🧪' : '') +
           '</strong>';
 
         if (owned) {
@@ -1148,15 +1214,43 @@ export function createQuestDialogs({
   }
 
   function updatePreviewToggleBtn() {
-    if (!els.previewToggle) return;
     const saveData = getSaveData();
-    els.previewToggle.setAttribute('aria-pressed', String(saveData.previewAll));
-    els.previewToggle.textContent = saveData.previewAll ? '已開啟' : '未開啟';
+    if (els.previewToggle) {
+      els.previewToggle.setAttribute('aria-pressed', String(Boolean(saveData.previewAll)));
+      els.previewToggle.textContent = saveData.previewAll ? '已開啟' : '未開啟';
+    }
     if (els.previewStatusMsg) {
       els.previewStatusMsg.classList.toggle('is-active', Boolean(saveData.previewAll));
       els.previewStatusMsg.textContent = saveData.previewAll
         ? '目前狀態：已開啟自由挑選／預習模式'
         : '目前狀態：依序闖關模式';
+    }
+    if (els.devToggle) {
+      els.devToggle.setAttribute('aria-pressed', String(Boolean(saveData.devMode)));
+      els.devToggle.textContent = saveData.devMode ? '已開啟' : '未開啟';
+    }
+    if (els.devStatusMsg) {
+      els.devStatusMsg.classList.toggle('is-active', Boolean(saveData.devMode));
+      els.devStatusMsg.textContent = saveData.devMode
+        ? '目前狀態：🧪 已開啟全解鎖檢視（所有精靈、服裝、樹屋家具與徽章皆可免解鎖試用）'
+        : '目前狀態：一般玩家視角（僅顯示已解鎖項目）';
+    }
+    if (els.devToolbox) {
+      els.devToolbox.style.display = saveData.devMode ? 'flex' : 'none';
+      const curBond = Number(saveData.devBondLevel || 0);
+      const bondBtns = els.devToolbox.querySelectorAll('[data-dev-bond]');
+      bondBtns.forEach((btn) => {
+        const act = Number(btn.getAttribute('data-dev-bond')) === curBond;
+        btn.classList.toggle('is-active', act);
+        btn.setAttribute('aria-pressed', String(act));
+      });
+      const curTier = saveData.devSkillTier || '';
+      const tierBtns = els.devToolbox.querySelectorAll('[data-dev-skill-tier]');
+      tierBtns.forEach((btn) => {
+        const act = (btn.getAttribute('data-dev-skill-tier') || '') === curTier;
+        btn.classList.toggle('is-active', act);
+        btn.setAttribute('aria-pressed', String(act));
+      });
     }
   }
 

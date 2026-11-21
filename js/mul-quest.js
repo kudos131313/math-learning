@@ -423,6 +423,7 @@ import { createQuestDialogs } from '../src/quest/dialogs.js';
 
     els.mapView        = document.getElementById('mqst-map-view');
     els.realmTabs      = document.getElementById('mqst-realm-tabs');
+    els.devBadge       = document.getElementById('mqst-dev-badge');
     els.previewBadge   = document.getElementById('mqst-preview-badge');
     els.worldViewport  = document.getElementById('mqst-world-viewport');
     els.worldCanvas    = document.getElementById('mqst-world-canvas');
@@ -551,6 +552,10 @@ import { createQuestDialogs } from '../src/quest/dialogs.js';
     els.parentDialog   = document.getElementById('mqst-parent-dialog');
     els.previewToggle  = document.getElementById('mqst-preview-toggle-btn');
     els.previewStatusMsg = document.getElementById('mqst-preview-status-msg');
+    els.devToggle      = document.getElementById('mqst-dev-toggle-btn');
+    els.devStatusMsg   = document.getElementById('mqst-dev-status-msg');
+    els.devToolbox     = document.getElementById('mqst-dev-toolbox');
+    els.devAddCoinsBtn = document.getElementById('mqst-dev-add-coins-btn');
     els.exportSaveBtn  = document.getElementById('mqst-export-save-btn');
     els.importSaveInput= document.getElementById('mqst-import-save-input');
     els.backupFeedback = document.getElementById('mqst-backup-feedback');
@@ -692,6 +697,9 @@ import { createQuestDialogs } from '../src/quest/dialogs.js';
     if(els.rescueBtn){
       els.rescueBtn.classList.toggle('has-rescue', rLen > 0);
       els.rescueBtn.disabled = (rLen === 0);
+    }
+    if(els.devBadge){
+      els.devBadge.style.display = saveData.devMode ? 'inline-flex' : 'none';
     }
     if(els.previewBadge){
       els.previewBadge.style.display = saveData.previewAll ? 'inline-flex' : 'none';
@@ -3027,6 +3035,15 @@ import { createQuestDialogs } from '../src/quest/dialogs.js';
 
       if(els.paneSkills){
         els.paneSkills.addEventListener('click', function(e){
+          var devTierBtn = e.target.closest('[data-dev-skill-tier]');
+          if(devTierBtn){
+            if(MathApp.sfx) MathApp.sfx('click');
+            saveData.devSkillTier = devTierBtn.getAttribute('data-dev-skill-tier') || '';
+            persistSave();
+            updatePreviewToggleBtn();
+            renderDexDialog();
+            return;
+          }
           var gotoBtn = e.target.closest('[data-goto-stage]');
           if(!gotoBtn) return;
           var sid = gotoBtn.getAttribute('data-goto-stage');
@@ -3037,6 +3054,19 @@ import { createQuestDialogs } from '../src/quest/dialogs.js';
 
       if(els.paneSprites){
         els.paneSprites.addEventListener('click', function(e){
+          var devBondBtn = e.target.closest('[data-dev-bond]');
+          if(devBondBtn){
+            if(MathApp.sfx) MathApp.sfx('click');
+            saveData.devBondLevel = Number(devBondBtn.getAttribute('data-dev-bond')) || 0;
+            persistSave();
+            updatePreviewToggleBtn();
+            renderDexDialog();
+            renderMap();
+            if(els.treehouseView && els.treehouseView.style.display !== 'none'){
+              renderCurrentTreehouse();
+            }
+            return;
+          }
           var goThBtn = e.target.closest('[data-goto-treehouse-sprite]');
           if(goThBtn){
             var targetPid = toCanonicalPartnerId(goThBtn.getAttribute('data-goto-treehouse-sprite'));
@@ -3375,7 +3405,7 @@ import { createQuestDialogs } from '../src/quest/dialogs.js';
 
     setupDialogPolyfill(els.parentDialog);
     if(els.openParentBtn && els.parentDialog){
-      els.openParentBtn.addEventListener('click', function(){
+      var openParentSettings = function(){
         if(MathApp.sfx) MathApp.sfx('click');
         updatePreviewToggleBtn();
         refreshParentLock();
@@ -3384,6 +3414,87 @@ import { createQuestDialogs } from '../src/quest/dialogs.js';
           els.backupFeedback.className = 'mqst-parent-status mqst-backup-status';
         }
         els.parentDialog.showModal();
+      };
+      els.openParentBtn.addEventListener('click', openParentSettings);
+      if(els.devBadge){
+        els.devBadge.addEventListener('click', openParentSettings);
+      }
+    }
+    if(els.devToggle){
+      els.devToggle.addEventListener('click', function(){
+        if(MathApp.sfx) MathApp.sfx('click');
+        saveData.devMode = !saveData.devMode;
+        if(!saveData.devMode){
+          saveData = normalizeSaveDataV2(saveData);
+        }
+        persistSave();
+        updatePreviewToggleBtn();
+        syncAllBunnyVisuals();
+        syncProjectileVisual();
+        updateHubStats();
+        renderMap();
+        if(els.treehouseView && els.treehouseView.style.display !== 'none'){
+          renderCurrentTreehouse();
+        }
+        if(MathApp.utils && MathApp.utils.showToast){
+          MathApp.utils.showToast(
+            saveData.devMode
+              ? '🧪 已開啟開發者全解鎖檢視模式！可自由預覽全部精靈、三部位裝扮、樹屋家具與徽章！'
+              : '已關閉開發者模式，恢復真實冒險存檔進度。'
+          );
+        }
+      });
+    }
+    if(els.devToolbox){
+      els.devToolbox.addEventListener('click', function(e){
+        var bondBtn = e.target.closest('[data-dev-bond]');
+        if(bondBtn){
+          if(MathApp.sfx) MathApp.sfx('click');
+          saveData.devBondLevel = Number(bondBtn.getAttribute('data-dev-bond')) || 0;
+          persistSave();
+          updatePreviewToggleBtn();
+          renderMap();
+          if(els.treehouseView && els.treehouseView.style.display !== 'none'){
+            renderCurrentTreehouse();
+          }
+          if(MathApp.utils && MathApp.utils.showToast){
+            MathApp.utils.showToast(
+              saveData.devBondLevel > 0
+                ? ('🐣 已切換精靈親密度預覽為 Lv.' + saveData.devBondLevel + (saveData.devBondLevel >= 3 ? '（滿級星光環✨）' : ''))
+                : '🐣 已恢復顯示精靈真實親密度進度'
+            );
+          }
+          return;
+        }
+        var tierBtn = e.target.closest('[data-dev-skill-tier]');
+        if(tierBtn){
+          if(MathApp.sfx) MathApp.sfx('click');
+          saveData.devSkillTier = tierBtn.getAttribute('data-dev-skill-tier') || '';
+          persistSave();
+          updatePreviewToggleBtn();
+          if(MathApp.utils && MathApp.utils.showToast){
+            MathApp.utils.showToast(
+              saveData.devSkillTier
+                ? ('📖 已切換技能卡框材質預覽為：' + (saveData.devSkillTier === 'gold' ? '🥇 金卡' : saveData.devSkillTier === 'silver' ? '🥈 銀卡' : '🥉 銅卡'))
+                : '📖 已恢復顯示技能卡真實進度'
+            );
+          }
+          return;
+        }
+      });
+    }
+    if(els.devAddCoinsBtn){
+      els.devAddCoinsBtn.addEventListener('click', function(){
+        if(MathApp.sfx) MathApp.sfx('star');
+        saveData.starCoins = Math.max(0, Math.floor(Number(saveData.starCoins || 0))) + 500;
+        persistSave();
+        updateHubStats();
+        if(els.treehouseView && els.treehouseView.style.display !== 'none'){
+          renderCurrentTreehouse();
+        }
+        if(MathApp.utils && MathApp.utils.showToast){
+          MathApp.utils.showToast('🪙 已發放 +500 測試星星幣！（目前共 ' + saveData.starCoins + ' 🪙）');
+        }
       });
     }
     if(els.exportSaveBtn){

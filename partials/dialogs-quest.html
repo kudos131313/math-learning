@@ -51,6 +51,41 @@
         </div>
       </div>
 
+      <div class="mqst-parent-card mqst-dev-card">
+        <div class="mqst-parent-row">
+          <div>
+            <h4>🧪 開發者全解鎖檢視模式</h4>
+            <p>開啟後可<strong>無損預覽並試用所有未解鎖項目</strong>：全部 15 隻守護小精靈（含出戰與樹屋邀請）、小兔三部位裝扮、秘密樹屋全套家具（含印章本 7 章禮）、三大海域關卡與成就徽章；關閉後即刻還原真實進度！</p>
+            <p class="mqst-parent-status" id="mqst-dev-status-msg" aria-live="polite"></p>
+          </div>
+          <button type="button" class="mqst-switch-btn" id="mqst-dev-toggle-btn" aria-pressed="false">未開啟</button>
+        </div>
+        <div class="mqst-dev-toolbox" id="mqst-dev-toolbox" style="display:none;">
+          <div class="mqst-dev-tool-group">
+            <span class="mqst-dev-tool-lbl">🐣 精靈親密度預覽：</span>
+            <div class="mqst-dev-pills" role="group" aria-label="開發者精靈親密度預覽等級">
+              <button type="button" class="mqst-filter-pill" data-dev-bond="0">真實進度</button>
+              <button type="button" class="mqst-filter-pill" data-dev-bond="1">Lv.1 初識</button>
+              <button type="button" class="mqst-filter-pill" data-dev-bond="2">Lv.2 熟稔</button>
+              <button type="button" class="mqst-filter-pill" data-dev-bond="3">Lv.3 滿級光環✨</button>
+            </div>
+          </div>
+          <div class="mqst-dev-tool-group">
+            <span class="mqst-dev-tool-lbl">📖 技能卡框材質預覽：</span>
+            <div class="mqst-dev-pills" role="group" aria-label="開發者技能卡階級預覽">
+              <button type="button" class="mqst-filter-pill" data-dev-skill-tier="">真實進度</button>
+              <button type="button" class="mqst-filter-pill" data-dev-skill-tier="bronze">🥉 銅卡</button>
+              <button type="button" class="mqst-filter-pill" data-dev-skill-tier="silver">🥈 銀卡</button>
+              <button type="button" class="mqst-filter-pill" data-dev-skill-tier="gold">🥇 金卡</button>
+            </div>
+          </div>
+          <div class="mqst-dev-tool-group">
+            <span class="mqst-dev-tool-lbl">🪙 商店與餵食測試：</span>
+            <button type="button" class="mqst-tool-btn mqst-dev-coin-btn" id="mqst-dev-add-coins-btn">🪙 領取 +500 測試星星幣</button>
+          </div>
+        </div>
+      </div>
+
       <div class="mqst-parent-card">
         <h4>📦 冒險進度備份（匯出／匯入）</h4>
         <p>可把目前所有的星星、星星幣、81 格寶石牆與守護精靈存成檔案備份，換平版或清除瀏覽器資料後也能一鍵還原。</p>

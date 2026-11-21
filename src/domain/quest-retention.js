@@ -456,21 +456,31 @@ export function getBondLevelFromXp(xp) {
   return 1;
 }
 
-export function getPartnerBondInfo(saveData, partnerFullId) {
+export function getPartnerBondInfo(saveData, partnerFullId, { ignoreDevMode = false } = {}) {
   const canonical = toCanonicalPartnerId(partnerFullId);
   const raw =
     saveData &&
     saveData.partners &&
     saveData.partners.bonds &&
     saveData.partners.bonds[canonical];
-  const xp = Math.max(0, Math.floor(Number((raw && raw.xp) || 0)));
-  const level = getBondLevelFromXp(xp);
+  const realXp = Math.max(0, Math.floor(Number((raw && raw.xp) || 0)));
+  const realLevel = getBondLevelFromXp(realXp);
+
+  let xp = realXp;
+  let level = realLevel;
+  let devOverridden = false;
+  if (!ignoreDevMode && saveData && saveData.devMode && Number(saveData.devBondLevel) >= 1) {
+    level = clampInt(saveData.devBondLevel, 1, 3);
+    xp = level === 3 ? Math.max(realXp, PARTNER_BOND_THRESHOLDS.lv3) : level === 2 ? Math.max(realXp, PARTNER_BOND_THRESHOLDS.lv2) : realXp;
+    devOverridden = level !== realLevel;
+  }
+
   const isMax = level >= 3;
   const prevThreshold = level === 1 ? 0 : PARTNER_BOND_THRESHOLDS.lv2;
   const nextThreshold = level === 1 ? PARTNER_BOND_THRESHOLDS.lv2 : PARTNER_BOND_THRESHOLDS.lv3;
   const span = Math.max(1, nextThreshold - prevThreshold);
   const pct = isMax ? 100 : Math.min(100, Math.round(((xp - prevThreshold) / span) * 100));
-  return { xp, level, prevThreshold, nextThreshold, pct, isMax };
+  return { xp, level, realXp, realLevel, devOverridden, prevThreshold, nextThreshold, pct, isMax };
 }
 
 export function computeBattleBondXp({ stars = 1, isRescueMode = false, isGemHuntMode = false } = {}) {
@@ -612,10 +622,11 @@ export function getActiveWardrobe(saveData) {
   };
 }
 
-export function isWardrobeItemUnlocked(saveData, itemId) {
+export function isWardrobeItemUnlocked(saveData, itemId, { ignoreDevMode = false } = {}) {
   const item = getWardrobeItemById(itemId);
   if (!item) return false;
   if (item.source === 'free') return true;
+  if (!ignoreDevMode && saveData && saveData.devMode) return true;
   const unlockedBySlot =
     saveData &&
     saveData.wardrobe &&
@@ -635,10 +646,10 @@ export function isWardrobeItemUnlocked(saveData, itemId) {
   return false;
 }
 
-export function countUnlockedWardrobeItems(saveData) {
+export function countUnlockedWardrobeItems(saveData, { ignoreDevMode = false } = {}) {
   let cnt = 0;
   WARDROBE_ITEMS.forEach((item) => {
-    if (item.id !== 'none' && isWardrobeItemUnlocked(saveData, item.id)) {
+    if (item.id !== 'none' && isWardrobeItemUnlocked(saveData, item.id, { ignoreDevMode })) {
       cnt++;
     }
   });
@@ -649,7 +660,7 @@ export function purchaseWardrobeItem(saveData, itemId, { autoEquip = true } = {}
   if (!saveData) return { ok: false, reason: 'invalid_save' };
   const item = getWardrobeItemById(itemId);
   if (!item || item.source !== 'shop') return { ok: false, reason: 'not_purchasable' };
-  if (isWardrobeItemUnlocked(saveData, item.id)) return { ok: false, reason: 'already_owned' };
+  if (isWardrobeItemUnlocked(saveData, item.id, { ignoreDevMode: true })) return { ok: false, reason: 'already_owned' };
 
   const coins = Math.max(0, Math.floor(Number(saveData.starCoins || 0)));
   if (coins < item.price) {
@@ -704,10 +715,11 @@ export function equipWardrobeItem(saveData, slot, itemId) {
 }
 
 /* ---------------- 秘密樹屋佈置、精靈遊樂位與點心餵食 ---------------- */
-export function isTreehouseItemUnlocked(saveData, itemId) {
+export function isTreehouseItemUnlocked(saveData, itemId, { ignoreDevMode = false } = {}) {
   const item = getTreehouseItemById(itemId);
   if (!item) return false;
   if (item.source === 'free') return true;
+  if (!ignoreDevMode && saveData && saveData.devMode) return true;
   const list = saveData && saveData.treehouse && Array.isArray(saveData.treehouse.unlockedItems)
     ? saveData.treehouse.unlockedItems
     : [];
@@ -718,7 +730,7 @@ export function purchaseTreehouseItem(saveData, itemId, { autoEquip = true } = {
   if (!saveData) return { ok: false, reason: 'invalid_save' };
   const item = getTreehouseItemById(itemId);
   if (!item || item.source !== 'shop') return { ok: false, reason: 'not_purchasable' };
-  if (isTreehouseItemUnlocked(saveData, item.id)) return { ok: false, reason: 'already_owned' };
+  if (isTreehouseItemUnlocked(saveData, item.id, { ignoreDevMode: true })) return { ok: false, reason: 'already_owned' };
 
   const coins = Math.max(0, Math.floor(Number(saveData.starCoins || 0)));
   if (coins < item.price) {
@@ -763,11 +775,12 @@ export function equipTreehouseSlot(saveData, slot, itemId) {
   return { ok: true, item };
 }
 
-export function isPartnerUnlocked(saveData, partnerFullId) {
+export function isPartnerUnlocked(saveData, partnerFullId, { ignoreDevMode = false } = {}) {
   if (!saveData || !partnerFullId) return false;
   const canonical = toCanonicalPartnerId(partnerFullId);
   const isl = getIslandById(canonical);
   if (!isl || isl.fullId !== canonical) return false;
+  if (!ignoreDevMode && saveData.devMode) return true;
   return getStageStars(saveData, isl.bossStageId) >= 1;
 }
 

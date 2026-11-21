@@ -694,6 +694,20 @@
 .mqst-hud-btn.audio-mini.is-off { background: #f1f5f9; color: #64748b; opacity: 0.86; }
 .mqst-hud-btn.audio-mini svg { width: 18px; height: 18px; flex-shrink: 0; }
 
+.mqst-dev-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: #f3e8ff;
+  border: 2px solid #7c3aed;
+  color: #5b21b6;
+  font-size: 12.5px;
+  font-weight: 800;
+  cursor: pointer;
+  box-shadow: 0 2px 0 rgba(91, 33, 182, 0.28);
+}
+
 .mqst-preview-badge {
   display: inline-flex;
   align-items: center;
@@ -3765,6 +3779,69 @@ button.mqst-gem-cell:active {
   color: #475569 !important;
 }
 .mqst-parent-status.is-active { color: #047857 !important; }
+.mqst-dev-card {
+  background: linear-gradient(135deg, #faf5ff 0%, #f3e8ff 100%);
+  border-color: #6d28d9;
+}
+.mqst-dev-toolbox {
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 2px dashed rgba(109, 40, 217, 0.28);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.mqst-dev-tool-group {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.mqst-dev-tool-lbl {
+  font-size: 13px;
+  font-weight: 800;
+  color: #4c1d95;
+}
+.mqst-dev-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.mqst-dev-coin-btn {
+  min-height: 42px;
+  padding: 6px 14px;
+  background: #fef08a;
+  color: #451a03;
+  font-size: 13.5px;
+}
+.mqst-dev-inline-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 8px 12px;
+  margin-bottom: 12px;
+  border-radius: 14px;
+  border: 2px dashed #7c3aed;
+  background: #f5f3ff;
+  color: #4c1d95;
+  font-size: 13px;
+  font-weight: 800;
+}
+.mqst-dev-preview-tag,
+.mqst-collect-skill.is-dev-preview {
+  display: inline-block;
+  padding: 3px 8px;
+  border-radius: 999px;
+  background: #f3e8ff;
+  border: 1.5px solid #7c3aed;
+  color: #5b21b6;
+  font-size: 11px;
+  font-weight: 900;
+}
+
 .mqst-danger-card { background: #fff5f5; }
 .mqst-lock-box { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; }
 .mqst-lock-q { font-weight: 800; font-size: 15px; }

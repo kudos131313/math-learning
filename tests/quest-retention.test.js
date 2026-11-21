@@ -34,6 +34,8 @@ import {
   rollLuckyPerCorrectDrop,
   getActiveWardrobe,
   isWardrobeItemUnlocked,
+  isTreehouseItemUnlocked,
+  isPartnerUnlocked,
   purchaseWardrobeItem,
   equipWardrobeItem,
   purchaseTreehouseItem,
@@ -399,5 +401,34 @@ describe('Phase 3：秘密樹屋互動、精靈遊樂位上限與四大專長／
     expect(TREEHOUSE_ITEMS.some((i) => i.id === getTreehouseItemById('star_lantern')?.id)).toBe(true);
     expect(getWardrobeItemById('carrot_wand', 'wand')?.preferredFinisher).toBe('carrot');
     expect(PARTNER_SNACKS).toHaveLength(2);
+  });
+
+  it('開發者全解鎖檢視模式（devMode）可無損預覽所有精靈、三部位裝扮、樹屋家具與親密度等級，關閉後還原真實存檔', () => {
+    let save = createDefaultSaveV2();
+    expect(isPartnerUnlocked(save, 'cloud:skycastle')).toBe(false);
+    expect(isWardrobeItemUnlocked(save, 'unicorn_band')).toBe(false);
+    expect(isTreehouseItemUnlocked(save, 'star_lantern')).toBe(false);
+
+    // 開啟開發者模式
+    save.devMode = true;
+    save.devBondLevel = 3;
+    expect(isPartnerUnlocked(save, 'cloud:skycastle')).toBe(true);
+    expect(isPartnerUnlocked(save, 'cloud:skycastle', { ignoreDevMode: true })).toBe(false);
+    expect(isWardrobeItemUnlocked(save, 'unicorn_band')).toBe(true);
+    expect(isWardrobeItemUnlocked(save, 'unicorn_band', { ignoreDevMode: true })).toBe(false);
+    expect(isTreehouseItemUnlocked(save, 'star_lantern')).toBe(true);
+    expect(isTreehouseItemUnlocked(save, 'star_lantern', { ignoreDevMode: true })).toBe(false);
+
+    // 開發者模式下可自由試穿未購買裝扮與邀請精靈進樹屋
+    expect(equipWardrobeItem(save, 'hat', 'unicorn_band').ok).toBe(true);
+    expect(toggleTreehousePlaymate(save, 'cloud:skycastle').action).toBe('added');
+    expect(getPartnerBondInfo(save, 'cloud:skycastle').level).toBe(3);
+
+    // 關閉開發者模式並經 normalizeSaveDataV2 校驗，應自動還原至真實已解鎖狀態
+    save.devMode = false;
+    save = normalizeSaveDataV2(save);
+    expect(isPartnerUnlocked(save, 'cloud:skycastle')).toBe(false);
+    expect(save.wardrobe.active.hat).toBe('star_clip');
+    expect(save.treehouse.playmates).toEqual([]);
   });
 });

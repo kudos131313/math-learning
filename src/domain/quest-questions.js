@@ -248,6 +248,9 @@ export function createDefaultSaveV2(now = new Date()) {
   return {
     version: 2,
     previewAll: false,
+    devMode: false,
+    devBondLevel: 0,
+    devSkillTier: '',
     starCoins: 0,
     activeRealm: 'mul',
     activeCostume: 'default',
@@ -474,17 +477,24 @@ export function normalizeSaveDataV2(parsed, now = new Date()) {
   const unlockedOutfits = uniqueStrings(['none', ...mappedWardrobe.unlocked.outfit, ...(rawUnlockedW.outfit || [])]);
   const unlockedWands = uniqueStrings(['none', ...mappedWardrobe.unlocked.wand, ...(rawUnlockedW.wand || [])]);
 
+  const isDevMode = Boolean(parsed.devMode);
+  const devBondLevel = clampInt(parsed.devBondLevel || 0, 0, 3);
+  const devSkillTier =
+    parsed.devSkillTier === 'bronze' || parsed.devSkillTier === 'silver' || parsed.devSkillTier === 'gold'
+      ? parsed.devSkillTier
+      : '';
+
   const rawActiveW = isPlainObject(rawWardrobe.active) ? rawWardrobe.active : {};
   const activeHat =
-    typeof rawActiveW.hat === 'string' && unlockedHats.indexOf(rawActiveW.hat) !== -1
+    typeof rawActiveW.hat === 'string' && (isDevMode || unlockedHats.indexOf(rawActiveW.hat) !== -1)
       ? rawActiveW.hat
       : mappedWardrobe.active.hat;
   const activeOutfit =
-    typeof rawActiveW.outfit === 'string' && unlockedOutfits.indexOf(rawActiveW.outfit) !== -1
+    typeof rawActiveW.outfit === 'string' && (isDevMode || unlockedOutfits.indexOf(rawActiveW.outfit) !== -1)
       ? rawActiveW.outfit
       : mappedWardrobe.active.outfit;
   const activeWand =
-    typeof rawActiveW.wand === 'string' && unlockedWands.indexOf(rawActiveW.wand) !== -1
+    typeof rawActiveW.wand === 'string' && (isDevMode || unlockedWands.indexOf(rawActiveW.wand) !== -1)
       ? rawActiveW.wand
       : mappedWardrobe.active.wand;
 
@@ -512,7 +522,7 @@ export function normalizeSaveDataV2(parsed, now = new Date()) {
   let activePartnerId = typeof rawPartners.activeId === 'string' ? toCanonicalPartnerId(rawPartners.activeId) : '';
   if (activePartnerId) {
     const isl = getIslandById(activePartnerId);
-    if (!isl || (stageStars[toCanonicalStageId(isl.bossStageId)] || 0) < 1) {
+    if (!isl || (!isDevMode && (stageStars[toCanonicalStageId(isl.bossStageId)] || 0) < 1)) {
       activePartnerId = '';
     }
   }
@@ -523,7 +533,7 @@ export function normalizeSaveDataV2(parsed, now = new Date()) {
   const treehouseSlots = Object.assign({}, def.treehouse.slots);
   Object.keys(def.treehouse.slots).forEach((slotKey) => {
     const candidate = rawSlots[slotKey];
-    if (typeof candidate === 'string' && treehouseUnlocked.indexOf(candidate) !== -1) {
+    if (typeof candidate === 'string' && (isDevMode || treehouseUnlocked.indexOf(candidate) !== -1)) {
       treehouseSlots[slotKey] = candidate;
     }
   });
@@ -532,7 +542,11 @@ export function normalizeSaveDataV2(parsed, now = new Date()) {
   )
     .filter((pid) => {
       const isl = getIslandById(pid);
-      return Boolean(isl && isl.fullId === pid && (stageStars[toCanonicalStageId(isl.bossStageId)] || 0) >= 1);
+      return Boolean(
+        isl &&
+          isl.fullId === pid &&
+          (isDevMode || (stageStars[toCanonicalStageId(isl.bossStageId)] || 0) >= 1)
+      );
     })
     .slice(0, 3);
 
@@ -578,6 +592,9 @@ export function normalizeSaveDataV2(parsed, now = new Date()) {
   return {
     version: 2,
     previewAll: Boolean(parsed.previewAll),
+    devMode: isDevMode,
+    devBondLevel,
+    devSkillTier,
     starCoins: clampInt(parsed.starCoins, 0, 9999999),
     activeRealm: realmValid ? parsed.activeRealm : 'mul',
     activeCostume,
@@ -646,30 +663,30 @@ export function countLitGems(saveData) {
   return Object.keys(gems).filter((k) => gems[k]).length;
 }
 
-export function countUnlockedSprites(saveData, realmId) {
+export function countUnlockedSprites(saveData, realmId, { ignoreDevMode = false } = {}) {
   let cnt = 0;
   ISLANDS.forEach((isl) => {
     if (realmId && isl.realmId !== realmId) return;
-    if (getStageStars(saveData, isl.bossStageId) >= 1) cnt++;
+    if ((!ignoreDevMode && saveData && saveData.devMode) || getStageStars(saveData, isl.bossStageId) >= 1) cnt++;
   });
   return cnt;
 }
 
 export function isRealmUnlocked(realmId, saveData) {
-  if (saveData && saveData.previewAll) return true;
+  if (saveData && (saveData.previewAll || saveData.devMode)) return true;
   const realm = getRealmById(realmId);
   if (!realm || realm.unlockMode === 'initial') return true;
   const rule = realm.unlockRule || {};
   const minStars = Number(rule.minStars || 15);
   const minBosses = Number(rule.minBosses || 2);
-  return countTotalStars(saveData) >= minStars || countUnlockedSprites(saveData) >= minBosses;
+  return countTotalStars(saveData) >= minStars || countUnlockedSprites(saveData, null, { ignoreDevMode: true }) >= minBosses;
 }
 
 export function getRealmUnlockProgress(realmId, saveData) {
   const realm = getRealmById(realmId);
   const rule = (realm && realm.unlockRule) || { minStars: 15, minBosses: 2 };
   const stars = countTotalStars(saveData);
-  const bosses = countUnlockedSprites(saveData);
+  const bosses = countUnlockedSprites(saveData, null, { ignoreDevMode: true });
   const minStars = Number(rule.minStars || 15);
   const minBosses = Number(rule.minBosses || 2);
   return {
@@ -686,7 +703,7 @@ export function getRealmUnlockProgress(realmId, saveData) {
 export function isStageUnlocked(stageId, saveData) {
   const st = getStageById(stageId);
   if (!st) return false;
-  if (saveData && saveData.previewAll) return true;
+  if (saveData && (saveData.previewAll || saveData.devMode)) return true;
   if (!isRealmUnlocked(st.realmId, saveData)) return false;
 
   const realmStages = getStagesByRealm(st.realmId);
@@ -722,7 +739,7 @@ export function getActivePartnerId(saveData) {
   const canonical = toCanonicalPartnerId(raw);
   const isl = getIslandById(canonical);
   if (!isl || isl.fullId !== canonical) return '';
-  return getStageStars(saveData, isl.bossStageId) >= 1 ? canonical : '';
+  return saveData.devMode || getStageStars(saveData, isl.bossStageId) >= 1 ? canonical : '';
 }
 
 export function getActiveCostumeId(saveData) {
@@ -808,13 +825,25 @@ export function getSkillTier(count) {
   return 'none';
 }
 
-export function getSkillCardProgress(cardId, saveData) {
+export function getSkillCardProgress(cardId, saveData, { ignoreDevMode = false } = {}) {
   const raw =
     saveData && saveData.skillCodex && saveData.skillCodex[cardId]
       ? saveData.skillCodex[cardId].count
       : 0;
-  const count = Math.max(0, Math.floor(Number(raw) || 0));
-  const tier = getSkillTier(count);
+  const realCount = Math.max(0, Math.floor(Number(raw) || 0));
+  const realTier = getSkillTier(realCount);
+
+  let count = realCount;
+  let tier = realTier;
+  let devOverridden = false;
+  if (!ignoreDevMode && saveData && saveData.devMode && saveData.devSkillTier) {
+    if (saveData.devSkillTier === 'bronze' || saveData.devSkillTier === 'silver' || saveData.devSkillTier === 'gold') {
+      tier = saveData.devSkillTier;
+      count = Math.max(realCount, SKILL_TIER_THRESHOLDS[tier]);
+      devOverridden = tier !== realTier;
+    }
+  }
+
   let nextTier = 'bronze';
   let nextTarget = SKILL_TIER_THRESHOLDS.bronze;
   if (tier === 'bronze') {
@@ -831,6 +860,9 @@ export function getSkillCardProgress(cardId, saveData) {
   return {
     count,
     tier,
+    realCount,
+    realTier,
+    devOverridden,
     nextTier,
     nextTarget,
     pct,
