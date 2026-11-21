@@ -986,12 +986,13 @@
 }
 
 /* 魔法木牌算式板 */
+/* ---------------- 魔法木牌算式板增強：橫式⇄直式切換、迷你直式卡、十進位與線段小幫手 ---------------- */
 .mqst-wood-board {
   position: relative;
   z-index: 5;
   margin: 0 auto;
-  width: min(560px, 100%);
-  background: rgba(255, 251, 240, 0.94);
+  width: min(630px, 100%);
+  background: rgba(255, 251, 240, 0.95);
   backdrop-filter: blur(6px);
   border: 3.5px solid var(--ink);
   border-radius: 24px;
@@ -1004,7 +1005,401 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: 8px;
   margin-bottom: 4px;
+}
+
+.mqst-board-head-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.mqst-format-toggle-btn {
+  min-height: 44px;
+  padding: 4px 12px;
+  border-radius: 999px;
+  border: 2px solid var(--ink);
+  background: #fef3c7;
+  color: #78350f;
+  font-size: 13px;
+  font-weight: 900;
+  cursor: pointer;
+  white-space: nowrap;
+  box-shadow: 2px 2px 0 var(--shadow-ink);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.08s ease;
+}
+
+.mqst-format-toggle-btn:active {
+  transform: translateY(2px);
+}
+
+.mqst-format-toggle-btn[aria-pressed="true"] {
+  background: #dbeafe;
+  color: #1e40af;
+}
+
+.mqst-eq-unit {
+  font-size: clamp(18px, 2.2vw, 24px);
+  font-weight: 800;
+  color: var(--ink-soft);
+}
+
+.mqst-num-q {
+  background: #fef9c3 !important;
+}
+
+.mq-input-slot.is-3d {
+  width: 112px;
+}
+
+/* 迷你直式對齊卡（嚴格位值色碼） */
+.mqst-vmini-card {
+  display: inline-block;
+  margin: 2px auto;
+  padding: 8px 16px 10px;
+  border-radius: 18px;
+  border: 2.5px solid var(--ink);
+  background: #ffffff;
+  box-shadow: 3px 3px 0 rgba(51, 43, 34, 0.2);
+}
+
+.mqst-vmini-grid {
+  display: grid;
+  align-items: center;
+  justify-items: center;
+  gap: 4px 6px;
+  font-family: var(--font-num);
+  font-variant-numeric: tabular-nums;
+}
+
+.mqst-vmini-card.is-2col .mqst-vmini-grid {
+  grid-template-columns: 36px 52px 52px;
+}
+
+.mqst-vmini-card.is-3col .mqst-vmini-grid {
+  grid-template-columns: 36px 52px 52px 52px;
+}
+
+.mqst-vmini-head {
+  font-size: 11.5px;
+  font-weight: 900;
+  padding: 2px 8px;
+  border-radius: 999px;
+  border: 1.5px solid rgba(51, 43, 34, 0.25);
+  white-space: nowrap;
+}
+
+.mqst-vmini-head.is-h { background: #dbeafe; color: var(--h-color-dark); border-color: #93c5fd; }
+.mqst-vmini-head.is-t { background: #ffedd5; color: var(--t-color-dark); border-color: #fdba74; }
+.mqst-vmini-head.is-o { background: #f8fafc; color: var(--o-color-dark); border-color: #cbd5e1; }
+
+.mqst-vmini-op {
+  font-size: 26px;
+  font-weight: 900;
+  color: var(--ink);
+  line-height: 1;
+}
+
+.mqst-vmini-cell {
+  width: 48px;
+  height: 40px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 28px;
+  font-weight: 900;
+  line-height: 1;
+}
+
+.mqst-vmini-cell.is-h { background: #dbeafe; color: var(--h-color-dark); }
+.mqst-vmini-cell.is-t { background: #ffedd5; color: var(--t-color-dark); }
+.mqst-vmini-cell.is-o { background: #f8fafc; color: var(--o-color-dark); border: 1.5px solid #e2e8f0; }
+
+.mqst-vmini-line {
+  grid-column: 1 / -1;
+  width: 100%;
+  height: 3.5px;
+  border-radius: 999px;
+  background: var(--ink);
+  margin: 2px 0;
+}
+
+.mqst-vmini-ans-wrap {
+  grid-column: 2 / -1;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 6px;
+}
+
+.mqst-vmini-input {
+  width: 100% !important;
+  max-width: 158px;
+  height: 50px !important;
+  font-size: 28px !important;
+  letter-spacing: 0.08em;
+}
+
+.mqst-vmini-qmark {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 46px;
+  border-radius: 12px;
+  border: 2px dashed #d97706;
+  background: #fef9c3;
+  font-size: 26px;
+  font-weight: 900;
+  color: #92400e;
+}
+
+.mqst-preview-goto-row {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 10px;
+}
+
+/* 十進位積木與線段對照小幫手 */
+.mqst-calc-helper {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.mqst-calc-helper-row {
+  display: flex;
+  align-items: stretch;
+  justify-content: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.mqst-calc-helper-num {
+  flex: 1 1 220px;
+  padding: 8px 10px;
+  border-radius: 14px;
+  border: 2px solid rgba(51, 43, 34, 0.25);
+  background: #ffffff;
+}
+
+.mqst-calc-helper-num-head {
+  font-size: 13px;
+  font-weight: 800;
+  color: var(--ink-soft);
+  margin-bottom: 6px;
+}
+
+.mqst-calc-helper-num-head strong {
+  font-family: var(--font-num);
+  font-size: 16px;
+  color: var(--ink);
+}
+
+.mqst-calc-helper-cols {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.mqst-calc-pcol {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+.mqst-calc-ptag {
+  font-size: 11px;
+  font-weight: 900;
+  padding: 2px 7px;
+  border-radius: 999px;
+}
+
+.mqst-calc-ptag.is-h { background: #dbeafe; color: var(--h-color-dark); }
+.mqst-calc-ptag.is-t { background: #ffedd5; color: var(--t-color-dark); }
+.mqst-calc-ptag.is-o { background: #f8fafc; color: var(--o-color-dark); border: 1px solid #cbd5e1; }
+
+.mqst-calc-pblks {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 3px;
+  max-width: 120px;
+}
+
+.mqst-calc-pblks .svg-blk-h { width: 22px; height: 22px; }
+.mqst-calc-pblks .svg-blk-t { width: 28px; height: 9px; }
+.mqst-calc-pblks .svg-blk-o { width: 13px; height: 13px; }
+
+.mqst-calc-zero {
+  font-size: 12px;
+  font-weight: 800;
+  color: #94a3b8;
+}
+
+.mqst-calc-helper-op {
+  align-self: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: var(--ink);
+  color: #ffffff;
+  font-size: 20px;
+  font-weight: 900;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.mqst-calc-helper-tip {
+  padding: 8px 12px;
+  border-radius: 12px;
+  border: 2px solid #0284c7;
+  background: #f0f9ff;
+  color: #0c4a6e;
+  font-size: 13.5px;
+  font-weight: 800;
+  line-height: 1.5;
+}
+
+.mqst-calc-helper-actions {
+  display: flex;
+  justify-content: center;
+}
+
+.mqst-calc-goto-lab-btn {
+  min-height: 44px;
+  padding: 6px 14px;
+  border-radius: 999px;
+  border: 2px solid var(--ink);
+  background: #fef08a;
+  color: #451a03;
+  font-size: 13.5px;
+  font-weight: 900;
+  cursor: pointer;
+  box-shadow: 2px 2px 0 var(--shadow-ink);
+}
+
+.mqst-bar-diagram {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.mqst-bar-row {
+  display: grid;
+  grid-template-columns: 64px minmax(0, 1fr);
+  align-items: center;
+  gap: 8px;
+}
+
+.mqst-bar-name {
+  font-size: 13.5px;
+  font-weight: 900;
+  color: var(--ink);
+  text-align: right;
+}
+
+.mqst-bar-track {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: #f1f5f9;
+  border: 2px solid rgba(51, 43, 34, 0.25);
+  border-radius: 12px;
+  padding: 4px;
+}
+
+.mqst-bar-fill {
+  padding: 6px 12px;
+  border-radius: 9px;
+  font-size: 13.5px;
+  font-weight: 900;
+  border: 1.5px solid var(--ink);
+}
+
+.mqst-bar-fill.is-long {
+  width: 100%;
+  background: #bae6fd;
+  color: #0c4a6e;
+}
+
+.mqst-bar-fill.is-short {
+  width: 62%;
+  background: #fed7aa;
+  color: #7c2d12;
+}
+
+.mqst-bar-diff {
+  flex: 1;
+  padding: 5px 8px;
+  border-radius: 9px;
+  border: 2px dashed #dc2626;
+  background: #fef2f2;
+  color: #991b1b;
+  font-size: 12.5px;
+  font-weight: 900;
+  text-align: center;
+  white-space: nowrap;
+}
+
+/* ---------------- 數學技能圖鑑與分組標題 ---------------- */
+.mqst-dex-pane[hidden] {
+  display: none !important;
+}
+
+.mqst-dex-group-title {
+  margin: 14px 0 8px;
+  padding: 6px 12px;
+  border-radius: 12px;
+  border: 2px solid rgba(51, 43, 34, 0.2);
+  background: #fffbeb;
+  font-size: 14.5px;
+  font-weight: 900;
+  color: var(--ink);
+}
+
+.mqst-dex-group-title:first-of-type {
+  margin-top: 4px;
+}
+
+.mqst-skill-card.tier-bronze { background: linear-gradient(135deg, #fff7ed 0%, #ffedd5 100%); border-color: #c2410c; }
+.mqst-skill-card.tier-silver { background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%); border-color: #475569; }
+.mqst-skill-card.tier-gold   { background: linear-gradient(135deg, #fefce8 0%, #fef08a 100%); border-color: #b45309; }
+
+.mqst-skill-tier-pill {
+  padding: 2px 10px;
+  border-radius: 999px;
+  border: 1.5px solid var(--ink);
+  font-size: 11.5px;
+  font-weight: 900;
+}
+
+.mqst-skill-tier-pill.tier-none   { background: #f1f5f9; color: #64748b; border-color: #cbd5e1; }
+.mqst-skill-tier-pill.tier-bronze { background: #fed7aa; color: #7c2d12; border-color: #c2410c; }
+.mqst-skill-tier-pill.tier-silver { background: #e2e8f0; color: #1e293b; border-color: #475569; }
+.mqst-skill-tier-pill.tier-gold   { background: #fde047; color: #78350f; border-color: #b45309; }
+
+.mqst-skill-ico {
+  font-size: 36px;
+  line-height: 1.1;
+  margin-top: 2px;
+}
+
+@media (forced-colors: active) {
+  .mqst-dex-tab[aria-selected="true"]::after {
+    border-block-end-color: Highlight;
+  }
 }
 
 .mqst-board-tag {
@@ -1133,10 +1528,10 @@
   padding: 6px 12px;
   border-radius: 999px;
   border: 2px solid var(--ink);
-  background: linear-gradient(135deg, #fde047 0%, #f59e0b 100%);
-  color: var(--ink);
-  font-size: 12px;
-  font-weight: 900;
+  background: linear-gradient(180deg, #fef9c3 0%, #fde047 100%);
+  color: #292524;
+  font-size: 13px;
+  font-weight: 800;
   cursor: pointer;
   box-shadow: 2px 2px 0 var(--shadow-ink);
   white-space: nowrap;

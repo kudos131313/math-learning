@@ -6,7 +6,10 @@ import {
   BADGES,
   BUNNY_COSTUMES,
   MAX_RESCUE_CASES,
+  SKILL_CARDS,
   getRealmById,
+  getIslandsByRealm,
+  getStagesByRealm,
   getIslandById,
   getStageById
 } from '../src/domain/quest-data.js';
@@ -37,6 +40,7 @@ import {
   buildRescueQuestions
 } from '../src/domain/quest-questions.js';
 import { generateMulChoices } from '../src/domain/multiplication.js';
+import { generateCalcChoices } from '../src/domain/quest-calc-questions.js';
 import {
   renderPinkBunnySvg,
   getStageChestSvg,
@@ -44,20 +48,25 @@ import {
 } from '../src/quest/svg-art.js';
 
 describe('數學冒險島靜態配置與多海域完整性', () => {
-  it('應定義 3 大海域、5 座乘法島嶼、15 個關卡、10 枚徽章與 8 款小兔造型', () => {
+  it('應定義 3 大海域、10 座島嶼（陽光加減 ＋ 九九乘法）、30 個關卡、10 枚徽章、10 張技能卡與 8 款造型', () => {
     expect(REALMS).toHaveLength(3);
     expect(getRealmById('sunny').unlockMode).toBe('initial');
+    expect(getRealmById('sunny').status).toBe('active');
     expect(getRealmById('mul').status).toBe('active');
     expect(getRealmById('cloud').unlockMode).toBe('conditional');
 
-    expect(ISLANDS).toHaveLength(5);
-    expect(STAGES).toHaveLength(15);
+    expect(ISLANDS).toHaveLength(10);
+    expect(getIslandsByRealm('sunny')).toHaveLength(5);
+    expect(getIslandsByRealm('mul')).toHaveLength(5);
+    expect(STAGES).toHaveLength(30);
+    expect(getStagesByRealm('sunny')).toHaveLength(15);
+    expect(getStagesByRealm('mul')).toHaveLength(15);
     expect(BADGES).toHaveLength(10);
     expect(BUNNY_COSTUMES).toHaveLength(8);
+    expect(SKILL_CARDS).toHaveLength(10);
 
     for (const isl of ISLANDS) {
-      expect(isl.realmId).toBe('mul');
-      expect(isl.fullId).toBe('mul:' + isl.id);
+      expect(isl.fullId).toBe(isl.realmId + ':' + isl.id);
       const bossStage = getStageById(isl.bossStageId);
       expect(bossStage).not.toBeNull();
       expect(bossStage.isBoss).toBe(true);
@@ -65,6 +74,7 @@ describe('數學冒險島靜態配置與多海域完整性', () => {
     }
 
     expect(getStageById('mul:1-1')).toEqual(getStageById('1-1'));
+    expect(getStageById('sunny:1-1').realmId).toBe('sunny');
   });
 });
 
@@ -298,13 +308,13 @@ describe('Phase 1：v1 → v2 無縫存檔遷移、海域解鎖、救援案件�
 });
 
 describe('冒險關卡題庫與低 1 乘法權重驗證', () => {
-  it('15 個關卡皆能產出符合數量的題目，且選擇題誘答有效不重複', () => {
+  it('30 個關卡皆能產出符合數量的題目，且選擇題誘答有效不重複', () => {
     for (const st of STAGES) {
       const qs = buildStageQuestions(st, {});
       expect(qs).toHaveLength(st.count);
       for (const q of qs) {
         if (q.uiMode === 'choice') {
-          const opts = generateMulChoices(q, 4);
+          const opts = q.realm === 'sunny' ? generateCalcChoices(q, 4) : generateMulChoices(q, 4);
           expect(opts).toHaveLength(4);
           expect(opts).toContain(q.slots[0].expected);
           expect(new Set(opts).size).toBe(4);

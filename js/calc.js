@@ -519,6 +519,35 @@ import { createCalcStageRenderer } from '../src/calc/stage-renderer.js';
   renderCalcPresetChips();
 
 
+  /* 外部載入指定算式（供數學冒險島等單元跳轉複習） */
+  function loadProblem(a, b, op){
+    var numA = Math.max(1, Math.min(999, Math.floor(Number(a) || 28)));
+    var numB = Math.max(1, Math.min(999, Math.floor(Number(b) || 15)));
+    var nextOp = op === 'sub' ? 'sub' : 'add';
+    if(nextOp === 'add' && numA + numB > 999){
+      numB = Math.max(1, 999 - numA);
+    }
+    if(nextOp === 'sub' && numA < numB){
+      var tmp = numA;
+      numA = numB;
+      numB = tmp;
+    }
+    stopAutoPlay();
+    calcState.op = nextOp;
+    if(calcEls.btnOpAdd && calcEls.btnOpSub){
+      calcEls.btnOpAdd.classList.toggle('active', nextOp === 'add');
+      calcEls.btnOpAdd.setAttribute('aria-selected', String(nextOp === 'add'));
+      calcEls.btnOpSub.classList.toggle('active', nextOp === 'sub');
+      calcEls.btnOpSub.setAttribute('aria-selected', String(nextOp === 'sub'));
+    }
+    updateCustomLabels();
+    calcState.numA = numA;
+    calcState.numB = numB;
+    calcState.step = 0;
+    renderCalcPresetChips();
+    renderCalcView(false);
+  }
+
   // 監聽主分頁切換至 calc 時進行視圖渲染
   MathApp.on("tabChange", function(tab){
     if(tab === "calc"){
@@ -534,6 +563,7 @@ import { createCalcStageRenderer } from '../src/calc/stage-renderer.js';
     renderCalcView: renderCalcView,
     getCalcDecomp: getCalcDecomp,
     getStepExplanation: getStepExplanation,
+    loadProblem: loadProblem,
     nextStep: calcNextStep,
     prevStep: calcPrevStep,
     replayStep: calcReplayStep,

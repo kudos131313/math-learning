@@ -9,17 +9,23 @@ import {
   BUNNY_COSTUMES,
   MAX_RESCUE_CASES,
   LEGACY_COSTUME_MIGRATION_MAP,
+  SKILL_CARDS,
+  SKILL_TIER_THRESHOLDS,
+  SKILL_TIER_COINS,
   toCanonicalStageId,
   toLegacyStageId,
   toCanonicalPartnerId,
   toLegacyPartnerId,
   getRealmById,
+  getIslandsByRealm,
   getIslandById,
   getStageById,
-  getStagesByRealm
+  getStagesByRealm,
+  getSkillCardById
 } from './quest-data.js';
 import { buildMulQuestion } from './multiplication.js';
 import { randInt } from './number-text.js';
+import { buildSunnyStageQuestions, rebuildCalcQuestionFromSnapshot } from './quest-calc-questions.js';
 
 function isPlainObject(val) {
   return Boolean(val) && typeof val === 'object' && !Array.isArray(val);
@@ -85,9 +91,10 @@ export function normalizeSaveData(parsed) {
   let activePartner = typeof parsed.activePartner === 'string' ? parsed.activePartner : '';
   // 相容舊存檔：若尚未紀錄夥伴設定但已收服精靈，自動派最新收服的小精靈登場
   if (typeof parsed.activePartner !== 'string') {
-    for (let i = ISLANDS.length - 1; i >= 0; i--) {
-      if (Number(stageStars[ISLANDS[i].bossStageId] || 0) >= 1) {
-        activePartner = ISLANDS[i].id;
+    const mulIslands = getIslandsByRealm('mul');
+    for (let i = mulIslands.length - 1; i >= 0; i--) {
+      if (Number(stageStars[mulIslands[i].bossStageId] || 0) >= 1) {
+        activePartner = mulIslands[i].id;
         break;
       }
     }
@@ -771,6 +778,89 @@ export function evaluateUnlockedCostumes(saveData) {
   return newlyUnlocked;
 }
 
+/* ---------------- 數學技能圖鑑（Skill Codex）累積與銅／銀／金升階純函式 ---------------- */
+export function getSkillTier(count) {
+  const c = Math.max(0, Math.floor(Number(count) || 0));
+  if (c >= SKILL_TIER_THRESHOLDS.gold) return 'gold';
+  if (c >= SKILL_TIER_THRESHOLDS.silver) return 'silver';
+  if (c >= SKILL_TIER_THRESHOLDS.bronze) return 'bronze';
+  return 'none';
+}
+
+export function getSkillCardProgress(cardId, saveData) {
+  const raw =
+    saveData && saveData.skillCodex && saveData.skillCodex[cardId]
+      ? saveData.skillCodex[cardId].count
+      : 0;
+  const count = Math.max(0, Math.floor(Number(raw) || 0));
+  const tier = getSkillTier(count);
+  let nextTier = 'bronze';
+  let nextTarget = SKILL_TIER_THRESHOLDS.bronze;
+  if (tier === 'bronze') {
+    nextTier = 'silver';
+    nextTarget = SKILL_TIER_THRESHOLDS.silver;
+  } else if (tier === 'silver') {
+    nextTier = 'gold';
+    nextTarget = SKILL_TIER_THRESHOLDS.gold;
+  } else if (tier === 'gold') {
+    nextTier = 'gold';
+    nextTarget = SKILL_TIER_THRESHOLDS.gold;
+  }
+  const pct = tier === 'gold' ? 100 : Math.min(100, Math.round((count / nextTarget) * 100));
+  return {
+    count,
+    tier,
+    nextTier,
+    nextTarget,
+    pct,
+    isMax: tier === 'gold'
+  };
+}
+
+export function recordSkillCodexHit(saveData, skillTag) {
+  const card = getSkillCardById(skillTag);
+  if (!saveData || !card) {
+    return {
+      upgraded: false,
+      card: null,
+      prevTier: 'none',
+      newTier: 'none',
+      bonusCoins: 0,
+      count: 0
+    };
+  }
+  if (!saveData.skillCodex || typeof saveData.skillCodex !== 'object') {
+    saveData.skillCodex = {};
+  }
+  const prevCount = Math.max(
+    0,
+    Math.floor(Number((saveData.skillCodex[skillTag] && saveData.skillCodex[skillTag].count) || 0))
+  );
+  const prevTier = getSkillTier(prevCount);
+  const nextCount = prevCount + 1;
+  saveData.skillCodex[skillTag] = { count: nextCount };
+  const newTier = getSkillTier(nextCount);
+  const upgraded = newTier !== prevTier;
+  const bonusCoins = upgraded ? Number(SKILL_TIER_COINS[newTier] || 0) : 0;
+
+  return {
+    upgraded,
+    card,
+    prevTier,
+    newTier,
+    bonusCoins,
+    count: nextCount
+  };
+}
+
+export function countUnlockedSkillCards(saveData) {
+  let cnt = 0;
+  SKILL_CARDS.forEach((c) => {
+    if (getSkillCardProgress(c.id, saveData).tier !== 'none') cnt++;
+  });
+  return cnt;
+}
+
 /* ---------------- 星星幣（StarCoin）獎勵結算純函式 ---------------- */
 export function calculateStageCoinReward({
   stage,
@@ -915,6 +1005,10 @@ export function getStagePairWeight(pair, isLit) {
 }
 
 export function buildStageQuestions(stage, gemsMap = {}, options = {}) {
+  if (stage && stage.realmId === 'sunny') {
+    return buildSunnyStageQuestions(stage, options);
+  }
+
   const randIntFn = options.randIntFn || randInt;
   const randomFn = options.randomFn || Math.random;
   const candidatePairs = [];
@@ -954,11 +1048,17 @@ export function buildStageQuestions(stage, gemsMap = {}, options = {}) {
       qType === 'story_choice' || (mode === 'choice' && qType === 'concept') ? 'standard' : qType;
     const q = buildMulQuestion(pair.a, pair.b, effectiveType, randIntFn);
 
+    let skillTag = 'mul_basic';
+    if (effectiveType === 'commutative') skillTag = 'mul_commutative';
+    else if (effectiveType === 'missing_a' || effectiveType === 'missing_b') skillTag = 'mul_missing';
+    else if (effectiveType === 'concept') skillTag = 'mul_concept';
+
     if (qType === 'story_choice' && effectiveType === 'standard' && pair.b >= 2 && pair.b <= 7) {
       const icons = ['🍎', '🍪', '✏️', '🌟', '🎈'];
       const units = ['盤', '袋', '盒', '排', '串'];
       const idx = randIntFn(0, icons.length - 1);
       q.badge = '情境乘法冒險';
+      skillTag = 'word_mul_life';
       q.storyHtml =
         icons[idx] +
         ' 每' +
@@ -973,6 +1073,7 @@ export function buildStageQuestions(stage, gemsMap = {}, options = {}) {
     }
     q.realm = stage.realmId || 'mul';
     q.kind = 'mul';
+    q.skillTag = skillTag;
     q.uiMode = mode;
     q.rescueDedupeKey = 'mul:' + q.a + 'x' + q.b;
     q.rescueSnapshot = { a: q.a, b: q.b, qType: 'standard' };
@@ -1000,6 +1101,15 @@ export function buildRescueQuestions(rescueList, options = {}) {
         return q;
       }
       if (!isPlainObject(entry) || !isPlainObject(entry.snapshot)) return null;
+      if (
+        entry.realm === 'sunny' ||
+        entry.kind === 'add' ||
+        entry.kind === 'sub' ||
+        entry.kind === 'calc_missing' ||
+        entry.kind === 'word_single'
+      ) {
+        return rebuildCalcQuestionFromSnapshot(entry);
+      }
       const a = Number(entry.snapshot.a) || 3;
       const b = Number(entry.snapshot.b) || 4;
       const q = buildMulQuestion(a, b, entry.snapshot.qType || 'standard', randIntFn);

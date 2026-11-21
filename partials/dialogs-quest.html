@@ -12,6 +12,7 @@
 
     <div class="mqst-dex-tabs" role="tablist" aria-label="圖鑑切換">
       <button type="button" class="mqst-dex-tab active" id="mqst-tab-gems" data-dex="gems" role="tab" aria-selected="true" tabindex="0">💎 9×9 寶石牆</button>
+      <button type="button" class="mqst-dex-tab" id="mqst-tab-skills" data-dex="skills" role="tab" aria-selected="false" tabindex="-1">📖 數學技能圖鑑</button>
       <button type="button" class="mqst-dex-tab" id="mqst-tab-wardrobe" data-dex="wardrobe" role="tab" aria-selected="false" tabindex="-1">🎀 小兔換裝</button>
       <button type="button" class="mqst-dex-tab" id="mqst-tab-sprites" data-dex="sprites" role="tab" aria-selected="false" tabindex="-1">🐣 守護小精靈</button>
       <button type="button" class="mqst-dex-tab" id="mqst-tab-badges" data-dex="badges" role="tab" aria-selected="false" tabindex="-1">🏅 成就徽章</button>
@@ -19,9 +20,10 @@
 
     <div class="mqst-dialog-body" id="mqst-dex-body">
       <div class="mqst-dex-pane active" id="mqst-pane-gems" role="tabpanel" aria-labelledby="mqst-tab-gems"></div>
-      <div class="mqst-dex-pane" id="mqst-pane-wardrobe" role="tabpanel" aria-labelledby="mqst-tab-wardrobe" style="display:none;"></div>
-      <div class="mqst-dex-pane" id="mqst-pane-sprites" role="tabpanel" aria-labelledby="mqst-tab-sprites" style="display:none;"></div>
-      <div class="mqst-dex-pane" id="mqst-pane-badges" role="tabpanel" aria-labelledby="mqst-tab-badges" style="display:none;"></div>
+      <div class="mqst-dex-pane" id="mqst-pane-skills" role="tabpanel" aria-labelledby="mqst-tab-skills" hidden></div>
+      <div class="mqst-dex-pane" id="mqst-pane-wardrobe" role="tabpanel" aria-labelledby="mqst-tab-wardrobe" hidden></div>
+      <div class="mqst-dex-pane" id="mqst-pane-sprites" role="tabpanel" aria-labelledby="mqst-tab-sprites" hidden></div>
+      <div class="mqst-dex-pane" id="mqst-pane-badges" role="tabpanel" aria-labelledby="mqst-tab-badges" hidden></div>
     </div>
   </dialog>
 
@@ -154,11 +156,11 @@
         <p class="mqst-confirm-lead">使用「小幫手」偷看積木提示會有以下影響喔：</p>
         <ul class="mqst-confirm-list">
           <li>⭐ <strong>無法獲得 3 顆星</strong>：本關結算最多只能拿 2 顆星</li>
-          <li>💎 <strong>本題沒有寶石</strong>：這一題答對後不會收集到乘法寶石</li>
+          <li>💎 <strong>本題沒有收藏進度</strong>：這一題答對後不會點亮寶石或累積技能卡</li>
         </ul>
       </div>
       <div class="mqst-confirm-partner-tip" id="mqst-helper-confirm-partner-tip" style="display:none;">
-        💡 小提醒：你的守護小精靈還沒施展魔法！也可以改按舞台上的 <strong>「✨ 精靈魔法」</strong>，每關可免費幫忙 1 次且<strong>不扣星、照拿寶石</strong>喔！
+        💡 小提醒：你的守護小精靈還沒施展魔法！也可以改按舞台上的 <strong>「✨ 精靈魔法」</strong>，每關可免費幫忙 1 次且<strong>不扣星、照拿收藏</strong>喔！
       </div>
     </div>
 

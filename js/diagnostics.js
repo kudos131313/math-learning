@@ -533,8 +533,9 @@
         var stages = MathApp.mulQuest.getStages();
         var badges = MathApp.mulQuest.getBadges();
         var costumes = MathApp.mulQuest.getCostumes ? MathApp.mulQuest.getCostumes() : [];
-        if(realms.length !== 3 || islands.length !== 5 || stages.length !== 15 || badges.length !== 10 || costumes.length !== 8){
-          throw new Error('海域或關卡設定數量異常：海域=' + realms.length + ' 島嶼=' + islands.length + ' 關卡=' + stages.length + ' 徽章=' + badges.length + ' 造型=' + costumes.length);
+        var skillCards = MathApp.mulQuest.getSkillCards ? MathApp.mulQuest.getSkillCards() : [];
+        if(realms.length !== 3 || islands.length !== 10 || stages.length !== 30 || badges.length !== 10 || costumes.length !== 8 || skillCards.length < 10){
+          throw new Error('海域或關卡設定數量異常：海域=' + realms.length + ' 島嶼=' + islands.length + ' 關卡=' + stages.length + ' 徽章=' + badges.length + ' 造型=' + costumes.length + ' 技能卡=' + skillCards.length);
         }
 
         // 驗證每一關題庫產生與選擇題誘答選項不重複且包含正解
@@ -544,7 +545,7 @@
             throw new Error('關卡 ' + st.id + ' 題數不符預期');
           }
           qs.forEach(function(q){
-            if(q.uiMode === 'choice'){
+            if(q.uiMode === 'choice' && q.kind === 'mul'){
               var opts = MathApp.mulQuiz.generateChoices(q, 4);
               if(opts.length !== 4){
                 throw new Error('關卡 ' + st.id + ' 選擇題選項數量不足 4 個');
@@ -562,8 +563,8 @@
         });
 
         // 驗證全段混戰與暖身關卡已大幅降低 1 的乘法出現機率
-        var stage51 = stages.filter(function(s){ return s.id === '5-1'; })[0];
-        var stage11 = stages.filter(function(s){ return s.id === '1-1'; })[0];
+        var stage51 = stages.filter(function(s){ return s.id === '5-1' || s.stageKey === 'mul:5-1'; })[0];
+        var stage11 = stages.filter(function(s){ return s.id === '1-1' || s.stageKey === 'mul:1-1'; })[0];
         var one51 = 0, total51 = 0;
         for(var r51 = 0; r51 < 30; r51++){
           MathApp.mulQuest.buildStageQuestions(stage51).forEach(function(q){
@@ -585,7 +586,7 @@
           throw new Error('關卡 1-1 含 1 乘法比例過高：' + Math.round((one11 / total11) * 100) + '%');
         }
 
-        return '驗證通過 5 大島 15 關題庫配置、10 枚徽章定義、選擇題誘答及低 1 乘法比例（5-1: ' + Math.round((one51 / total51) * 100) + '%, 1-1: ' + Math.round((one11 / total11) * 100) + '%）';
+        return '驗證通過 2 大活躍海域、10 大島 30 關題庫配置、10 張技能卡與低 1 乘法比例（5-1: ' + Math.round((one51 / total51) * 100) + '%, 1-1: ' + Math.round((one11 / total11) * 100) + '%）';
       }
     }
   ];

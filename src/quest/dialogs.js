@@ -1,7 +1,18 @@
 /**
  * 數學冒險島：圖鑑面板、換裝衣櫥、家長鎖定對話框與預習切換模組
  */
-import { ISLANDS, STAGES, BADGES, BUNNY_COSTUMES, getStageById, getCostumeById } from '../domain/quest-data.js';
+import {
+  REALMS,
+  ISLANDS,
+  STAGES,
+  BADGES,
+  BUNNY_COSTUMES,
+  SKILL_CARDS,
+  SKILL_TIER_THRESHOLDS,
+  getStageById,
+  getCostumeById,
+  getIslandsByRealm
+} from '../domain/quest-data.js';
 import {
   isStageUnlocked,
   getStageStars,
@@ -11,7 +22,9 @@ import {
   countUnlockedSprites,
   getActiveCostumeId,
   countUnlockedCostumes,
-  getCostumeProgress
+  getCostumeProgress,
+  getSkillCardProgress,
+  countUnlockedSkillCards
 } from '../domain/quest-questions.js';
 import { randInt } from '../domain/number-text.js';
 
@@ -171,6 +184,91 @@ export function createQuestDialogs({
     els.paneWardrobe.innerHTML = wbHtml;
   }
 
+  function renderSkillCodexPane() {
+    if (!els.paneSprites && !els.paneSkills) return;
+    if (!els.paneSkills) return;
+    const saveData = getSaveData();
+    const unlockedSkills = countUnlockedSkillCards(saveData);
+    const tierMeta = {
+      none: { label: '尚未啟封', badgeCls: 'tier-none', icon: '🔒' },
+      bronze: { label: '🥉 銅卡', badgeCls: 'tier-bronze', icon: '🥉' },
+      silver: { label: '🥈 銀卡', badgeCls: 'tier-silver', icon: '🥈' },
+      gold: { label: '🥇 金卡大師', badgeCls: 'tier-gold', icon: '🥇' }
+    };
+
+    let html =
+      '<div class="mqst-gem-summary">' +
+      '<span>📖 已解鎖技能卡：<b>' +
+      unlockedSkills +
+      ' / ' +
+      SKILL_CARDS.length +
+      '</b> 張</span>' +
+      '<span style="font-size:13px;color:var(--ink-soft);">未使用小幫手且一次答對累積：銅卡（' +
+      SKILL_TIER_THRESHOLDS.bronze +
+      ' 題）➔ 銀卡（' +
+      SKILL_TIER_THRESHOLDS.silver +
+      ' 題）➔ 金卡（' +
+      SKILL_TIER_THRESHOLDS.gold +
+      ' 題），升階送星星幣！</span>' +
+      '</div>';
+
+    html += '<div class="mqst-collection-grid">';
+    SKILL_CARDS.forEach(function (card) {
+      const prog = getSkillCardProgress(card.id, saveData);
+      const tm = tierMeta[prog.tier] || tierMeta.none;
+      const sampleSt = getStageById(card.sampleStageId);
+      const canPlay = sampleSt && isStageUnlocked(sampleSt.stageKey || sampleSt.id, saveData);
+      const goalTxt = prog.isMax
+        ? '🏆 已達最高金卡榮譽（共 ' + prog.count + ' 題）'
+        : '進度：' + prog.count + ' / ' + prog.nextTarget + ' 題（下一階：' + (prog.nextTier === 'bronze' ? '銅卡' : prog.nextTier === 'silver' ? '銀卡' : '金卡') + '）';
+
+      html +=
+        '<div class="mqst-collect-card mqst-skill-card ' +
+        tm.badgeCls +
+        '">' +
+        '<span class="mqst-skill-tier-pill ' +
+        tm.badgeCls +
+        '">' +
+        tm.label +
+        '</span>' +
+        '<div class="mqst-skill-ico" aria-hidden="true">' +
+        card.icon +
+        '</div>' +
+        '<div class="mqst-collect-name">' +
+        card.name +
+        '</div>' +
+        '<p class="mqst-collect-desc">' +
+        card.desc +
+        '</p>' +
+        '<div class="mqst-costume-progress-wrap">' +
+        '<div class="mqst-costume-goal-text">' +
+        goalTxt +
+        '</div>' +
+        '<div class="mqst-costume-progress-track" role="progressbar" aria-label="' +
+        card.name +
+        ' 技能進度" aria-valuenow="' +
+        prog.count +
+        '" aria-valuemin="0" aria-valuemax="' +
+        prog.nextTarget +
+        '">' +
+        '<div class="mqst-costume-progress-fill" style="width:' +
+        prog.pct +
+        '%;"></div>' +
+        '</div>' +
+        (canPlay
+          ? '<button type="button" class="mqst-sprite-equip-btn goto" data-goto-stage="' +
+            (sampleSt.stageKey || sampleSt.id) +
+            '">⚔️ 前往 ' +
+            (sampleSt.displayNum || sampleSt.id) +
+            ' 練習</button>'
+          : '') +
+        '</div>' +
+        '</div>';
+    });
+    html += '</div>';
+    els.paneSkills.innerHTML = html;
+  }
+
   function renderDexDialog() {
     const saveData = getSaveData();
     const litCount = countLitGems(saveData);
@@ -229,57 +327,74 @@ export function createQuestDialogs({
       ' / ' +
       ISLANDS.length +
       '</b> 隻</span>' +
-      '<span style="font-size:13px;color:var(--ink-soft);">打敗每座島嶼的 👑 魔王關即可收服！每關可免費施展 1 次精靈魔法（選擇題消錯／鍵盤題開積木），不扣星、照拿寶石！</span>' +
-      '</div><div class="mqst-collection-grid">';
+      '<span style="font-size:13px;color:var(--ink-soft);">打敗每座島嶼的 👑 魔王關即可收服！每關可免費施展 1 次精靈魔法（選擇題消錯／鍵盤題開積木），不扣星、照拿收藏！</span>' +
+      '</div>';
+
     const activePartnerFullId = getActivePartnerId(saveData);
-    ISLANDS.forEach(function (isl) {
-      const got = getStageStars(saveData, isl.bossStageId) >= 1;
-      const equipped = got && activePartnerFullId === isl.fullId;
-      const bossSt = getStageById(isl.bossStageId);
-      const bossUnlocked = isStageUnlocked(isl.bossStageId, saveData);
+    REALMS.forEach(function (realm) {
+      const realmIslands = getIslandsByRealm(realm.id);
+      if (!realmIslands || realmIslands.length === 0) return;
       spHtml +=
-        '<div class="mqst-collect-card' +
-        (got ? '' : ' locked') +
-        (equipped ? ' is-equipped' : '') +
-        '">' +
-        (equipped ? '<span class="mqst-equipped-tag">⭐ 同行夥伴</span>' : '') +
-        '<div class="mqst-collect-art">' +
-        getCharacterSvg(isl.theme, false, equipped ? 'happy' : 'normal') +
-        '</div>' +
-        '<div class="mqst-collect-name">' +
-        (got ? isl.spriteName : '???（尚未收服）') +
-        '</div>' +
-        '<p class="mqst-collect-desc">' +
-        isl.spriteDesc +
-        '</p>' +
-        (got
-          ? '<p class="mqst-collect-skill">' +
-            isl.partnerProjectile +
-            ' 助陣魔法：' +
-            isl.partnerSkillDesc +
-            '</p>' +
-            '<button type="button" class="mqst-sprite-equip-btn' +
-            (equipped ? ' active' : '') +
-            '" data-equip-sprite="' +
-            isl.fullId +
-            '">' +
-            (equipped ? '✅ 目前同行中（點此休息）' : '🤝 帶牠去冒險') +
-            '</button>'
-          : '<p class="mqst-collect-skill mqst-locked-goal">👑 打敗【' +
-            isl.bossStageId +
-            ' · ' +
-            (bossSt ? bossSt.label : '島嶼魔王') +
-            '】即可收服</p>' +
-            (bossUnlocked
-              ? '<button type="button" class="mqst-sprite-equip-btn goto" data-goto-boss="' +
-                isl.bossStageId +
-                '">⚔️ 前往挑戰 ' +
-                isl.bossStageId +
-                '</button>'
-              : '')) +
-        '</div>';
+        '<div class="mqst-dex-group-title">' +
+        realm.icon +
+        ' ' +
+        realm.title +
+        '（' +
+        countUnlockedSprites(saveData, realm.id) +
+        ' / ' +
+        realmIslands.length +
+        '）</div>';
+      spHtml += '<div class="mqst-collection-grid">';
+      realmIslands.forEach(function (isl) {
+        const got = getStageStars(saveData, isl.bossStageId) >= 1;
+        const equipped = got && activePartnerFullId === isl.fullId;
+        const bossSt = getStageById(isl.bossStageId);
+        const bossUnlocked = isStageUnlocked(isl.bossStageId, saveData);
+        const bossLabel = bossSt ? (bossSt.displayNum || bossSt.id) : isl.bossStageId;
+        spHtml +=
+          '<div class="mqst-collect-card' +
+          (got ? '' : ' locked') +
+          (equipped ? ' is-equipped' : '') +
+          '">' +
+          (equipped ? '<span class="mqst-equipped-tag">⭐ 同行夥伴</span>' : '') +
+          '<div class="mqst-collect-art">' +
+          getCharacterSvg(isl.theme, false, equipped ? 'happy' : 'normal') +
+          '</div>' +
+          '<div class="mqst-collect-name">' +
+          (got ? isl.spriteName : '???（尚未收服）') +
+          '</div>' +
+          '<p class="mqst-collect-desc">' +
+          isl.spriteDesc +
+          '</p>' +
+          (got
+            ? '<p class="mqst-collect-skill">' +
+              isl.partnerProjectile +
+              ' 助陣魔法：' +
+              isl.partnerSkillDesc +
+              '</p>' +
+              '<button type="button" class="mqst-sprite-equip-btn' +
+              (equipped ? ' active' : '') +
+              '" data-equip-sprite="' +
+              isl.fullId +
+              '">' +
+              (equipped ? '✅ 目前同行中（點此休息）' : '🤝 帶牠去冒險') +
+              '</button>'
+            : '<p class="mqst-collect-skill mqst-locked-goal">👑 打敗【' +
+              bossLabel +
+              ' · ' +
+              (bossSt ? bossSt.label : '島嶼魔王') +
+              '】即可收服</p>' +
+              (bossUnlocked
+                ? '<button type="button" class="mqst-sprite-equip-btn goto" data-goto-boss="' +
+                  isl.bossStageId +
+                  '">⚔️ 前往挑戰 ' +
+                  bossLabel +
+                  '</button>'
+                : '')) +
+          '</div>';
+      });
+      spHtml += '</div>';
     });
-    spHtml += '</div>';
     if (els.paneSprites) els.paneSprites.innerHTML = spHtml;
 
     let bdHtml = '<div class="mqst-collection-grid">';
@@ -302,6 +417,7 @@ export function createQuestDialogs({
     bdHtml += '</div>';
     if (els.paneBadges) els.paneBadges.innerHTML = bdHtml;
 
+    renderSkillCodexPane();
     renderWardrobePane();
   }
 

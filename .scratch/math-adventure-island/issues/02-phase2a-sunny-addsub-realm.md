@@ -1,4 +1,4 @@
-Status: needs-triage
+Status: ready-for-agent
 Phase: Phase 2a
 Blocked by: 01
 

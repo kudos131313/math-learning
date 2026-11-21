@@ -15,11 +15,14 @@ import {
   BUNNY_COSTUMES,
   FINISHER_DEFS,
   FINISHER_KEYS,
+  SKILL_CARDS,
   getRealmById,
   getIslandById,
   getStageById,
   getStagesByRealm,
   getCostumeById,
+  toCanonicalStageId,
+  toLegacyStageId,
   toCanonicalPartnerId,
   LEGACY_COSTUME_MIGRATION_MAP,
   findRecommendedStageForTable
@@ -47,6 +50,7 @@ import {
   enqueueRescueCase,
   removeRescueCase,
   calculateStageCoinReward,
+  recordSkillCodexHit,
   serializeBackupPayload,
   parseAndValidateBackupJson,
   buildStageQuestions as buildQuestStageQuestions,
@@ -54,6 +58,8 @@ import {
   getCollectableUnlitGems as findCollectableUnlitGems,
   buildGemHuntQuestions as buildQuestGemHuntQuestions
 } from '../src/domain/quest-questions.js';
+import { generateCalcChoices } from '../src/domain/quest-calc-questions.js';
+import { renderCalcEquationHtml, renderCalcHelperHtml } from '../src/quest/calc-ui.js';
 import {
   renderPinkBunnySvg,
   getStageChestSvg,
@@ -120,6 +126,9 @@ import { createQuestDialogs } from '../src/quest/dialogs.js';
     usedHelperOnCurrent: false,
     usedHelperInStage: false,
     newGemsThisRun: [],
+    skillHitsThisRun: 0,
+    skillUpgradesThisRun: [],
+    displayFormat: 'equation',
     earnedCoinsThisRun: 0,
     rescuedThisRun: 0,
     locked: false,
@@ -403,6 +412,7 @@ import { createQuestDialogs } from '../src/quest/dialogs.js';
     els.hitCallout     = document.getElementById('mqst-hit-callout');
 
     els.typeBadge      = document.getElementById('mqst-type-badge');
+    els.formatToggleBtn= document.getElementById('mqst-format-toggle-btn');
     els.promptText     = document.getElementById('mqst-prompt-text');
     els.speakBtn       = document.getElementById('mqst-speak-btn');
     els.questionStage  = document.getElementById('mqst-question-stage');
@@ -433,6 +443,7 @@ import { createQuestDialogs } from '../src/quest/dialogs.js';
     els.unlockShowcase = document.getElementById('mqst-unlock-showcase');
     els.resFirstAcc    = document.getElementById('mqst-res-first-acc');
     els.resCoins       = document.getElementById('mqst-res-coins');
+    els.resCollectLbl  = document.getElementById('mqst-res-collect-lbl');
     els.resNewGems     = document.getElementById('mqst-res-new-gems');
     els.resMaxCombo    = document.getElementById('mqst-res-max-combo');
     els.resNextBtn     = document.getElementById('mqst-res-next-btn');
@@ -441,6 +452,7 @@ import { createQuestDialogs } from '../src/quest/dialogs.js';
 
     els.dexDialog      = document.getElementById('mqst-dex-dialog');
     els.paneGems       = document.getElementById('mqst-pane-gems');
+    els.paneSkills     = document.getElementById('mqst-pane-skills');
     els.paneWardrobe   = document.getElementById('mqst-pane-wardrobe');
     els.paneSprites    = document.getElementById('mqst-pane-sprites');
     els.paneBadges     = document.getElementById('mqst-pane-badges');
@@ -670,9 +682,14 @@ import { createQuestDialogs } from '../src/quest/dialogs.js';
       '</div>' +
       '<ul class="mqst-realm-preview-list">' + islandsListHtml + '</ul>' +
       unlockNoteHtml +
-      '<button type="button" class="mqst-play-big-btn" data-preview-goto-realm="mul">' +
-        '<span aria-hidden="true">🌲</span><span>先前往九九乘法奇幻群島冒險</span>' +
-      '</button>';
+      '<div class="mqst-preview-goto-row">' +
+        '<button type="button" class="mqst-tool-btn" data-preview-goto-realm="sunny">' +
+          '<span aria-hidden="true">☀️</span><span>前往陽光加減群島</span>' +
+        '</button>' +
+        '<button type="button" class="mqst-play-big-btn" data-preview-goto-realm="mul">' +
+          '<span aria-hidden="true">🌲</span><span>前往九九乘法奇幻群島</span>' +
+        '</button>' +
+      '</div>';
   }
 
   /* ---------------- 全景世界大地圖與粉紅小兔渲染 ---------------- */
@@ -689,7 +706,7 @@ import { createQuestDialogs } from '../src/quest/dialogs.js';
         renderRealmPreview(activeRealm);
       }
       if(els.mapTip){
-        els.mapTip.textContent = '🚢 【' + activeRealm.title + '】將於 ' + (activeRealm.releaseNote || '後續階段') + ' 正式開放航行，先去九九乘法奇幻群島收集星星與星星幣吧！';
+        els.mapTip.textContent = '🚢 【' + activeRealm.title + '】將於 ' + (activeRealm.releaseNote || '後續階段') + ' 正式開放航行，先去陽光加減或九九乘法群島收集星星與星星幣吧！';
       }
       return;
     }
@@ -736,24 +753,27 @@ import { createQuestDialogs } from '../src/quest/dialogs.js';
     // 3. 關卡石頭／糖果節點
     var nodeHtml = '';
     var focusStage = realmStages[0] || STAGES[0];
+    var nextCanonical = toCanonicalStageId(nextPlayableId);
     realmStages.forEach(function(st){
-      var unlocked = isStageUnlocked(st.stageKey || st.id);
-      var stars = getStageStars(saveData, st.stageKey || st.id);
-      var isCurrent = unlocked && (st.id === nextPlayableId);
+      var stKey = st.stageKey || st.id;
+      var unlocked = isStageUnlocked(stKey);
+      var stars = getStageStars(saveData, stKey);
+      var isCurrent = unlocked && (stKey === nextCanonical || st.id === nextPlayableId);
       if(isCurrent) focusStage = st;
 
+      var dispNum = st.displayNum || toLegacyStageId(st.id);
       var cls = 'mqst-map-node';
       if(st.isBoss) cls += ' is-boss';
       if(!unlocked) cls += ' is-locked';
       else if(isCurrent) cls += ' is-current';
       else if(stars > 0) cls += ' is-cleared';
 
-      nodeHtml += '<button type="button" class="' + cls + '" data-stage-id="' + st.id + '"' +
+      nodeHtml += '<button type="button" class="' + cls + '" data-stage-id="' + stKey + '"' +
         ' style="left:' + st.mapPos.x + '%;top:' + st.mapPos.y + '%;"' +
         (unlocked ? '' : ' disabled') +
-        ' aria-label="' + st.id + ' ' + st.label + (st.isBoss && stars === 0 ? '（打敗可收服守護精靈）' : '') + '">' +
+        ' aria-label="' + dispNum + ' ' + st.label + (st.isBoss && stars === 0 ? '（打敗可收服守護精靈）' : '') + '">' +
         (st.isBoss && stars === 0 ? '<span class="mqst-boss-sprite-tag">🥚 收服精靈</span>' : '') +
-        '<span class="mqst-map-node-id">' + (st.isBoss ? '👑' : '') + st.id + '</span>' +
+        '<span class="mqst-map-node-id">' + (st.isBoss ? '👑' : '') + dispNum + '</span>' +
         '<span class="mqst-map-node-stars">' + (unlocked ? formatStarsStr(stars) : '🔒') + '</span>' +
         '<span class="mqst-map-node-title">' + st.label + '</span>' +
         '</button>';
@@ -912,16 +932,18 @@ import { createQuestDialogs } from '../src/quest/dialogs.js';
     session.firstTryCorrect = 0;
     session.usedHelperInStage = false;
     session.newGemsThisRun = [];
+    session.skillHitsThisRun = 0;
+    session.skillUpgradesThisRun = [];
     session.earnedCoinsThisRun = 0;
     session.rescuedThisRun = 0;
     session.enemyMaxHp = session.questions.length;
     session.enemyHp = session.enemyMaxHp;
-    session.bossShieldMax = st.isBoss ? ((st.islandId === 'forest' || st.islandId === 'workshop') ? 1 : 2) : 0;
+    session.bossShieldMax = st.isBoss ? (st.bossShield || ((st.islandId === 'forest' || st.islandId === 'workshop') ? 1 : 2)) : 0;
     session.bossShield = session.bossShieldMax;
     session.partnerUsedSkill = false;
 
     var isl = getIslandById(st.islandId);
-    beginBattleUI(st.id + ' · ' + st.label, isl.bgImg, st.islandId, st.isBoss ? st.boss : null);
+    beginBattleUI((st.displayNum || st.id) + ' · ' + st.label, isl.bgImg, st.islandId, st.isBoss ? st.boss : null);
   }
 
   function startRescueBattle(){
@@ -937,6 +959,8 @@ import { createQuestDialogs } from '../src/quest/dialogs.js';
     session.firstTryCorrect = 0;
     session.usedHelperInStage = false;
     session.newGemsThisRun = [];
+    session.skillHitsThisRun = 0;
+    session.skillUpgradesThisRun = [];
     session.earnedCoinsThisRun = 0;
     session.rescuedThisRun = 0;
     session.enemyMaxHp = session.questions.length;
@@ -945,7 +969,14 @@ import { createQuestDialogs } from '../src/quest/dialogs.js';
     session.bossShield = 0;
     session.partnerUsedSkill = false;
 
-    beginBattleUI('🆘 求救小精靈特訓', 'assets/quest/bg-garden.jpg', 'garden', null);
+    var firstQ = session.questions[0];
+    var isSunnyRescue = Boolean(firstQ && firstQ.realm === 'sunny');
+    beginBattleUI(
+      '🆘 求救小精靈特訓',
+      isSunnyRescue ? 'assets/quest/bg-bay.jpg' : 'assets/quest/bg-garden.jpg',
+      isSunnyRescue ? 'bay' : 'garden',
+      null
+    );
   }
 
   function startGemHuntBattle(){
@@ -964,6 +995,8 @@ import { createQuestDialogs } from '../src/quest/dialogs.js';
     session.firstTryCorrect = 0;
     session.usedHelperInStage = false;
     session.newGemsThisRun = [];
+    session.skillHitsThisRun = 0;
+    session.skillUpgradesThisRun = [];
     session.earnedCoinsThisRun = 0;
     session.rescuedThisRun = 0;
     session.enemyMaxHp = session.questions.length;
@@ -1143,18 +1176,45 @@ import { createQuestDialogs } from '../src/quest/dialogs.js';
     if(inp) inp.classList.add('active-input');
   }
 
+  function bindEquationInputs(){
+    var inputs = els.equationRow ? els.equationRow.querySelectorAll('.mq-input-slot') : [];
+    for(var k = 0; k < inputs.length; k++){
+      (function(inp){
+        inp.addEventListener('click', function(){
+          if(session.locked) return;
+          if(MathApp.sfx) MathApp.sfx('click');
+          setActiveInput(inp);
+        });
+      })(inputs[k]);
+    }
+    if(inputs.length > 0) setActiveInput(inputs[0]);
+  }
+
+  function syncFormatToggleButton(q){
+    if(!els.formatToggleBtn) return;
+    if(q && q.kind !== 'mul' && q.canToggleFormat){
+      var isVert = session.displayFormat === 'vertical_mini';
+      els.formatToggleBtn.style.display = 'inline-flex';
+      els.formatToggleBtn.textContent = isVert ? '⇄ 切換橫式' : '⇄ 切換直式';
+      els.formatToggleBtn.setAttribute('aria-pressed', String(isVert));
+    } else {
+      els.formatToggleBtn.style.display = 'none';
+    }
+  }
+
   function renderCurrentQuestion(){
     var q = session.questions[session.idx];
-    var total = session.questions.length;
     session.locked = false;
     session.hadWrongOnCurrent = false;
     session.usedHelperOnCurrent = false;
+    session.displayFormat = q.displayFormat || 'equation';
     updateBattleMoods(session.combo >= 3 ? 'fever' : 'normal', 'normal', 'normal');
     updatePartnerSkillButton();
     updateBattleProgressUI(session.idx);
 
     if(els.typeBadge)  els.typeBadge.textContent  = q.badge;
     if(els.promptText) els.promptText.textContent = q.hint;
+    syncFormatToggleButton(q);
 
     if(els.feedback){
       els.feedback.textContent = '';
@@ -1176,7 +1236,32 @@ import { createQuestDialogs } from '../src/quest/dialogs.js';
     }
 
     var eqHtml = '';
-    if(q.uiMode === 'choice'){
+    if(q.kind !== 'mul' && q.equationModel){
+      els.equationRow.innerHTML = renderCalcEquationHtml(q, session.displayFormat);
+      if(q.uiMode === 'choice'){
+        els.choicesGrid.style.display = 'grid';
+        els.keypadWrap.style.display  = 'none';
+
+        var calcChoices = generateCalcChoices(q, 4);
+        var ccHtml = '';
+        calcChoices.forEach(function(val){
+          ccHtml += '<button type="button" class="mqst-choice-bubble" data-choice="' + val + '">' + val + '</button>';
+        });
+        els.choicesGrid.innerHTML = ccHtml;
+
+        runAnim(function(gsap){
+          var bubbles = els.choicesGrid.querySelectorAll('.mqst-choice-bubble');
+          gsap.fromTo(bubbles, { autoAlpha: 0, scale: 0.85 }, { autoAlpha: 1, scale: 1, duration: 0.25, stagger: 0.04, ease: 'back.out(1.6)', clearProps: 'transform,opacity,visibility' });
+        });
+      } else {
+        els.choicesGrid.style.display = 'none';
+        els.keypadWrap.style.display  = 'block';
+        bindEquationInputs();
+      }
+      if(els.helperStage){
+        els.helperStage.innerHTML = renderCalcHelperHtml(q, MathApp.utils.blockGlyph);
+      }
+    } else if(q.uiMode === 'choice'){
       if(q.qType === 'commutative'){
         eqHtml = '<span class="mq-num-box" style="color:var(--t-color-dark);background:#ffedd5;">' + q.b + '</span><span>×</span><span class="mq-num-box" style="color:var(--h-color-dark);background:#dbeafe;">' + q.a + '</span><span>＝</span><span class="mq-num-box" style="color:var(--h-color-dark);background:#dbeafe;">' + q.a + '</span><span>×</span><span class="mq-num-box" style="background:#fef9c3;">？</span>';
       } else if(q.qType === 'missing_b'){
@@ -1202,6 +1287,10 @@ import { createQuestDialogs } from '../src/quest/dialogs.js';
         var bubbles = els.choicesGrid.querySelectorAll('.mqst-choice-bubble');
         gsap.fromTo(bubbles, { autoAlpha: 0, scale: 0.85 }, { autoAlpha: 1, scale: 1, duration: 0.25, stagger: 0.04, ease: 'back.out(1.6)', clearProps: 'transform,opacity,visibility' });
       });
+
+      if(els.helperStage && MathApp.mulQuiz.buildHelperBlocksHtml){
+        els.helperStage.innerHTML = MathApp.mulQuiz.buildHelperBlocksHtml(q);
+      }
     } else {
       if(q.qType === 'commutative'){
         eqHtml = '<span class="mq-num-box" style="color:var(--t-color-dark);background:#ffedd5;">' + q.b + '</span><span>×</span><span class="mq-num-box" style="color:var(--h-color-dark);background:#dbeafe;">' + q.a + '</span><span>＝</span><span class="mq-num-box" style="color:var(--h-color-dark);background:#dbeafe;">' + q.a + '</span><span>×</span><input type="text" class="mq-input-slot" data-slot-id="ans" maxlength="1" inputmode="none" readonly aria-label="輸入交換後的乘數" placeholder="?">';
@@ -1218,22 +1307,11 @@ import { createQuestDialogs } from '../src/quest/dialogs.js';
 
       els.choicesGrid.style.display = 'none';
       els.keypadWrap.style.display  = 'block';
+      bindEquationInputs();
 
-      var inputs = els.equationRow.querySelectorAll('.mq-input-slot');
-      for(var k = 0; k < inputs.length; k++){
-        (function(inp){
-          inp.addEventListener('click', function(){
-            if(session.locked) return;
-            if(MathApp.sfx) MathApp.sfx('click');
-            setActiveInput(inp);
-          });
-        })(inputs[k]);
+      if(els.helperStage && MathApp.mulQuiz.buildHelperBlocksHtml){
+        els.helperStage.innerHTML = MathApp.mulQuiz.buildHelperBlocksHtml(q);
       }
-      if(inputs.length > 0) setActiveInput(inputs[0]);
-    }
-
-    if(els.helperStage && MathApp.mulQuiz.buildHelperBlocksHtml){
-      els.helperStage.innerHTML = MathApp.mulQuiz.buildHelperBlocksHtml(q);
     }
 
     if(MathApp.refreshIcons) MathApp.refreshIcons();
@@ -1307,10 +1385,31 @@ import { createQuestDialogs } from '../src/quest/dialogs.js';
       saveData.stats.selfHealed++;
     }
 
-    var gemKey = q.a + 'x' + q.b;
-    if((cleanFirstTry || session.isRescueMode || session.isGemHuntMode) && !saveData.gems[gemKey]){
-      saveData.gems[gemKey] = true;
-      session.newGemsThisRun.push(gemKey);
+    var gemKey = '';
+    var gemNote = '';
+    if(q.kind === 'mul' || !q.kind){
+      gemKey = q.a + 'x' + q.b;
+      if((cleanFirstTry || session.isRescueMode || session.isGemHuntMode) && !saveData.gems[gemKey]){
+        saveData.gems[gemKey] = true;
+        session.newGemsThisRun.push(gemKey);
+      }
+      if(session.newGemsThisRun.indexOf(gemKey) !== -1){
+        gemNote = '（💎 新點亮 ' + q.a + '×' + q.b + ' 寶石！）';
+      }
+    }
+
+    var skillUpgradeNote = '';
+    if(cleanFirstTry && q.skillTag){
+      var skillRes = recordSkillCodexHit(saveData, q.skillTag);
+      if(skillRes.card){
+        session.skillHitsThisRun++;
+        if(skillRes.upgraded){
+          saveData.starCoins = Number(saveData.starCoins || 0) + skillRes.bonusCoins;
+          session.skillUpgradesThisRun.push(skillRes);
+          var tierTitle = skillRes.newTier === 'gold' ? '金卡' : (skillRes.newTier === 'silver' ? '銀卡' : '銅卡');
+          skillUpgradeNote = '（📖 ' + skillRes.card.name + ' 升至' + tierTitle + ' +' + skillRes.bonusCoins + '🪙！）';
+        }
+      }
     }
 
     if(session.isRescueMode){
@@ -1375,11 +1474,10 @@ import { createQuestDialogs } from '../src/quest/dialogs.js';
       playBunnyAttackAnim(session.combo >= 3, shieldEvent, partner);
     }
 
-    var gemNote = session.newGemsThisRun.indexOf(gemKey) !== -1 ? ('（💎 新點亮 ' + q.a + '×' + q.b + ' 寶石！）') : '';
     var shieldNote = shieldEvent === 'broken-all' ? ' 💥 Boss 護盾全破！' : (shieldEvent === 'crack' ? ' 🛡️ 擊碎一層護盾！' : '');
     var finisherNote = isFinalBlow ? (' 【' + FINISHER_DEFS[finisherId].badge + '】') : '';
     if(els.feedback){
-      els.feedback.textContent = '🎉 答對了！' + finisherNote + shieldNote + gemNote;
+      els.feedback.textContent = '🎉 答對了！' + finisherNote + shieldNote + gemNote + skillUpgradeNote;
       els.feedback.className = 'mqst-stage-toast good';
     }
 
@@ -1391,7 +1489,9 @@ import { createQuestDialogs } from '../src/quest/dialogs.js';
     if(els.nextDock)    els.nextDock.style.display    = 'flex';
 
     if(els.explanationBox){
-      els.explanationBox.innerHTML = '✨ <b>' + q.a + ' × ' + q.b + ' ＝ ' + q.product + '</b>（口訣：<b>' + q.mantra + '</b>）';
+      els.explanationBox.innerHTML = q.explanationHtml
+        ? q.explanationHtml
+        : ('✨ <b>' + q.a + ' × ' + q.b + ' ＝ ' + q.product + '</b>（口訣：<b>' + q.mantra + '</b>）');
     }
 
     clearNextUnlockTimer();
@@ -1428,7 +1528,7 @@ import { createQuestDialogs } from '../src/quest/dialogs.js';
 
     // 必殺技期間將朗讀口訣延至命中爆破後，避免與必殺技音效互搶聲音
     var speakDelayMs = isFinalBlow ? (battleFx.isMotionReduced() ? 360 : (isBoss ? 2000 : 1600)) : 340;
-    scheduleSpeak('答對了！' + q.mantra, speakDelayMs);
+    scheduleSpeak(q.spokenExplanation || ('答對了！' + (q.mantra || '')), speakDelayMs);
   }
 
   function handleWrong(q){
@@ -1651,7 +1751,10 @@ import { createQuestDialogs } from '../src/quest/dialogs.js';
       isGemHuntMode: session.isGemHuntMode,
       dailyReplayCount: saveData.daily.replayRewardCount || 0
     });
-    session.earnedCoinsThisRun = coinOutcome.coins;
+    var skillUpgradeBonus = session.skillUpgradesThisRun.reduce(function(acc, item){
+      return acc + (Number(item && item.bonusCoins) || 0);
+    }, 0);
+    session.earnedCoinsThisRun = coinOutcome.coins + skillUpgradeBonus;
     saveData.starCoins = Number(saveData.starCoins || 0) + coinOutcome.coins;
     if(coinOutcome.consumesDailyReplay){
       saveData.daily.replayRewardCount = (saveData.daily.replayRewardCount || 0) + 1;
@@ -1676,7 +1779,15 @@ import { createQuestDialogs } from '../src/quest/dialogs.js';
 
     if(els.resFirstAcc) els.resFirstAcc.textContent = session.firstTryCorrect + ' / ' + total;
     if(els.resCoins)    els.resCoins.textContent    = '+' + session.earnedCoinsThisRun + ' 🪙';
-    if(els.resNewGems)  els.resNewGems.textContent  = '+' + session.newGemsThisRun.length + ' 💎';
+    var isSunnySummary = Boolean((session.stage && session.stage.realmId === 'sunny') || (session.isRescueMode && session.skillHitsThisRun > 0 && session.newGemsThisRun.length === 0));
+    if(els.resCollectLbl){
+      els.resCollectLbl.textContent = isSunnySummary ? '技能累積' : '新亮寶石';
+    }
+    if(els.resNewGems){
+      els.resNewGems.textContent = isSunnySummary
+        ? ('+' + session.skillHitsThisRun + ' 📖')
+        : ('+' + session.newGemsThisRun.length + ' 💎');
+    }
     if(els.resMaxCombo) els.resMaxCombo.textContent = session.maxCombo + ' 🔥';
 
     if(session.isRescueMode){
@@ -1736,6 +1847,14 @@ import { createQuestDialogs } from '../src/quest/dialogs.js';
         '<span style="font-size:34px;">' + b.icon + '</span>' +
         '<div><div>🏅 解鎖新成就徽章：【' + b.name + '】！</div>' +
         '<div style="font-size:13px;font-weight:700;color:var(--ink-soft);">' + b.desc + '</div></div></div>';
+    });
+    session.skillUpgradesThisRun.forEach(function(up){
+      if(!up || !up.card) return;
+      var tierTxt = up.newTier === 'gold' ? '🥇 金卡' : (up.newTier === 'silver' ? '🥈 銀卡' : '🥉 銅卡');
+      showcaseHtml += '<div class="mqst-unlock-banner" style="background:linear-gradient(135deg,#fffbeb 0%,#fde68a 100%);border-color:#d97706;">' +
+        '<span style="font-size:34px;">' + up.card.icon + '</span>' +
+        '<div><div>📖 技能卡進階：【' + up.card.name + '】達成 ' + tierTxt + '！</div>' +
+        '<div style="font-size:13px;font-weight:700;color:var(--ink-soft);">額外獎勵 +' + up.bonusCoins + ' 枚星星幣！</div></div></div>';
     });
     els.unlockShowcase.innerHTML = showcaseHtml;
 
@@ -1894,6 +2013,51 @@ import { createQuestDialogs } from '../src/quest/dialogs.js';
       });
     }
 
+    if(els.formatToggleBtn){
+      els.formatToggleBtn.addEventListener('click', function(){
+        if(!session.active || session.locked) return;
+        var q = session.questions[session.idx];
+        if(!q || q.kind === 'mul' || !q.canToggleFormat || !q.equationModel) return;
+        if(MathApp.sfx) MathApp.sfx('click');
+
+        var curInp = els.equationRow ? els.equationRow.querySelector('.mq-input-slot[data-slot-id="ans"]') : null;
+        var preservedVal = curInp ? curInp.value : '';
+        session.displayFormat = session.displayFormat === 'vertical_mini' ? 'equation' : 'vertical_mini';
+        syncFormatToggleButton(q);
+
+        els.equationRow.innerHTML = renderCalcEquationHtml(q, session.displayFormat);
+        if(q.uiMode === 'keypad'){
+          bindEquationInputs();
+          var nextInp = els.equationRow ? els.equationRow.querySelector('.mq-input-slot[data-slot-id="ans"]') : null;
+          if(nextInp && preservedVal){
+            nextInp.value = preservedVal;
+          }
+        }
+      });
+    }
+
+    if(els.helperStage){
+      els.helperStage.addEventListener('click', function(e){
+        var labBtn = e.target.closest('[data-goto-calc-lab]');
+        if(!labBtn) return;
+        var aVal = Number(labBtn.getAttribute('data-a')) || 28;
+        var bVal = Number(labBtn.getAttribute('data-b')) || 15;
+        var opVal = labBtn.getAttribute('data-op') === 'sub' ? 'sub' : 'add';
+        if(MathApp.sfx) MathApp.sfx('click');
+        closeArcade();
+        if(MathApp.tabs){
+          MathApp.tabs.switchMainTab('calc');
+          MathApp.tabs.switchSubTab('calc', 'learn');
+        }
+        if(MathApp.calc && MathApp.calc.loadProblem){
+          MathApp.calc.loadProblem(aVal, bVal, opVal);
+        }
+        if(MathApp.utils && MathApp.utils.showToast){
+          MathApp.utils.showToast('🧱 已帶入 ' + aVal + (opVal === 'add' ? ' ＋ ' : ' − ') + bVal + ' 到直式教室，按「下一步」看積木動畫！');
+        }
+      });
+    }
+
     if(els.choicesGrid){
       els.choicesGrid.addEventListener('click', function(e){
         var btn = e.target.closest('.mqst-choice-bubble[data-choice]');
@@ -1988,7 +2152,7 @@ import { createQuestDialogs } from '../src/quest/dialogs.js';
         var realmStages = getStagesByRealm((session.stage && session.stage.realmId) || 'mul');
         var curIdx = realmStages.indexOf(session.stage);
         if(curIdx >= 0 && curIdx + 1 < realmStages.length){
-          startStage(realmStages[curIdx + 1].id);
+          startStage(realmStages[curIdx + 1].stageKey || realmStages[curIdx + 1].id);
         } else {
           showView('map');
         }
@@ -1997,7 +2161,7 @@ import { createQuestDialogs } from '../src/quest/dialogs.js';
     if(els.resRetryBtn){
       els.resRetryBtn.addEventListener('click', function(){
         if(MathApp.sfx) MathApp.sfx('click');
-        if(session.stage) startStage(session.stage.id);
+        if(session.stage) startStage(session.stage.stageKey || session.stage.id);
       });
     }
     if(els.resMapBtn){
@@ -2064,15 +2228,26 @@ import { createQuestDialogs } from '../src/quest/dialogs.js';
             if(focusTab) t.focus();
           }
         });
-        if(els.paneGems)     els.paneGems.style.display     = (target === 'gems') ? 'block' : 'none';
-        if(els.paneWardrobe) els.paneWardrobe.style.display = (target === 'wardrobe') ? 'block' : 'none';
-        if(els.paneSprites)  els.paneSprites.style.display  = (target === 'sprites') ? 'block' : 'none';
-        if(els.paneBadges)   els.paneBadges.style.display   = (target === 'badges') ? 'block' : 'none';
+        if(els.paneGems)     els.paneGems.hidden     = (target !== 'gems');
+        if(els.paneSkills)   els.paneSkills.hidden   = (target !== 'skills');
+        if(els.paneWardrobe) els.paneWardrobe.hidden = (target !== 'wardrobe');
+        if(els.paneSprites)  els.paneSprites.hidden  = (target !== 'sprites');
+        if(els.paneBadges)   els.paneBadges.hidden   = (target !== 'badges');
+      }
+
+      function jumpToStageFromDex(stageId){
+        var st = getStageById(stageId);
+        if(!st) return;
+        if(els.dexDialog && els.dexDialog.open) els.dexDialog.close();
+        if(saveData.activeRealm !== st.realmId){
+          switchRealm(st.realmId, false);
+        }
+        walkBunnyAndStart(st.stageKey || st.id);
       }
 
       function openDexDialog(initialTab){
         if(MathApp.sfx) MathApp.sfx('click');
-        var tab = initialTab || 'gems';
+        var tab = initialTab || (saveData.activeRealm === 'sunny' ? 'skills' : 'gems');
         if(tab === 'wardrobe' && saveData.hasNewCostume){
           saveData.hasNewCostume = false;
           persistSave();
@@ -2084,7 +2259,7 @@ import { createQuestDialogs } from '../src/quest/dialogs.js';
       }
 
       if(els.openDexBtn){
-        els.openDexBtn.addEventListener('click', function(){ openDexDialog('gems'); });
+        els.openDexBtn.addEventListener('click', function(){ openDexDialog(); });
       }
       if(els.openWardrobeBtn){
         els.openWardrobeBtn.addEventListener('click', function(){ openDexDialog('wardrobe'); });
@@ -2132,8 +2307,7 @@ import { createQuestDialogs } from '../src/quest/dialogs.js';
           if(gotoBtn){
             var sid = gotoBtn.getAttribute('data-goto-stage');
             if(MathApp.sfx) MathApp.sfx('click');
-            if(els.dexDialog && els.dexDialog.open) els.dexDialog.close();
-            walkBunnyAndStart(sid);
+            jumpToStageFromDex(sid);
             return;
           }
 
@@ -2171,14 +2345,23 @@ import { createQuestDialogs } from '../src/quest/dialogs.js';
         });
       }
 
+      if(els.paneSkills){
+        els.paneSkills.addEventListener('click', function(e){
+          var gotoBtn = e.target.closest('[data-goto-stage]');
+          if(!gotoBtn) return;
+          var sid = gotoBtn.getAttribute('data-goto-stage');
+          if(MathApp.sfx) MathApp.sfx('click');
+          jumpToStageFromDex(sid);
+        });
+      }
+
       if(els.paneSprites){
         els.paneSprites.addEventListener('click', function(e){
           var gotoBossBtn = e.target.closest('[data-goto-boss]');
           if(gotoBossBtn){
             var sid = gotoBossBtn.getAttribute('data-goto-boss');
             if(MathApp.sfx) MathApp.sfx('click');
-            if(els.dexDialog && els.dexDialog.open) els.dexDialog.close();
-            walkBunnyAndStart(sid);
+            jumpToStageFromDex(sid);
             return;
           }
           var eqBtn = e.target.closest('[data-equip-sprite]');
@@ -2503,6 +2686,7 @@ import { createQuestDialogs } from '../src/quest/dialogs.js';
     getStages: function(){ return STAGES.slice(); },
     getBadges: function(){ return BADGES.slice(); },
     getCostumes: function(){ return BUNNY_COSTUMES.slice(); },
+    getSkillCards: function(){ return SKILL_CARDS.slice(); },
     buildStageQuestions: buildStageQuestions,
     getPinkBunnySvg: getPinkBunnySvg,
     getStageChestSvg: getStageChestSvg,

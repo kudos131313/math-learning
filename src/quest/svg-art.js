@@ -232,7 +232,12 @@ export function getStageChestSvg(theme, mood) {
     workshop: { top: '#fde047', body: '#facc15', trim: '#fef08a', accent: '#f97316', badge: 'gear' },
     garden: { top: '#fbcfe8', body: '#f472b6', trim: '#fce7f3', accent: '#ec4899', badge: 'bow' },
     valley: { top: '#bae6fd', body: '#60a5fa', trim: '#e0f2fe', accent: '#3b82f6', badge: 'wing' },
-    castle: { top: '#ddd6fe', body: '#a78bfa', trim: '#ede9fe', accent: '#7c3aed', badge: 'crown' }
+    castle: { top: '#ddd6fe', body: '#a78bfa', trim: '#ede9fe', accent: '#7c3aed', badge: 'crown' },
+    bakery: { top: '#fde68a', body: '#f59e0b', trim: '#fef3c7', accent: '#d97706', badge: 'croissant' },
+    candy: { top: '#fecdd3', body: '#fb7185', trim: '#ffe4e6', accent: '#e11d48', badge: 'berry' },
+    bay: { top: '#a5f3fc', body: '#22d3ee', trim: '#cffafe', accent: '#0891b2', badge: 'shell' },
+    market: { top: '#fed7aa', body: '#fb923c', trim: '#ffedd5', accent: '#ea580c', badge: 'blocks' },
+    lighthouse: { top: '#c7d2fe', body: '#818cf8', trim: '#e0e7ff', accent: '#4f46e5', badge: 'prism' }
   };
   const pal = colors[theme] || colors.forest;
   const cid = 'ch-' + (theme || 'forest') + '-' + nextUid();
@@ -261,6 +266,38 @@ export function getStageChestSvg(theme, mood) {
       return (
         '<path d="M16 48 C6 38 4 50 11 56 C14 58 18 55 18 51 Z" fill="#fde047" stroke="#332b22" stroke-width="2.2"/>' +
         '<path d="M80 48 C90 38 92 50 85 56 C82 58 78 55 78 51 Z" fill="#fde047" stroke="#332b22" stroke-width="2.2"/>'
+      );
+    }
+    if (b === 'croissant') {
+      return (
+        '<path d="M35 26 Q48 14 61 26 Q54 29 48 27 Q42 29 35 26 Z" fill="#fbbf24" stroke="#332b22" stroke-width="2.2" stroke-linejoin="round"/>' +
+        '<circle cx="48" cy="22" r="2.4" fill="#fffbeb"/>'
+      );
+    }
+    if (b === 'berry') {
+      return (
+        '<path d="M40 20 C40 14 56 14 56 20 C56 27 48 31 48 31 C48 31 40 27 40 20 Z" fill="#f43f5e" stroke="#332b22" stroke-width="2.1"/>' +
+        '<path d="M42 16 L48 13 L54 16" fill="none" stroke="#22c55e" stroke-width="2.4" stroke-linecap="round"/>'
+      );
+    }
+    if (b === 'shell') {
+      return (
+        '<path d="M37 27 C37 16 59 16 59 27 Z" fill="#fde68a" stroke="#332b22" stroke-width="2.2" stroke-linejoin="round"/>' +
+        '<circle cx="48" cy="23" r="3" fill="#ffffff" stroke="#332b22" stroke-width="1.5"/>'
+      );
+    }
+    if (b === 'blocks') {
+      return (
+        '<rect x="37" y="19" width="10" height="8" rx="1.5" fill="#60a5fa" stroke="#332b22" stroke-width="1.8"/>' +
+        '<rect x="49" y="19" width="10" height="8" rx="1.5" fill="#fbbf24" stroke="#332b22" stroke-width="1.8"/>' +
+        '<rect x="43" y="12" width="10" height="8" rx="1.5" fill="#fb7185" stroke="#332b22" stroke-width="1.8"/>'
+      );
+    }
+    if (b === 'prism') {
+      return (
+        '<path d="M34 27 A14 14 0 0 1 62 27" fill="none" stroke="#f43f5e" stroke-width="2.6" stroke-linecap="round"/>' +
+        '<path d="M38 27 A10 10 0 0 1 58 27" fill="none" stroke="#facc15" stroke-width="2.4" stroke-linecap="round"/>' +
+        '<path d="M42 27 A6 6 0 0 1 54 27" fill="none" stroke="#38bdf8" stroke-width="2.2" stroke-linecap="round"/>'
       );
     }
     return '<polygon points="36,27 40,16 48,22 56,16 60,27" fill="#fbbf24" stroke="#332b22" stroke-width="2.2" stroke-linejoin="round"/>';
@@ -429,6 +466,114 @@ export function getCharacterSvg(key, isBoss, mood) {
           '<circle cx="84" cy="24" r="2.5" fill="#fde047"/>' +
           '</svg>'
         );
+      },
+      bakery: () => {
+        const gId = 'bs-bak-' + uid;
+        return (
+          '<svg viewBox="0 0 96 96">' +
+          '<defs><linearGradient id="' + gId + '" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#fde68a"/><stop offset="100%" stop-color="#d97706"/></linearGradient></defs>' +
+          '<ellipse cx="48" cy="86" rx="28" ry="5.5" fill="rgba(51,43,34,0.16)"/>' +
+          '<path d="M16 56 C8 43 13 24 26 24 C29 24 32 33 32 38 Z" fill="#f59e0b" stroke="#332b22" stroke-width="3" stroke-linejoin="round"/>' +
+          '<path d="M80 56 C88 43 83 24 70 24 C67 24 64 33 64 38 Z" fill="#f59e0b" stroke="#332b22" stroke-width="3" stroke-linejoin="round"/>' +
+          '<ellipse cx="34" cy="79" rx="7.5" ry="4.5" fill="#b45309" stroke="#332b22" stroke-width="2.6"/>' +
+          '<ellipse cx="62" cy="79" rx="7.5" ry="4.5" fill="#b45309" stroke="#332b22" stroke-width="2.6"/>' +
+          '<path d="M18 54 C18 28 78 28 78 54 C78 74 64 81 48 81 C32 81 18 74 18 54 Z" fill="url(#' + gId + ')" stroke="#332b22" stroke-width="3.2"/>' +
+          '<path d="M29 37 Q32 52 28 65 M67 37 Q64 52 68 65" fill="none" stroke="#92400e" stroke-width="2.6" stroke-linecap="round"/>' +
+          '<path d="M36 27 Q48 16 60 27" fill="none" stroke="#fef3c7" stroke-width="5" stroke-linecap="round"/>' +
+          '<path d="M36 27 Q48 16 60 27" fill="none" stroke="#332b22" stroke-width="2.2" stroke-linecap="round"/>' +
+          '<ellipse cx="31" cy="56" rx="4.5" ry="2.6" fill="#fb7185" opacity="0.72"/>' +
+          '<ellipse cx="65" cy="56" rx="4.5" ry="2.6" fill="#fb7185" opacity="0.72"/>' +
+          buildFaceExpression(m, 38, 58, 51, 59, 4.1) +
+          '</svg>'
+        );
+      },
+      candy: () => {
+        const gId = 'bs-can-' + uid;
+        return (
+          '<svg viewBox="0 0 96 96">' +
+          '<defs><linearGradient id="' + gId + '" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#ffe4e6"/><stop offset="100%" stop-color="#fb7185"/></linearGradient></defs>' +
+          '<ellipse cx="48" cy="86" rx="27" ry="5.5" fill="rgba(51,43,34,0.16)"/>' +
+          '<rect x="10" y="48" width="10" height="14" rx="4" fill="#f472b6" stroke="#332b22" stroke-width="2.6"/>' +
+          '<rect x="76" y="48" width="10" height="14" rx="4" fill="#f472b6" stroke="#332b22" stroke-width="2.6"/>' +
+          '<rect x="28" y="75" width="12" height="8" rx="4" fill="#e11d48" stroke="#332b22" stroke-width="2.6"/>' +
+          '<rect x="56" y="75" width="12" height="8" rx="4" fill="#e11d48" stroke="#332b22" stroke-width="2.6"/>' +
+          '<line x1="48" y1="12" x2="48" y2="26" stroke="#332b22" stroke-width="3.2"/>' +
+          '<circle cx="48" cy="12" r="6.5" fill="#fb7185" stroke="#332b22" stroke-width="2.6"/>' +
+          '<path d="M44 12 A4 4 0 0 1 52 12" fill="none" stroke="#ffffff" stroke-width="2" stroke-linecap="round"/>' +
+          '<rect x="18" y="25" width="60" height="53" rx="15" fill="url(#' + gId + ')" stroke="#332b22" stroke-width="3.2"/>' +
+          '<path d="M19 34 Q28 42 36 33 Q44 43 52 33 Q60 43 68 33 Q73 39 77 34 L77 27 Q48 22 19 27 Z" fill="#ffffff" stroke="#332b22" stroke-width="2.4" stroke-linejoin="round"/>' +
+          '<circle cx="32" cy="30" r="2" fill="#f43f5e"/><circle cx="48" cy="29" r="2" fill="#38bdf8"/><circle cx="64" cy="30" r="2" fill="#facc15"/>' +
+          '<rect x="27" y="40" width="42" height="20" rx="8" fill="#1e293b" stroke="#332b22" stroke-width="2.4"/>' +
+          '<rect x="30" y="43" width="15" height="13" rx="4" fill="#ffffff"/>' +
+          '<rect x="51" y="43" width="15" height="13" rx="4" fill="#ffffff"/>' +
+          '<rect x="33" y="64" width="30" height="9" rx="4.5" fill="#fef08a" stroke="#332b22" stroke-width="2"/>' +
+          buildFaceExpression(m, 37.5, 58.5, 49.5, 61, 3.3) +
+          '</svg>'
+        );
+      },
+      bay: () => {
+        const gId = 'bs-bay-' + uid;
+        return (
+          '<svg viewBox="0 0 96 96">' +
+          '<defs><linearGradient id="' + gId + '" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#a5f3fc"/><stop offset="100%" stop-color="#06b6d4"/></linearGradient></defs>' +
+          '<ellipse cx="48" cy="86" rx="28" ry="5.5" fill="rgba(51,43,34,0.16)"/>' +
+          '<path d="M22 62 C11 66 8 78 18 81 C24 82 28 76 30 70 Z" fill="#22d3ee" stroke="#332b22" stroke-width="2.6"/>' +
+          '<path d="M74 62 C85 66 88 78 78 81 C72 82 68 76 66 70 Z" fill="#22d3ee" stroke="#332b22" stroke-width="2.6"/>' +
+          '<circle cx="31" cy="79" r="6" fill="#67e8f9" stroke="#332b22" stroke-width="2.5"/>' +
+          '<circle cx="48" cy="80" r="6.5" fill="#67e8f9" stroke="#332b22" stroke-width="2.5"/>' +
+          '<circle cx="65" cy="79" r="6" fill="#67e8f9" stroke="#332b22" stroke-width="2.5"/>' +
+          '<circle cx="48" cy="46" r="26" fill="url(#' + gId + ')" stroke="#332b22" stroke-width="3.2"/>' +
+          '<polygon points="36,22 41,11 48,17 55,11 60,22" fill="#fde047" stroke="#332b22" stroke-width="2.4" stroke-linejoin="round"/>' +
+          '<circle cx="17" cy="24" r="5" fill="#e0f2fe" stroke="#0284c7" stroke-width="1.8" opacity="0.85"/>' +
+          '<circle cx="80" cy="28" r="4" fill="#fce7f3" stroke="#db2777" stroke-width="1.6" opacity="0.85"/>' +
+          '<ellipse cx="30" cy="50" rx="4.2" ry="2.5" fill="#fb7185" opacity="0.72"/>' +
+          '<ellipse cx="66" cy="50" rx="4.2" ry="2.5" fill="#fb7185" opacity="0.72"/>' +
+          buildFaceExpression(m, 38, 58, 45, 53, 4.1) +
+          '</svg>'
+        );
+      },
+      market: () => {
+        const gId = 'bs-mkt-' + uid;
+        return (
+          '<svg viewBox="0 0 96 96">' +
+          '<defs><linearGradient id="' + gId + '" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#fef08a"/><stop offset="100%" stop-color="#eab308"/></linearGradient></defs>' +
+          '<ellipse cx="48" cy="86" rx="28" ry="5.5" fill="rgba(51,43,34,0.16)"/>' +
+          '<ellipse cx="34" cy="79" rx="7" ry="4.5" fill="#b45309" stroke="#332b22" stroke-width="2.6"/>' +
+          '<ellipse cx="62" cy="79" rx="7" ry="4.5" fill="#b45309" stroke="#332b22" stroke-width="2.6"/>' +
+          '<rect x="17" y="21" width="62" height="56" rx="11" fill="#92400e" stroke="#332b22" stroke-width="3.2"/>' +
+          '<rect x="23" y="27" width="50" height="44" rx="7" fill="url(#' + gId + ')" stroke="#332b22" stroke-width="2.4"/>' +
+          '<line x1="23" y1="36" x2="73" y2="36" stroke="#78350f" stroke-width="2.4"/>' +
+          '<circle cx="32" cy="36" r="4" fill="#ef4444" stroke="#332b22" stroke-width="1.8"/>' +
+          '<circle cx="42" cy="36" r="4" fill="#38bdf8" stroke="#332b22" stroke-width="1.8"/>' +
+          '<circle cx="58" cy="36" r="4" fill="#4ade80" stroke="#332b22" stroke-width="1.8"/>' +
+          '<circle cx="67" cy="36" r="4" fill="#a855f7" stroke="#332b22" stroke-width="1.8"/>' +
+          '<circle cx="48" cy="16" r="7" fill="#fde047" stroke="#332b22" stroke-width="2.4"/>' +
+          '<rect x="45.5" y="13.5" width="5" height="5" fill="#ffffff" stroke="#332b22" stroke-width="1.4"/>' +
+          '<ellipse cx="31" cy="54" rx="4" ry="2.4" fill="#fb7185" opacity="0.68"/>' +
+          '<ellipse cx="65" cy="54" rx="4" ry="2.4" fill="#fb7185" opacity="0.68"/>' +
+          buildFaceExpression(m, 38, 58, 50, 58, 3.8) +
+          '</svg>'
+        );
+      },
+      lighthouse: () => {
+        const gId = 'bs-lgh-' + uid;
+        return (
+          '<svg viewBox="0 0 96 96">' +
+          '<defs><linearGradient id="' + gId + '" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#e0e7ff"/><stop offset="100%" stop-color="#6366f1"/></linearGradient></defs>' +
+          '<ellipse cx="48" cy="86" rx="28" ry="5.5" fill="rgba(51,43,34,0.16)"/>' +
+          '<path d="M18 52 C8 54 8 68 18 70 L28 70 Z" fill="#475569" stroke="#332b22" stroke-width="2.6"/>' +
+          '<path d="M78 52 C88 54 88 68 78 70 L68 70 Z" fill="#475569" stroke="#332b22" stroke-width="2.6"/>' +
+          '<path d="M29 35 L23 79 H73 L67 35 Z" fill="#ffffff" stroke="#332b22" stroke-width="3.2" stroke-linejoin="round"/>' +
+          '<path d="M27 52 H69 L71 64 H25 Z" fill="#ef4444" stroke="#332b22" stroke-width="2.2"/>' +
+          '<rect x="33" y="20" width="30" height="16" rx="4" fill="#fef08a" stroke="#332b22" stroke-width="2.6"/>' +
+          '<path d="M29 21 L48 9 L67 21 Z" fill="#4f46e5" stroke="#332b22" stroke-width="2.8" stroke-linejoin="round"/>' +
+          '<rect x="26" y="34" width="44" height="5" rx="2.5" fill="#1e293b" stroke="#332b22" stroke-width="2"/>' +
+          '<circle cx="48" cy="28" r="5" fill="#fde047" opacity="0.9"/>' +
+          '<ellipse cx="33" cy="48" rx="4" ry="2.2" fill="#fb7185" opacity="0.68"/>' +
+          '<ellipse cx="63" cy="48" rx="4" ry="2.2" fill="#fb7185" opacity="0.68"/>' +
+          buildFaceExpression(m, 39, 57, 45, 55, 3.8) +
+          '</svg>'
+        );
       }
     };
     const fn = bossMap[key] || bossMap.forest;
@@ -568,6 +713,103 @@ export function getCharacterSvg(key, isBoss, mood) {
         '<ellipse cx="26" cy="45" rx="3.8" ry="2.2" fill="#f472b6" opacity="0.65"/>' +
         '<ellipse cx="54" cy="45" rx="3.8" ry="2.2" fill="#f472b6" opacity="0.65"/>' +
         buildFaceExpression(spMood, 31, 49, 41, 44, 3.1) +
+        '</svg>'
+      );
+    },
+    bakery: () => {
+      const gId = 'sp-bak-' + uid;
+      return (
+        '<svg viewBox="0 0 80 80">' +
+        '<defs><linearGradient id="' + gId + '" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#fef3c7"/><stop offset="100%" stop-color="#fbbf24"/></linearGradient></defs>' +
+        '<ellipse cx="40" cy="70" rx="20" ry="4.5" fill="rgba(51,43,34,0.14)"/>' +
+        buildSparkles('#f59e0b') +
+        '<ellipse cx="30" cy="65" rx="6" ry="3.8" fill="#f59e0b" stroke="#332b22" stroke-width="2.4"/>' +
+        '<ellipse cx="50" cy="65" rx="6" ry="3.8" fill="#f59e0b" stroke="#332b22" stroke-width="2.4"/>' +
+        '<path d="M16 44 C11 33 17 21 26 24 L29 34 Z" fill="#f59e0b" stroke="#332b22" stroke-width="2.4"/>' +
+        '<path d="M64 44 C69 33 63 21 54 24 L51 34 Z" fill="#f59e0b" stroke="#332b22" stroke-width="2.4"/>' +
+        '<ellipse cx="40" cy="46" rx="23" ry="20" fill="url(#' + gId + ')" stroke="#332b22" stroke-width="2.8"/>' +
+        '<path d="M27 25 Q40 16 53 25" fill="none" stroke="#ffffff" stroke-width="4.5" stroke-linecap="round"/>' +
+        '<path d="M27 25 Q40 16 53 25" fill="none" stroke="#332b22" stroke-width="2" stroke-linecap="round"/>' +
+        '<path d="M30 58 L40 63 L50 58" fill="none" stroke="#fb7185" stroke-width="3.2" stroke-linecap="round"/>' +
+        '<ellipse cx="26" cy="48" rx="3.8" ry="2.2" fill="#fb7185" opacity="0.65"/>' +
+        '<ellipse cx="54" cy="48" rx="3.8" ry="2.2" fill="#fb7185" opacity="0.65"/>' +
+        buildFaceExpression(spMood, 32, 48, 44, 49, 3.1) +
+        '</svg>'
+      );
+    },
+    candy: () => {
+      const gId = 'sp-can-' + uid;
+      return (
+        '<svg viewBox="0 0 80 80">' +
+        '<defs><linearGradient id="' + gId + '" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#fff1f2"/><stop offset="100%" stop-color="#fbcfe8"/></linearGradient></defs>' +
+        '<ellipse cx="40" cy="70" rx="20" ry="4.5" fill="rgba(51,43,34,0.14)"/>' +
+        buildSparkles('#f472b6') +
+        '<circle cx="24" cy="39" r="11" fill="#fce7f3" stroke="#332b22" stroke-width="2.4"/>' +
+        '<circle cx="56" cy="39" r="11" fill="#fce7f3" stroke="#332b22" stroke-width="2.4"/>' +
+        '<circle cx="40" cy="46" r="21" fill="url(#' + gId + ')" stroke="#332b22" stroke-width="2.8"/>' +
+        '<path d="M33 21 C33 14 47 14 47 21 C47 27 40 31 40 31 C40 31 33 27 33 21 Z" fill="#f43f5e" stroke="#332b22" stroke-width="2.2"/>' +
+        '<path d="M34 16 L40 12 L46 16" fill="none" stroke="#22c55e" stroke-width="2.4" stroke-linecap="round"/>' +
+        '<ellipse cx="27" cy="49" rx="3.8" ry="2.2" fill="#fb7185" opacity="0.68"/>' +
+        '<ellipse cx="53" cy="49" rx="3.8" ry="2.2" fill="#fb7185" opacity="0.68"/>' +
+        buildFaceExpression(spMood, 32, 48, 45, 50, 3.1) +
+        '</svg>'
+      );
+    },
+    bay: () => {
+      const gId = 'sp-bay-' + uid;
+      return (
+        '<svg viewBox="0 0 80 80">' +
+        '<defs><linearGradient id="' + gId + '" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#cffafe"/><stop offset="100%" stop-color="#38bdf8"/></linearGradient></defs>' +
+        '<ellipse cx="40" cy="71" rx="18" ry="4" fill="rgba(51,43,34,0.13)"/>' +
+        buildSparkles('#38bdf8') +
+        '<path d="M52 34 C62 32 65 44 56 48 C62 50 61 58 53 56" fill="#f9a8d4" stroke="#332b22" stroke-width="2.3" stroke-linejoin="round"/>' +
+        '<path d="M35 20 Q40 12 45 20" fill="#fde047" stroke="#332b22" stroke-width="2"/>' +
+        '<path d="M24 38 C22 22 52 22 52 40 C52 54 46 66 36 66 C26 66 24 58 29 54 C33 52 36 56 34 60" fill="url(#' + gId + ')" stroke="#332b22" stroke-width="2.6" stroke-linecap="round"/>' +
+        '<circle cx="29" cy="52" r="7" fill="#fffbeb" stroke="#332b22" stroke-width="2"/>' +
+        '<circle cx="27" cy="50" r="2" fill="#ffffff"/>' +
+        '<ellipse cx="29" cy="41" rx="3.2" ry="2" fill="#fb7185" opacity="0.6"/>' +
+        '<ellipse cx="46" cy="41" rx="3.2" ry="2" fill="#fb7185" opacity="0.6"/>' +
+        buildFaceExpression(spMood, 32, 44, 37, 42, 2.7) +
+        '</svg>'
+      );
+    },
+    market: () => {
+      const gId = 'sp-mkt-' + uid;
+      return (
+        '<svg viewBox="0 0 80 80">' +
+        '<defs><linearGradient id="' + gId + '" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#ffedd5"/><stop offset="100%" stop-color="#fb923c"/></linearGradient></defs>' +
+        '<ellipse cx="40" cy="71" rx="20" ry="4.5" fill="rgba(51,43,34,0.14)"/>' +
+        buildSparkles('#fb923c') +
+        '<polygon points="21,31 19,16 32,24" fill="#fb923c" stroke="#332b22" stroke-width="2.5" stroke-linejoin="round"/>' +
+        '<polygon points="59,31 61,16 48,24" fill="#fb923c" stroke="#332b22" stroke-width="2.5" stroke-linejoin="round"/>' +
+        '<rect x="19" y="25" width="42" height="40" rx="16" fill="url(#' + gId + ')" stroke="#332b22" stroke-width="2.8"/>' +
+        '<ellipse cx="40" cy="57" rx="13" ry="8" fill="#ffffff"/>' +
+        '<rect x="31" y="16" width="9" height="8" rx="1.5" fill="#60a5fa" stroke="#332b22" stroke-width="2"/>' +
+        '<rect x="40" y="16" width="9" height="8" rx="1.5" fill="#fde047" stroke="#332b22" stroke-width="2"/>' +
+        '<ellipse cx="26" cy="46" rx="3.8" ry="2.2" fill="#fb7185" opacity="0.65"/>' +
+        '<ellipse cx="54" cy="46" rx="3.8" ry="2.2" fill="#fb7185" opacity="0.65"/>' +
+        '<path d="M15 44 L22 44 M15 48 L22 48 M58 44 L65 44 M58 48 L65 48" stroke="#332b22" stroke-width="1.8" stroke-linecap="round"/>' +
+        buildFaceExpression(spMood, 31, 49, 41, 46, 3) +
+        '</svg>'
+      );
+    },
+    lighthouse: () => {
+      const gId = 'sp-lgh-' + uid;
+      return (
+        '<svg viewBox="0 0 80 80">' +
+        '<defs><linearGradient id="' + gId + '" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#ffffff"/><stop offset="100%" stop-color="#e0f2fe"/></linearGradient></defs>' +
+        '<ellipse cx="40" cy="70" rx="19" ry="4.5" fill="rgba(51,43,34,0.14)"/>' +
+        buildSparkles('#facc15') +
+        '<path d="M21 44 C10 38 9 50 18 55 L25 52 Z" fill="#bae6fd" stroke="#332b22" stroke-width="2.4"/>' +
+        '<path d="M59 44 C70 38 71 50 62 55 L55 52 Z" fill="#bae6fd" stroke="#332b22" stroke-width="2.4"/>' +
+        '<ellipse cx="40" cy="46" rx="20" ry="20" fill="url(#' + gId + ')" stroke="#332b22" stroke-width="2.8"/>' +
+        '<path d="M31 27 A9 9 0 0 1 49 27" fill="none" stroke="#f43f5e" stroke-width="3" stroke-linecap="round"/>' +
+        '<path d="M34 27 A6 6 0 0 1 46 27" fill="none" stroke="#facc15" stroke-width="2.6" stroke-linecap="round"/>' +
+        '<polygon points="36,44 44,44 40,50" fill="#f59e0b" stroke="#332b22" stroke-width="1.8" stroke-linejoin="round"/>' +
+        '<circle cx="40" cy="58" r="4" fill="#fde047" stroke="#332b22" stroke-width="1.8"/>' +
+        '<ellipse cx="26" cy="46" rx="3.5" ry="2.1" fill="#fb7185" opacity="0.65"/>' +
+        '<ellipse cx="54" cy="46" rx="3.5" ry="2.1" fill="#fb7185" opacity="0.65"/>' +
+        buildFaceExpression(spMood, 31, 49, 40, 46, 2.9) +
         '</svg>'
       );
     }
