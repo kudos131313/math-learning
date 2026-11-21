@@ -343,6 +343,26 @@
   }
 
   /**
+   * 樹屋八音盒／留聲機／風鈴輕柔小旋律
+   */
+  function sfxMusicBox(){
+    if(!soundOn) return;
+    var notes = [523.25, 659.25, 783.99, 880, 1046.5];
+    for(var i = 0; i < notes.length; i++){
+      tone(notes[i], i * 0.09, 0.22, 'sine', 0.085);
+    }
+  }
+
+  /**
+   * 樹屋魔法換裝與吊燈點亮微光雙音
+   */
+  function sfxChime(){
+    if(!soundOn) return;
+    tone(880, 0, 0.12, 'sine', 0.09);
+    tone(1318.51, 0.07, 0.22, 'triangle', 0.085);
+  }
+
+  /**
    * 最後一擊必殺技專屬多段合成音效
    * @param {string} kind 'meteor' | 'rainbow' | 'carrot' | 'slash'
    * @param {boolean} isBoss 是否為 Boss 關卡豪華版
@@ -937,6 +957,8 @@
     sfx: sfx,
     sfxCombo: sfxCombo,
     sfxJump: sfxJump,
+    sfxMusicBox: sfxMusicBox,
+    sfxChime: sfxChime,
     sfxFinisher: sfxFinisher,
     startBgm: startBgm,
     stopBgm: stopBgm,

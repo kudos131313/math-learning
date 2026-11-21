@@ -4068,6 +4068,16 @@ button.mqst-gem-cell:active {
   background: #ffedd5;
   color: #9a3412;
 }
+.mqst-hud-btn.decorate {
+  background: #fef9c3;
+  color: #92400e;
+}
+.mqst-hud-btn.decorate.is-active {
+  background: linear-gradient(180deg, #fde047 0%, #f59e0b 100%);
+  color: #451a03;
+  border-color: #92400e;
+  box-shadow: 0 3px 0 #b45309;
+}
 .mqst-hud-badge {
   display: inline-flex;
   align-items: center;
@@ -4492,9 +4502,13 @@ dialog.mqst-shop-dialog {
   color: #166534;
 }
 
-/* ---------------- 秘密樹屋全螢幕視圖 (View 4) ---------------- */
+/* ---------------- 秘密樹屋全螢幕視圖 (View 4 · 立體繪本升級版) ---------------- */
 .mqst-treehouse-screen {
-  background: linear-gradient(180deg, #fef9c3 0%, #d1fae5 100%);
+  --th-chrome-h: 342px;
+  background: linear-gradient(180deg, #fef9c3 0%, #ecfccb 54%, #d1fae5 100%);
+}
+.mqst-treehouse-screen.is-dock-collapsed {
+  --th-chrome-h: 174px;
 }
 .mqst-th-hud-left {
   display: flex;
@@ -4514,105 +4528,178 @@ dialog.mqst-shop-dialog {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 10px 16px 6px;
-  gap: 8px;
+  padding: 8px 16px 6px;
+  gap: 6px;
 }
 .mqst-treehouse-stage {
-  flex: 1;
-  min-height: 0;
-  width: min(980px, 100%);
+  aspect-ratio: 16 / 9;
+  width: min(1120px, 100%, calc((100dvh - var(--th-chrome-h)) * 16 / 9));
+  max-height: 100%;
   display: flex;
+  align-items: center;
+  justify-content: center;
 }
 .mqst-th-room {
   position: relative;
   width: 100%;
   height: 100%;
-  min-height: 240px;
+  container-type: inline-size;
   border: 3.5px solid var(--ink);
   border-radius: 26px;
-  display: flex;
-  flex-direction: column;
   overflow: hidden;
-  box-shadow: 0 8px 0 rgba(51, 43, 34, 0.24);
-  background:
-    repeating-linear-gradient(90deg, transparent 0 38px, var(--th-wall-stripe) 38px 42px),
-    linear-gradient(180deg, var(--th-wall-top) 0%, var(--th-wall-bottom) 100%);
+  box-shadow: 0 8px 0 rgba(51, 43, 34, 0.24), var(--shadow-paper);
+  user-select: none;
 }
-.mqst-th-beam-top {
-  height: 14px;
-  background: var(--th-beam);
-  border-bottom: 3px solid var(--ink);
-  flex-shrink: 0;
+
+/* 第 1 層：繪本室內底圖 */
+.mqst-th-bg-layer {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
 }
-.mqst-th-wall-items {
-  flex: 1;
-  min-height: 0;
-  display: grid;
-  grid-template-columns: 1fr auto 1fr;
-  align-items: end;
-  justify-items: center;
-  padding: 8px 22px 4px;
-  gap: 12px;
+.mqst-th-bg-img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+.mqst-th-bg-img.is-incoming {
+  opacity: 0;
+  z-index: 2;
+}
+
+/* 第 2 層：環境氛圍光束與星塵 */
+.mqst-th-atmosphere {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  overflow: hidden;
+}
+.mqst-th-ambient-tint {
+  position: absolute;
+  inset: 0;
+  background: var(--th-ambient-tint, transparent);
+}
+.mqst-th-sunbeam {
+  position: absolute;
+  top: -12%;
+  left: 36%;
+  width: 44%;
+  height: 120%;
+  background: linear-gradient(125deg, var(--th-sunbeam, rgba(255, 250, 224, 0.28)) 0%, transparent 72%);
+  transform: skewX(-18deg);
+  opacity: 0.78;
+}
+.mqst-th-lamp-glow {
+  position: absolute;
+  left: 51%;
+  top: 2%;
+  width: 48%;
+  height: 54%;
+  transform: translateX(-50%);
+  border-radius: 50%;
+  background: radial-gradient(circle at 50% 24%, var(--th-lamp-glow, rgba(253, 224, 71, 0.34)) 0%, transparent 70%);
+  opacity: 0.14;
+  transition: opacity 0.28s ease;
+}
+.mqst-th-room.is-lamp-lit .mqst-th-lamp-glow {
+  opacity: 1;
+}
+.mqst-th-dust {
+  position: absolute;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--th-dust, #fef9c3);
+  box-shadow: 0 0 8px var(--th-dust, #fef9c3);
+  opacity: 0.55;
+}
+.mqst-th-dust.d1 { left: 32%; top: 28%; }
+.mqst-th-dust.d2 { left: 46%; top: 38%; width: 5px; height: 5px; }
+.mqst-th-dust.d3 { left: 58%; top: 30%; width: 7px; height: 7px; }
+.mqst-th-dust.d4 { left: 66%; top: 44%; width: 4px; height: 4px; }
+.mqst-th-dust.d5 { left: 39%; top: 52%; width: 5px; height: 5px; }
+.mqst-th-dust.d6 { left: 54%; top: 48%; width: 4px; height: 4px; }
+
+/* 第 3 層：6 個實體家具槽位按鈕 */
+.mqst-th-objects-layer {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  pointer-events: none;
 }
 .mqst-th-obj {
+  position: absolute;
+  pointer-events: auto;
   background: transparent;
-  border: 2px solid transparent;
+  border: 2.5px solid transparent;
   border-radius: 18px;
-  padding: 4px;
+  padding: 2px;
   cursor: pointer;
-  transition: transform 0.12s ease, background-color 0.12s ease;
+  transition: transform 0.14s ease, filter 0.14s ease, border-color 0.14s ease, background-color 0.14s ease;
+}
+.mqst-th-obj svg {
+  width: 100%;
+  height: auto;
+  display: block;
+  filter: var(--shadow-paper);
 }
 .mqst-th-obj:hover {
-  transform: translateY(-3px) scale(1.03);
-  background: rgba(255, 255, 255, 0.35);
+  transform: translateX(-50%) translateY(-3px) scale(1.03);
 }
 .mqst-th-obj:focus-visible,
 .mqst-th-bunny-btn:focus-visible,
 .mqst-th-playmate-slot:focus-visible {
   outline: 3px solid #2563eb;
-  outline-offset: 2px;
+  outline-offset: 3px;
 }
-.mqst-th-furniture svg { width: clamp(92px, 13vw, 134px); height: auto; display: block; filter: var(--shadow-paper); }
-.mqst-th-window svg    { width: clamp(106px, 15vw, 152px); height: auto; display: block; filter: var(--shadow-paper); }
-.mqst-th-decor svg     { width: clamp(72px, 9.5vw, 96px); height: auto; display: block; filter: var(--shadow-paper); }
 
-.mqst-th-floor {
-  position: relative;
-  flex: 0 0 42%;
-  min-height: 126px;
-  border-top: 3px solid var(--ink);
-  background: linear-gradient(180deg, var(--th-floor) 0%, #b45309 100%);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 6px 18px 10px;
+.mqst-th-ceiling    { left: 51%; top: 1.5%;  width: 25.5%; transform: translateX(-50%); transform-origin: 50% 0%; z-index: 3; }
+.mqst-th-window     { left: 51%; top: 21%;   width: 19.5%; transform: translateX(-50%); z-index: 1; }
+.mqst-th-wall-decor { left: 77%; top: 19%;   width: 18%;   transform: translateX(-50%); z-index: 1; }
+.mqst-th-furniture  { left: 24.5%; bottom: 26%; width: 23.5%; transform: translateX(-50%); z-index: 2; }
+.mqst-th-decor      { left: 83.5%; bottom: 25.5%; width: 13%; transform: translateX(-50%); z-index: 2; }
+.mqst-th-rug        { left: 50%; bottom: 2.5%;  width: 50%;   transform: translateX(-50%); z-index: 0; }
+.mqst-th-rug svg    { filter: drop-shadow(0 3px 0 rgba(51, 43, 34, 0.16)); }
+
+/* 槽位焦點提示與快速佈置模式 */
+.mqst-th-room.is-decorate-mode .mqst-th-obj {
+  border-color: rgba(245, 158, 11, 0.45);
+  background: rgba(255, 253, 240, 0.22);
 }
-.mqst-th-rug {
+.mqst-th-room.is-decorate-mode .mqst-th-obj.is-slot-focus,
+.mqst-th-obj.is-slot-focus:hover {
+  border-color: #f59e0b;
+  background: rgba(254, 249, 195, 0.34);
+  box-shadow: 0 0 0 3px rgba(253, 224, 71, 0.45);
+}
+
+/* 第 4 層：自然錯落生活站位角色與實體坐墊 */
+.mqst-th-actors-layer {
   position: absolute;
-  left: 50%;
-  bottom: 8px;
+  inset: 0;
+  z-index: 4;
+  pointer-events: none;
+}
+.mqst-th-actor {
+  position: absolute;
   transform: translateX(-50%);
-  background: transparent;
-  border: none;
-  padding: 0;
-  cursor: pointer;
-  z-index: 1;
-}
-.mqst-th-rug svg {
-  width: clamp(220px, 38vw, 340px);
-  height: auto;
-  display: block;
-}
-.mqst-th-characters-row {
-  position: relative;
-  z-index: 2;
-  width: 100%;
+  pointer-events: auto;
   display: flex;
-  align-items: flex-end;
-  justify-content: center;
-  gap: clamp(12px, 3vw, 32px);
+  flex-direction: column;
+  align-items: center;
 }
+.mqst-th-bunny-spot          { left: 44%; bottom: 7.5%;  width: 13.5%; z-index: 3; }
+.mqst-th-playmate-spot.spot-0 { left: 27%; bottom: 7%;    width: 12%;   z-index: 4; }
+.mqst-th-playmate-spot.spot-1 { left: 60%; bottom: 7.5%;  width: 12%;   z-index: 4; }
+.mqst-th-playmate-spot.spot-2 { left: 71.5%; bottom: 13.5%; width: 10.5%; z-index: 2; }
+
 .mqst-th-bunny-btn {
+  width: 100%;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -4620,10 +4707,15 @@ dialog.mqst-shop-dialog {
   border: none;
   padding: 2px;
   cursor: pointer;
+  transition: transform 0.14s ease;
+}
+.mqst-th-bunny-btn:hover {
+  transform: translateY(-4px) scale(1.04);
 }
 .mqst-th-bunny-btn svg {
-  width: clamp(86px, 11vw, 118px);
-  height: clamp(86px, 11vw, 118px);
+  width: 100%;
+  height: auto;
+  display: block;
   filter: drop-shadow(0 5px 0 rgba(51, 43, 34, 0.25));
 }
 .mqst-th-bunny-tag,
@@ -4632,38 +4724,34 @@ dialog.mqst-shop-dialog {
   padding: 2px 9px;
   border-radius: 999px;
   border: 2px solid var(--ink);
-  background: rgba(255, 255, 255, 0.94);
-  font-size: 11.5px;
+  background: rgba(255, 253, 246, 0.96);
+  font-size: clamp(10px, 1.05cqw, 12.5px);
   font-weight: 900;
   color: var(--ink);
   white-space: nowrap;
-}
-.mqst-th-playmates-row {
-  display: flex;
-  align-items: flex-end;
-  gap: clamp(8px, 2vw, 18px);
+  box-shadow: 0 2px 0 rgba(51, 43, 34, 0.16);
 }
 .mqst-th-playmate-slot {
+  width: 100%;
   position: relative;
-  min-width: 84px;
-  min-height: 78px;
-  padding: 4px 6px;
+  padding: 3px;
   border-radius: 18px;
-  border: 2px dashed rgba(255, 255, 255, 0.65);
-  background: rgba(255, 255, 255, 0.22);
+  border: 2px solid transparent;
+  background: transparent;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: flex-end;
   cursor: pointer;
+  transition: transform 0.14s ease, background-color 0.14s ease;
 }
-.mqst-th-playmate-slot.is-occupied {
-  border-color: transparent;
-  background: transparent;
+.mqst-th-playmate-slot:hover {
+  transform: translateY(-4px) scale(1.04);
 }
 .mqst-th-playmate-slot.is-occupied.is-selected {
-  background: rgba(254, 240, 138, 0.42);
-  border: 2px solid #fde047;
+  background: rgba(254, 240, 138, 0.36);
+  border-color: #fde047;
+  box-shadow: 0 0 0 2px rgba(245, 158, 11, 0.35);
 }
 .mqst-th-sprite-lv {
   padding: 1px 7px;
@@ -4671,30 +4759,118 @@ dialog.mqst-shop-dialog {
   border: 1.5px solid var(--ink);
   background: #fde047;
   color: #451a03;
-  font-size: 10.5px;
+  font-size: clamp(9.5px, 0.95cqw, 11.5px);
   font-weight: 900;
   white-space: nowrap;
+  margin-bottom: -3px;
+  z-index: 2;
+}
+.mqst-th-sprite-svg {
+  width: 78%;
 }
 .mqst-th-sprite-svg svg {
-  width: clamp(58px, 7.6vw, 76px);
-  height: clamp(58px, 7.6vw, 76px);
+  width: 100%;
+  height: auto;
   display: block;
   filter: var(--shadow-paper);
 }
-.mqst-th-empty-cushion {
-  padding: 8px 10px;
+.mqst-th-empty-cushion-art {
+  width: 96%;
+}
+.mqst-th-empty-cushion-art svg {
+  width: 100%;
+  height: auto;
+  display: block;
+  filter: drop-shadow(0 3px 0 rgba(51, 43, 34, 0.16));
+}
+.mqst-th-empty-pill {
+  margin-top: -10px;
+  padding: 2px 8px;
   border-radius: 999px;
-  border: 2px solid var(--ink);
-  background: rgba(255, 253, 246, 0.9);
-  font-size: 12px;
-  font-weight: 800;
+  border: 1.8px solid var(--ink);
+  background: rgba(255, 253, 246, 0.94);
+  font-size: clamp(9.5px, 0.95cqw, 11.5px);
+  font-weight: 900;
   color: var(--ink-soft);
   white-space: nowrap;
+  box-shadow: 0 2px 0 rgba(51, 43, 34, 0.15);
+}
+.mqst-th-playmate-slot.is-empty:hover .mqst-th-empty-pill {
+  background: #fef08a;
+  color: var(--ink);
+}
+
+/* 第 5 層：動畫粒子、對話氣泡與點心飛行層 */
+.mqst-th-fx-layer {
+  position: absolute;
+  inset: 0;
+  z-index: 6;
+  pointer-events: none;
+  overflow: hidden;
+}
+.mqst-th-fx-particle {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  font-size: clamp(16px, 2cqw, 24px);
+  line-height: 1;
+  user-select: none;
+}
+.mqst-th-snack-flyer {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  font-size: clamp(22px, 2.8cqw, 34px);
+  line-height: 1;
+  filter: drop-shadow(0 3px 0 rgba(51, 43, 34, 0.25));
+}
+.mqst-th-bond-float {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  padding: 3px 10px;
+  border-radius: 999px;
+  border: 2px solid var(--ink);
+  background: #fff1f2;
+  color: #be123c;
+  font-size: clamp(12px, 1.35cqw, 16px);
+  font-weight: 900;
+  white-space: nowrap;
+  box-shadow: 0 3px 0 rgba(51, 43, 34, 0.2);
+}
+.mqst-th-bond-float.is-levelup {
+  background: linear-gradient(180deg, #fef08a 0%, #f59e0b 100%);
+  color: #451a03;
+}
+.mqst-th-speech-bubble {
+  position: absolute;
+  transform: translate(-50%, -100%);
+  max-width: min(260px, 34cqw);
+  padding: 7px 12px;
+  border-radius: 16px;
+  border: 2.5px solid var(--ink);
+  background: var(--color-card, #fffdf6);
+  background-image: var(--grain);
+  color: var(--ink);
+  font-size: clamp(11.5px, 1.25cqw, 14.5px);
+  font-weight: 800;
+  line-height: 1.4;
+  text-align: center;
+  box-shadow: 0 4px 0 rgba(51, 43, 34, 0.22);
+}
+.mqst-th-speech-bubble::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  bottom: -9px;
+  width: 14px;
+  height: 14px;
+  background: var(--color-card, #fffdf6);
+  border-right: 2.5px solid var(--ink);
+  border-bottom: 2.5px solid var(--ink);
+  transform: translateX(-50%) rotate(45deg);
 }
 
 .mqst-treehouse-toast {
-  width: min(980px, 100%);
-  padding: 7px 14px;
+  width: min(1120px, 100%);
+  padding: 6px 14px;
   border-radius: 14px;
   border: 2.5px solid var(--ink);
   background: rgba(255, 253, 246, 0.96);
@@ -4706,24 +4882,64 @@ dialog.mqst-shop-dialog {
   flex-shrink: 0;
 }
 
+/* 可收合厚卡紙抽屜 */
 .mqst-treehouse-dock {
   flex-shrink: 0;
+  interpolate-size: allow-keywords;
   background-color: var(--color-card);
   background-image: var(--grain), var(--fibre);
   border-top: 3px solid var(--ink);
-  padding: 8px 14px 12px;
+  padding: 8px 14px 10px;
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 7px;
+}
+.mqst-th-dock-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+.mqst-th-dock-toggle {
+  flex: none;
+  min-height: 40px;
+  padding: 5px 14px;
+  border-radius: 999px;
+  border: 2px solid var(--ink);
+  background: #fef3c7;
+  color: var(--ink);
+  font-size: 13px;
+  font-weight: 900;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  box-shadow: 0 2px 0 rgba(51, 43, 34, 0.18);
+}
+.mqst-th-dock-toggle:active {
+  transform: translateY(2px);
+  box-shadow: none;
+}
+.mqst-th-dock-body {
+  block-size: auto;
+  overflow: hidden;
+  opacity: 1;
+  transition: block-size 0.28s ease-out, opacity 0.22s ease;
+}
+.mqst-th-dock-body.is-collapsed {
+  block-size: 0;
+  opacity: 0;
+  pointer-events: none;
 }
 .mqst-th-pane[hidden] {
   display: none !important;
 }
 .mqst-th-pane {
-  min-height: 168px;
+  min-height: 148px;
   display: flex;
   flex-direction: column;
   justify-content: center;
+  gap: 6px;
 }
 .mqst-th-tabs {
   display: flex;
@@ -4734,13 +4950,13 @@ dialog.mqst-shop-dialog {
 .mqst-th-tab {
   position: relative;
   flex: none;
-  min-height: 44px;
-  padding: 6px 16px 8px;
+  min-height: 42px;
+  padding: 5px 15px 7px;
   border-radius: 999px;
   border: 2px solid var(--ink);
   background: #ffffff;
   color: var(--ink);
-  font-size: 14px;
+  font-size: 13.5px;
   font-weight: 900;
   cursor: pointer;
 }
@@ -4757,41 +4973,118 @@ dialog.mqst-shop-dialog {
 
 .mqst-th-slot-bar {
   display: flex;
-  gap: 8px;
+  gap: 7px;
   flex-wrap: nowrap;
   overflow-x: auto;
-  padding-bottom: 4px;
+  padding-bottom: 2px;
+}
+.mqst-th-slot-bar .mqst-filter-pill {
+  flex: 0 0 auto;
+  white-space: nowrap;
 }
 .mqst-th-items-strip {
   display: flex;
   gap: 10px;
   overflow-x: auto;
-  padding-bottom: 2px;
+  padding: 2px 2px 3px;
 }
 .mqst-th-item-card {
   flex: 0 0 auto;
-  min-width: 144px;
-  padding: 8px 10px;
+  min-width: 196px;
+  padding: 7px 10px;
   border-radius: 16px;
   border: 2px solid var(--ink);
   background: #ffffff;
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
   align-items: center;
-  gap: 4px;
-  text-align: center;
+  gap: 9px;
+  box-shadow: 0 3px 0 rgba(51, 43, 34, 0.12);
 }
 .mqst-th-item-card.is-equipped {
   background: #f0fdf4;
   border-color: #16a34a;
 }
-.mqst-th-item-ico { font-size: 24px; }
-.mqst-th-item-name { font-size: 13px; color: var(--ink); }
-.mqst-th-item-btn {
-  min-height: 40px;
-  width: 100%;
-  padding: 5px 10px;
+.mqst-th-item-thumb {
+  flex: 0 0 auto;
+  width: 68px;
+  height: 52px;
   border-radius: 11px;
+  border: 1.5px solid rgba(51, 43, 34, 0.22);
+  background: #fffdf6;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  padding: 3px;
+}
+.mqst-th-thumb-wallpaper {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  border-radius: 8px;
+  overflow: hidden;
+}
+.mqst-th-thumb-wallpaper img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+.mqst-th-thumb-swatch {
+  position: absolute;
+  right: 4px;
+  bottom: 4px;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  border: 1.5px solid #ffffff;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.25);
+}
+.mqst-th-thumb-svg {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.mqst-th-thumb-svg svg {
+  max-width: 100%;
+  max-height: 100%;
+  width: auto;
+  height: auto;
+  display: block;
+}
+.mqst-th-shop-thumb {
+  width: 124px;
+  height: 84px;
+  margin: 2px auto 4px;
+  border-radius: 14px;
+  border: 2px solid rgba(51, 43, 34, 0.22);
+  background: #fffdf6;
+  padding: 5px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+.mqst-th-item-meta {
+  flex: 1;
+  min-width: 100px;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+.mqst-th-item-name {
+  font-size: 13px;
+  color: var(--ink);
+  white-space: nowrap;
+}
+.mqst-th-item-btn {
+  min-height: 38px;
+  width: 100%;
+  padding: 4px 10px;
+  border-radius: 10px;
   border: 2px solid var(--ink);
   background: #fde047;
   color: var(--ink);
@@ -4815,21 +5108,23 @@ dialog.mqst-shop-dialog {
   cursor: not-allowed;
 }
 .mqst-th-item-lock-note {
-  font-size: 11.5px;
+  font-size: 11px;
   font-weight: 800;
   color: #9d174d;
-  padding: 6px 4px;
+  line-height: 1.25;
 }
 
 .mqst-th-sprites-flex {
   display: grid;
-  grid-template-columns: 1.15fr 1fr;
+  grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
   gap: 12px;
   align-items: stretch;
   flex: 1;
+  min-width: 0;
 }
 .mqst-th-panel-card {
-  padding: 10px 14px;
+  min-width: 0;
+  padding: 7px 11px;
   border-radius: 16px;
   border: 2px solid var(--ink);
   background: #ffffff;
@@ -4837,30 +5132,84 @@ dialog.mqst-shop-dialog {
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  gap: 8px;
+  gap: 5px;
 }
 .mqst-th-sub-label {
   font-size: 13px;
   font-weight: 900;
   color: var(--ink);
-  margin-bottom: 2px;
 }
-.mqst-th-picker-list,
-.mqst-th-feed-targets,
+.mqst-th-feed-head {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+.mqst-th-feed-xp-track {
+  height: 7px;
+  border-radius: 999px;
+  background: #f1f5f9;
+  border: 1.5px solid rgba(51, 43, 34, 0.25);
+  overflow: hidden;
+}
+.mqst-th-feed-xp-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #fb7185 0%, #f59e0b 100%);
+  border-radius: 999px;
+  transition: width 0.28s ease;
+}
+.mqst-th-picker-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  max-height: 78px;
+  overflow-y: auto;
+  padding-right: 4px;
+}
+.mqst-th-feed-targets {
+  display: flex;
+  flex-wrap: nowrap;
+  gap: 6px;
+  overflow-x: auto;
+  padding-bottom: 3px;
+}
+.mqst-th-feed-targets .mqst-filter-pill {
+  flex: 0 0 auto;
+  white-space: nowrap;
+}
 .mqst-th-snack-btns {
   display: flex;
   flex-wrap: wrap;
   gap: 7px;
 }
 .mqst-th-sprite-chip {
-  min-height: 40px;
-  padding: 5px 11px;
+  min-height: 36px;
+  padding: 3px 9px 3px 5px;
   border-radius: 12px;
   border: 2px solid var(--ink);
   background: #ffffff;
-  font-size: 12.5px;
+  font-size: 12px;
   font-weight: 800;
   cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+.mqst-th-chip-mini-art {
+  width: 26px;
+  height: 26px;
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.mqst-th-chip-mini-art svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+.mqst-th-chip-text small {
+  font-family: var(--font-num);
+  color: #b45309;
 }
 .mqst-th-sprite-chip.is-in {
   background: #dcfce7;
@@ -4868,13 +5217,13 @@ dialog.mqst-shop-dialog {
   color: #14532d;
 }
 .mqst-th-snack-btn {
-  min-height: 42px;
-  padding: 6px 12px;
-  border-radius: 12px;
+  min-height: 36px;
+  padding: 4px 10px;
+  border-radius: 11px;
   border: 2px solid var(--ink);
   background: linear-gradient(180deg, #fef08a 0%, #f59e0b 100%);
   color: #451a03;
-  font-size: 13px;
+  font-size: 12.5px;
   font-weight: 900;
   cursor: pointer;
 }
@@ -4910,31 +5259,88 @@ dialog.mqst-shop-dialog {
   line-height: 1.45;
 }
 
+/* 溫和繪本環境微動畫（僅在非減敏模式下選擇性啟用） */
+@keyframes mqstThSway {
+  0%, 100% { transform: rotate(-1.5deg); }
+  50%      { transform: rotate(1.5deg); }
+}
+@keyframes mqstThPendulum {
+  0%, 100% { transform: rotate(-8deg); }
+  50%      { transform: rotate(8deg); }
+}
+@keyframes mqstThDustDrift {
+  0%, 100% { transform: translateY(0) scale(0.95); opacity: 0.4; }
+  50%      { transform: translateY(-9px) scale(1.15); opacity: 0.85; }
+}
+@keyframes mqstThBreathe {
+  0%, 100% { transform: translateY(0); }
+  50%      { transform: translateY(-2.5px); }
+}
+@keyframes mqstThSteam {
+  0%, 100% { transform: translateY(0); opacity: 0.55; }
+  50%      { transform: translateY(-4px); opacity: 0.92; }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .mqst-th-sway-part {
+    transform-origin: 50% 0%;
+    animation: mqstThSway 6.2s ease-in-out infinite;
+  }
+  .mqst-th-clock-pendulum {
+    transform-origin: 80px 78px;
+    animation: mqstThPendulum 2.4s ease-in-out infinite;
+  }
+  .mqst-th-dust {
+    animation: mqstThDustDrift 5.6s ease-in-out infinite;
+  }
+  .mqst-th-dust.d2 { animation-delay: 1.1s; animation-duration: 6.4s; }
+  .mqst-th-dust.d3 { animation-delay: 2.3s; animation-duration: 5.2s; }
+  .mqst-th-dust.d4 { animation-delay: 0.7s; animation-duration: 6.8s; }
+  .mqst-th-dust.d5 { animation-delay: 1.8s; animation-duration: 5.9s; }
+  .mqst-th-dust.d6 { animation-delay: 2.9s; animation-duration: 6.1s; }
+  .mqst-th-bunny-btn svg {
+    animation: mqstThBreathe 3.2s ease-in-out infinite;
+  }
+  .mqst-th-sprite-svg svg {
+    animation: mqstThBreathe 3.6s ease-in-out infinite;
+  }
+  .mqst-th-steam {
+    animation: mqstThSteam 3.2s ease-in-out infinite;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mqst-th-dock-body,
+  .mqst-th-lamp-glow,
+  .mqst-th-obj,
+  .mqst-th-bunny-btn,
+  .mqst-th-playmate-slot,
+  .mqst-th-feed-xp-fill {
+    transition: none !important;
+  }
+}
+
 @media (max-height: 820px) and (min-width: 781px) {
-  .mqst-treehouse-stage-wrap { padding: 6px 14px 4px; gap: 6px; }
-  .mqst-th-wall-items { padding: 4px 18px 2px; }
-  .mqst-th-furniture svg { width: clamp(78px, 10vw, 110px); }
-  .mqst-th-window svg    { width: clamp(92px, 12vw, 126px); }
-  .mqst-th-decor svg     { width: clamp(62px, 7.8vw, 82px); }
-  .mqst-th-floor { min-height: 108px; }
-  .mqst-th-bunny-btn svg { width: 78px; height: 78px; }
-  .mqst-th-sprite-svg svg { width: 54px; height: 54px; }
-  .mqst-treehouse-dock { padding: 6px 12px 9px; gap: 6px; }
-  .mqst-th-pane { min-height: 154px; }
+  .mqst-treehouse-screen { --th-chrome-h: 318px; }
+  .mqst-treehouse-screen.is-dock-collapsed { --th-chrome-h: 162px; }
+  .mqst-treehouse-stage-wrap { padding: 6px 14px 4px; gap: 5px; }
+  .mqst-treehouse-dock { padding: 6px 12px 8px; gap: 5px; }
+  .mqst-th-pane { min-height: 136px; }
 }
 
 @media (max-width: 900px) {
   .mqst-th-sprites-flex {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
   }
 }
 
 @media (orientation: portrait) and (min-width: 600px) {
-  .mqst-th-room {
+  .mqst-treehouse-stage {
+    width: 100%;
     max-height: 540px;
   }
   .mqst-th-sprites-flex {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
   }
   .mqst-stamp-board {
     gap: 5px;

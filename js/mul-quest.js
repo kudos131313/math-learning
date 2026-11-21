@@ -17,6 +17,7 @@ import {
   FINISHER_KEYS,
   SKILL_CARDS,
   WARDROBE_ITEMS,
+  TREEHOUSE_SLOTS,
   TREEHOUSE_ITEMS,
   PARTNER_SNACKS,
   getRealmById,
@@ -122,7 +123,18 @@ import {
   getCharacterSvg,
   getProjectileSvg
 } from '../src/quest/svg-art.js';
-import { getTreehouseInteractMessage } from '../src/quest/treehouse-svg.js';
+import {
+  getTreehouseInteractMessage,
+  renderTreehouseSlotContentHtml,
+  getTreehouseWallpaperMeta,
+  isLightableCeiling
+} from '../src/quest/treehouse-svg.js';
+import {
+  animateSlotSwap,
+  playObjectEasterEgg,
+  showActorSpeechBubble,
+  playFeedSnackAnimation
+} from '../src/quest/treehouse-fx.js';
 import { createBattleFx } from '../src/quest/battle-fx.js';
 import { createQuestDialogs } from '../src/quest/dialogs.js';
 
@@ -216,7 +228,10 @@ import { createQuestDialogs } from '../src/quest/dialogs.js';
     nextLocked: false,
     treehouseTab: 'decor',
     treehouseSlot: 'wallpaper',
-    treehouseSelectedPartner: ''
+    treehouseSelectedPartner: '',
+    treehouseDecorateMode: false,
+    treehouseDockCollapsed: false,
+    treehouseLampLit: true
   };
 
   var els = {};
@@ -370,6 +385,12 @@ import { createQuestDialogs } from '../src/quest/dialogs.js';
     }
     if(els.victoryBunny){
       els.victoryBunny.innerHTML = getPinkBunnySvg('happy', activeW);
+    }
+    if(els.thStage){
+      var thBunnyBtn = els.thStage.querySelector('.mqst-th-bunny-btn');
+      if(thBunnyBtn){
+        thBunnyBtn.innerHTML = getPinkBunnySvg('happy', activeW) + '<span class="mqst-th-bunny-tag">粉紅小兔</span>';
+      }
     }
   }
 
@@ -576,12 +597,15 @@ import { createQuestDialogs } from '../src/quest/dialogs.js';
     els.treehouseView  = document.getElementById('mqst-treehouse-view');
     els.thBackMapBtn   = document.getElementById('mqst-th-back-map-btn');
     els.thCoins        = document.getElementById('mqst-th-coins');
+    els.thDecorateModeBtn = document.getElementById('mqst-th-decorate-mode-btn');
     els.thOpenShopBtn  = document.getElementById('mqst-th-open-shop-btn');
     els.thOpenWardrobeBtn = document.getElementById('mqst-th-open-wardrobe-btn');
     els.thExitBtn      = document.getElementById('mqst-th-exit-btn');
     els.thStage        = document.getElementById('mqst-treehouse-stage');
     els.thToast        = document.getElementById('mqst-treehouse-toast');
     els.thDock         = document.getElementById('mqst-treehouse-dock');
+    els.thDockToggleBtn= document.getElementById('mqst-th-dock-toggle-btn');
+    els.thDockBody     = document.getElementById('mqst-th-dock-body');
     els.thPaneDecor    = document.getElementById('mqst-th-pane-decor');
     els.thPaneSprites  = document.getElementById('mqst-th-pane-sprites');
 
@@ -1106,13 +1130,75 @@ import { createQuestDialogs } from '../src/quest/dialogs.js';
     if(els.thPaneSprites) els.thPaneSprites.hidden = (cur !== 'sprites');
   }
 
-  function renderCurrentTreehouse(){
+  function syncTreehouseSlotFocusUi(){
+    if(!els.thStage) return;
+    var activeSlot = session.treehouseSlot || 'wallpaper';
+    els.thStage.querySelectorAll('[data-th-slot]').forEach(function(el){
+      el.classList.toggle('is-slot-focus', el.getAttribute('data-th-slot') === activeSlot);
+    });
+  }
+
+  function syncTreehouseDecorateModeUi(){
+    var on = Boolean(session.treehouseDecorateMode);
+    if(els.thDecorateModeBtn){
+      els.thDecorateModeBtn.setAttribute('aria-pressed', String(on));
+      els.thDecorateModeBtn.classList.toggle('is-active', on);
+    }
+    if(els.thStage){
+      var room = els.thStage.querySelector('.mqst-th-room');
+      if(room) room.classList.toggle('is-decorate-mode', on);
+    }
+  }
+
+  function setTreehouseDockCollapsed(collapsed){
+    var nextCollapsed = Boolean(collapsed);
+    session.treehouseDockCollapsed = nextCollapsed;
+    if(els.treehouseView){
+      els.treehouseView.classList.toggle('is-dock-collapsed', nextCollapsed);
+    }
+    if(els.thDockToggleBtn){
+      els.thDockToggleBtn.setAttribute('aria-expanded', String(!nextCollapsed));
+      els.thDockToggleBtn.innerHTML = nextCollapsed
+        ? '<span aria-hidden="true">🔼</span><span>展開佈置</span>'
+        : '<span aria-hidden="true">🔽</span><span>收起選單</span>';
+    }
+    if(!els.thDockBody) return;
+    if(!nextCollapsed){
+      els.thDockBody.hidden = false;
+      void els.thDockBody.offsetHeight;
+      els.thDockBody.classList.remove('is-collapsed');
+      return;
+    }
+    els.thDockBody.classList.add('is-collapsed');
+    var transitions = typeof els.thDockBody.getAnimations === 'function'
+      ? els.thDockBody.getAnimations().filter(function(a){
+          return typeof CSSTransition !== 'undefined' && a instanceof CSSTransition;
+        })
+      : [];
+    if(transitions.length === 0){
+      els.thDockBody.hidden = true;
+    } else {
+      Promise.allSettled(transitions.map(function(t){ return t.finished; })).then(function(){
+        if(session.treehouseDockCollapsed && els.thDockBody){
+          els.thDockBody.hidden = true;
+        }
+      });
+    }
+  }
+
+  function renderCurrentTreehouse(opts){
+    var skipStageRender = Boolean(opts && opts.skipStageRender);
     syncTreehouseTabUi(session.treehouseTab || 'decor', false);
     renderTreehouseView({
       activeTab: session.treehouseTab || 'decor',
       activeSlot: session.treehouseSlot || 'wallpaper',
-      selectedPlaymateId: session.treehouseSelectedPartner || ''
+      selectedPlaymateId: session.treehouseSelectedPartner || '',
+      decorateMode: Boolean(session.treehouseDecorateMode),
+      lampLit: Boolean(session.treehouseLampLit),
+      skipStageRender: skipStageRender
     });
+    syncTreehouseDecorateModeUi();
+    syncTreehouseSlotFocusUi();
   }
 
   function switchDexTab(target, focusTab){
@@ -1187,6 +1273,9 @@ import { createQuestDialogs } from '../src/quest/dialogs.js';
   function openTreehouse(initialTab, selectedPartnerId){
     if(initialTab) session.treehouseTab = initialTab;
     if(selectedPartnerId) session.treehouseSelectedPartner = toCanonicalPartnerId(selectedPartnerId);
+    if(session.treehouseDockCollapsed){
+      setTreehouseDockCollapsed(false);
+    }
     if(!session.arcadeOpen){
       openArcade();
     }
@@ -3353,11 +3442,39 @@ import { createQuestDialogs } from '../src/quest/dialogs.js';
       return true;
     }
 
+    function isTreehouseStageMounted(){
+      return Boolean(els.treehouseView && els.treehouseView.style.display !== 'none' && els.thStage && els.thStage.querySelector('.mqst-th-room'));
+    }
+
+    function swapTreehouseSlotOnStage(slot, itemId){
+      if(!isTreehouseStageMounted()) return;
+      if(slot === 'wallpaper'){
+        animateSlotSwap(els.thStage, 'wallpaper', {
+          wallpaperMeta: getTreehouseWallpaperMeta(itemId),
+          wallKey: itemId
+        });
+        return;
+      }
+      var progressStats = dialogs.buildTreehouseProgressStats(saveData);
+      var nextHtml = renderTreehouseSlotContentHtml(slot, itemId, {
+        progressStats: progressStats,
+        lampLit: session.treehouseLampLit
+      });
+      animateSlotSwap(els.thStage, slot, {
+        nextHtml: nextHtml,
+        itemId: itemId,
+        lampLit: session.treehouseLampLit
+      });
+    }
+
     function handleEquipTreehouseDecor(slot, itemId, afterFn){
       var res = equipTreehouseSlot(saveData, slot, itemId);
       if(!res.ok) return false;
       persistSave();
-      if(MathApp.sfx) MathApp.sfx('pop');
+      session.treehouseSlot = slot;
+      if(MathApp.audio && MathApp.audio.sfxChime) MathApp.audio.sfxChime();
+      else if(MathApp.sfx) MathApp.sfx('pop');
+      swapTreehouseSlotOnStage(slot, itemId);
       if(els.thToast && res.item){
         els.thToast.textContent = res.item.icon + ' 已為秘密樹屋換上【' + res.item.name + '】！';
       }
@@ -3375,7 +3492,9 @@ import { createQuestDialogs } from '../src/quest/dialogs.js';
       }
       persistSave();
       updateHubStats();
+      if(res.item) session.treehouseSlot = res.item.slot;
       if(MathApp.sfx) MathApp.sfx('magic');
+      if(res.item) swapTreehouseSlotOnStage(res.item.slot, res.item.id);
       if(els.thToast && res.item){
         els.thToast.textContent = '🛍️ 已購買並擺設【' + res.item.name + '】！';
       }
@@ -3384,6 +3503,24 @@ import { createQuestDialogs } from '../src/quest/dialogs.js';
       }
       if(afterFn) afterFn(res);
       return true;
+    }
+
+    function syncPlaymateVisualOnStage(partnerId){
+      if(!isTreehouseStageMounted()) return;
+      var btn = els.thStage.querySelector('[data-th-playmate-btn="' + partnerId + '"]');
+      var isl = getIslandById(partnerId);
+      if(!btn || !isl) return;
+      var bond = getPartnerBondInfo(saveData, isl.fullId);
+      var specMeta = getSpecialtyMeta(isl.specialty);
+      btn.classList.toggle('is-lv3', bond.level >= 3);
+      var lvEl = btn.querySelector('.mqst-th-sprite-lv');
+      if(lvEl && specMeta){
+        lvEl.textContent = specMeta.icon + ' Lv.' + bond.level;
+      }
+      var svgWrap = btn.querySelector('.mqst-th-sprite-svg');
+      if(svgWrap){
+        svgWrap.innerHTML = getCharacterSvg(isl.theme, false, 'happy', { bondLevel: bond.level });
+      }
     }
 
     function handleFeedPartnerSnack(partnerId, snackId, afterFn){
@@ -3406,6 +3543,15 @@ import { createQuestDialogs } from '../src/quest/dialogs.js';
         if(MathApp.sfx) MathApp.sfx('star');
       } else {
         if(MathApp.sfx) MathApp.sfx('pop');
+      }
+      if(isTreehouseStageMounted()){
+        syncPlaymateVisualOnStage(res.partnerId);
+        playFeedSnackAnimation(els.thStage, res.partnerId, {
+          snackIcon: res.snack.icon,
+          bondXp: res.snack.bondXp,
+          leveledUp: Boolean(bondRes.leveledUp),
+          unlockedAura: Boolean(bondRes.unlockedAura)
+        });
       }
       var feedMsg = bondRes.unlockedAura
         ? ('✨ 【' + spName + '】親密度升上 Lv.3，解鎖專屬閃耀光環！「' + ((isl && isl.lv3Cheer) || '太喜歡你了！') + '」')
@@ -3767,7 +3913,9 @@ import { createQuestDialogs } from '../src/quest/dialogs.js';
         if(buyThBtn){
           handleBuyTreehouseItem(buyThBtn.getAttribute('data-shop-buy-treehouse'), function(){
             renderShopDialog();
-            if(els.treehouseView && els.treehouseView.style.display !== 'none') renderCurrentTreehouse();
+            if(els.treehouseView && els.treehouseView.style.display !== 'none'){
+              renderCurrentTreehouse({ skipStageRender: true });
+            }
           });
           return;
         }
@@ -3778,7 +3926,9 @@ import { createQuestDialogs } from '../src/quest/dialogs.js';
             eqThBtn.getAttribute('data-shop-equip-th-id'),
             function(){
               renderShopDialog();
-              if(els.treehouseView && els.treehouseView.style.display !== 'none') renderCurrentTreehouse();
+              if(els.treehouseView && els.treehouseView.style.display !== 'none'){
+                renderCurrentTreehouse({ skipStageRender: true });
+              }
             }
           );
           return;
@@ -3831,9 +3981,37 @@ import { createQuestDialogs } from '../src/quest/dialogs.js';
     if(els.thOpenWardrobeBtn){
       els.thOpenWardrobeBtn.addEventListener('click', function(){ openDexDialog('wardrobe'); });
     }
+    if(els.thDecorateModeBtn){
+      els.thDecorateModeBtn.addEventListener('click', function(){
+        if(MathApp.sfx) MathApp.sfx('click');
+        session.treehouseDecorateMode = !session.treehouseDecorateMode;
+        if(session.treehouseDecorateMode){
+          session.treehouseTab = 'decor';
+          if(session.treehouseDockCollapsed) setTreehouseDockCollapsed(false);
+          renderCurrentTreehouse({ skipStageRender: true });
+          if(els.thToast){
+            els.thToast.textContent = '✨ 快速佈置模式開啟！直接點屋內的窗戶、吊燈、掛飾或家具就能馬上挑選更換！';
+          }
+        } else {
+          syncTreehouseDecorateModeUi();
+          if(els.thToast){
+            els.thToast.textContent = '🏡 已回到溫馨陪玩模式！點點家具和精靈會有可愛驚喜喔！';
+          }
+        }
+      });
+    }
+    if(els.thDockToggleBtn){
+      els.thDockToggleBtn.addEventListener('click', function(){
+        if(MathApp.sfx) MathApp.sfx('click');
+        setTreehouseDockCollapsed(!session.treehouseDockCollapsed);
+      });
+    }
     if(els.treehouseView){
       var thTabs = els.treehouseView.querySelectorAll('.mqst-th-tab[data-th-tab]');
-      bindTabGroup(thTabs, 'data-th-tab', syncTreehouseTabUi);
+      bindTabGroup(thTabs, 'data-th-tab', function(target, focusTab){
+        syncTreehouseTabUi(target, focusTab);
+        if(session.treehouseDockCollapsed) setTreehouseDockCollapsed(false);
+      });
     }
     if(els.thStage){
       els.thStage.addEventListener('click', function(e){
@@ -3841,13 +4019,50 @@ import { createQuestDialogs } from '../src/quest/dialogs.js';
         if(interactEl){
           var kind = interactEl.getAttribute('data-th-interact');
           var itemId = interactEl.getAttribute('data-item-id') || '';
-          if(MathApp.audio && MathApp.audio.sfxJump) MathApp.audio.sfxJump();
-          else if(MathApp.sfx) MathApp.sfx('pop');
-          runAnim(function(gsap){
-            gsap.fromTo(interactEl, { y: 0, scale: 1 }, { y: -12, scale: 1.07, duration: 0.16, yoyo: true, repeat: 1, ease: 'power1.out', clearProps: 'transform' });
+          if(session.treehouseDecorateMode && kind !== 'bunny'){
+            if(MathApp.sfx) MathApp.sfx('click');
+            session.treehouseSlot = kind;
+            session.treehouseTab = 'decor';
+            if(session.treehouseDockCollapsed) setTreehouseDockCollapsed(false);
+            renderCurrentTreehouse({ skipStageRender: true });
+            playObjectEasterEgg(els.thStage, interactEl, { kind: kind, itemId: itemId });
+            var slotObj = TREEHOUSE_SLOTS.find(function(s){ return s.id === kind; });
+            if(els.thToast){
+              els.thToast.textContent = '✨ 已選取【' + (slotObj ? slotObj.name : kind) + '】，請在下方挑選要更換的款式！';
+            }
+            return;
+          }
+
+          if(kind === 'ceiling' && isLightableCeiling(itemId)){
+            session.treehouseLampLit = !session.treehouseLampLit;
+            var roomEl = els.thStage.querySelector('.mqst-th-room');
+            if(roomEl) roomEl.classList.toggle('is-lamp-lit', session.treehouseLampLit);
+            interactEl.innerHTML = renderTreehouseSlotContentHtml('ceiling', itemId, {
+              lampLit: session.treehouseLampLit
+            });
+          }
+
+          if((itemId === 'gramophone' || itemId === 'rainbow_musicbox' || itemId === 'cloud_windchime') && MathApp.audio && MathApp.audio.sfxMusicBox){
+            MathApp.audio.sfxMusicBox();
+          } else if(kind === 'ceiling' && isLightableCeiling(itemId) && MathApp.audio && MathApp.audio.sfxChime){
+            MathApp.audio.sfxChime();
+          } else if(MathApp.audio && MathApp.audio.sfxJump){
+            MathApp.audio.sfxJump();
+          } else if(MathApp.sfx){
+            MathApp.sfx('pop');
+          }
+
+          var progressStats = dialogs.buildTreehouseProgressStats(saveData);
+          var msg = getTreehouseInteractMessage(kind, itemId, {
+            progressStats: progressStats,
+            lampLit: session.treehouseLampLit
           });
+          playObjectEasterEgg(els.thStage, interactEl, { kind: kind, itemId: itemId });
+          if(kind === 'bunny'){
+            showActorSpeechBubble(els.thStage, interactEl, msg.replace(/^🐰\s*粉紅小兔[^：「]*：「?|」$/g, ''));
+          }
           if(els.thToast){
-            els.thToast.textContent = getTreehouseInteractMessage(kind, itemId);
+            els.thToast.textContent = msg;
           }
           bumpTreehouseDailyInteract();
           return;
@@ -3856,27 +4071,37 @@ import { createQuestDialogs } from '../src/quest/dialogs.js';
         if(playmateBtn){
           var pid = toCanonicalPartnerId(playmateBtn.getAttribute('data-th-playmate-btn'));
           session.treehouseSelectedPartner = pid;
+          els.thStage.querySelectorAll('.mqst-th-playmate-slot.is-occupied').forEach(function(el){
+            el.classList.toggle('is-selected', toCanonicalPartnerId(el.getAttribute('data-th-playmate-btn')) === pid);
+          });
           var spIsl = getIslandById(pid);
           var bond = getPartnerBondInfo(saveData, pid);
           var specMeta = spIsl ? getSpecialtyMeta(spIsl.specialty) : null;
           if(MathApp.audio && MathApp.audio.sfxJump) MathApp.audio.sfxJump();
           else if(MathApp.sfx) MathApp.sfx('pop');
-          if(els.thToast && spIsl){
-            els.thToast.textContent = bond.level >= 3 && spIsl.lv3Cheer
+          playObjectEasterEgg(els.thStage, playmateBtn, { kind: 'playmate', itemId: pid });
+          if(spIsl){
+            var fullLine = bond.level >= 3 && spIsl.lv3Cheer
               ? (spIsl.partnerProjectile + ' ' + spIsl.spriteName + ' (Lv.3)：' + spIsl.lv3Cheer)
               : (spIsl.partnerProjectile + ' 【' + spIsl.spriteName + '】開心地轉圈圈！（Lv.' + bond.level + ' · ' + (specMeta ? specMeta.name : '') + '）');
+            var shortBubble = bond.level >= 3 && spIsl.lv3Cheer
+              ? spIsl.lv3Cheer
+              : (spIsl.spriteName + '好喜歡這間樹屋！✨');
+            showActorSpeechBubble(els.thStage, playmateBtn, shortBubble);
+            if(els.thToast) els.thToast.textContent = fullLine;
           }
           bumpTreehouseDailyInteract();
-          renderCurrentTreehouse();
+          renderCurrentTreehouse({ skipStageRender: true });
           return;
         }
         var emptySlot = e.target.closest('[data-th-empty-slot]');
         if(emptySlot){
           if(MathApp.sfx) MathApp.sfx('click');
           session.treehouseTab = 'sprites';
-          renderCurrentTreehouse();
+          if(session.treehouseDockCollapsed) setTreehouseDockCollapsed(false);
+          renderCurrentTreehouse({ skipStageRender: true });
           if(els.thToast){
-            els.thToast.textContent = '👇 在下方點選已收服的守護小精靈，就可以邀請進來遊樂位喔！';
+            els.thToast.textContent = '👇 在下方點選已收服的守護小精靈，就可以邀請進來坐坐喔！';
           }
         }
       });
@@ -3887,7 +4112,7 @@ import { createQuestDialogs } from '../src/quest/dialogs.js';
         if(slotBtn){
           if(MathApp.sfx) MathApp.sfx('click');
           session.treehouseSlot = slotBtn.getAttribute('data-th-slot-select');
-          renderCurrentTreehouse();
+          renderCurrentTreehouse({ skipStageRender: true });
           return;
         }
         var eqBtn = e.target.closest('[data-th-equip-slot][data-th-equip-item]');
@@ -3895,14 +4120,14 @@ import { createQuestDialogs } from '../src/quest/dialogs.js';
           handleEquipTreehouseDecor(
             eqBtn.getAttribute('data-th-equip-slot'),
             eqBtn.getAttribute('data-th-equip-item'),
-            function(){ renderCurrentTreehouse(); }
+            function(){ renderCurrentTreehouse({ skipStageRender: true }); }
           );
           return;
         }
         var buyBtn = e.target.closest('[data-th-buy-item]');
         if(buyBtn){
           handleBuyTreehouseItem(buyBtn.getAttribute('data-th-buy-item'), function(){
-            renderCurrentTreehouse();
+            renderCurrentTreehouse({ skipStageRender: true });
           });
           return;
         }
@@ -3937,7 +4162,12 @@ import { createQuestDialogs } from '../src/quest/dialogs.js';
         if(selectFeedBtn){
           if(MathApp.sfx) MathApp.sfx('click');
           session.treehouseSelectedPartner = toCanonicalPartnerId(selectFeedBtn.getAttribute('data-th-select-feed'));
-          renderCurrentTreehouse();
+          if(els.thStage){
+            els.thStage.querySelectorAll('.mqst-th-playmate-slot.is-occupied').forEach(function(el){
+              el.classList.toggle('is-selected', toCanonicalPartnerId(el.getAttribute('data-th-playmate-btn')) === session.treehouseSelectedPartner);
+            });
+          }
+          renderCurrentTreehouse({ skipStageRender: true });
           return;
         }
         var gotoRealmBtn = e.target.closest('[data-th-goto-realm]');
@@ -3956,7 +4186,7 @@ import { createQuestDialogs } from '../src/quest/dialogs.js';
             feedBtn.getAttribute('data-th-feed-partner'),
             feedBtn.getAttribute('data-th-feed-snack'),
             function(){
-              renderCurrentTreehouse();
+              renderCurrentTreehouse({ skipStageRender: true });
               renderMap();
             }
           );

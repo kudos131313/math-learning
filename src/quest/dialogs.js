@@ -55,7 +55,10 @@ import {
   getTowerBestFloor
 } from '../domain/quest-tower.js';
 import { getStoryStickerSvg } from './svg-art.js';
-import { renderTreehouseSceneHtml } from './treehouse-svg.js';
+import {
+  renderTreehouseSceneHtml,
+  renderTreehouseItemPreviewHtml
+} from './treehouse-svg.js';
 import { randInt } from '../domain/number-text.js';
 
 function buildShopBuyBtnHtml({ attrName, itemId, price, coins, labelPrefix = '🪙 ' }) {
@@ -98,6 +101,21 @@ export function createQuestDialogs({
   let wardrobeSlotFilter = 'all';
   let albumSectionFilter = 'all';
   let shopSelectedPartnerId = '';
+
+  function buildTreehouseProgressStats(saveData) {
+    return {
+      totalStars: countTotalStars(saveData),
+      maxStars: STAGES.length * 3,
+      litGems: countLitGems(saveData),
+      spriteCount: countUnlockedSprites(saveData),
+      maxSprites: ISLANDS.length,
+      realmStars: {
+        sunny: countTotalStars(saveData, 'sunny'),
+        mul: countTotalStars(saveData, 'mul'),
+        cloud: countTotalStars(saveData, 'cloud')
+      }
+    };
+  }
 
   function getWardrobeProgressMeta(item, saveData, stars, gems) {
     const unlocked = isWardrobeItemUnlocked(saveData, item.id);
@@ -971,9 +989,10 @@ export function createQuestDialogs({
     // 2. 樹屋家具分頁
     if (els.shopPaneTreehouse) {
       const thSlots = (saveData.treehouse && saveData.treehouse.slots) || {};
+      const progressStats = buildTreehouseProgressStats(saveData);
       let tHtml =
         '<div class="mqst-gem-summary">' +
-        '<span>🏡 秘密樹屋家具與風景裝飾</span>' +
+        '<span>🏡 秘密樹屋家具與風景裝飾（7 大佈置部位）</span>' +
         '<button type="button" class="mqst-tool-btn mqst-mini-shop-btn" data-shop-goto-treehouse="1">🏡 前往秘密樹屋佈置</button>' +
         '</div>';
 
@@ -988,8 +1007,8 @@ export function createQuestDialogs({
             '<div class="mqst-collect-card' +
             (equipped ? ' is-equipped' : '') +
             '">' +
-            '<div class="mqst-skill-ico" aria-hidden="true">' +
-            item.icon +
+            '<div class="mqst-th-shop-thumb" aria-hidden="true">' +
+            renderTreehouseItemPreviewHtml(item, { progressStats }) +
             '</div>' +
             '<div class="mqst-collect-name">' +
             item.name +
@@ -1124,7 +1143,10 @@ export function createQuestDialogs({
   function renderTreehouseView({
     activeTab = 'decor',
     activeSlot = 'wallpaper',
-    selectedPlaymateId = ''
+    selectedPlaymateId = '',
+    decorateMode = false,
+    lampLit = true,
+    skipStageRender = false
   } = {}) {
     const saveData = getSaveData();
     const coins = Math.max(0, Math.floor(Number(saveData.starCoins || 0)));
@@ -1134,18 +1156,23 @@ export function createQuestDialogs({
     const playmates = getTreehousePlaymates(saveData);
     const activeW = getActiveWardrobe(saveData);
     const bonds = (saveData.partners && saveData.partners.bonds) || {};
+    const progressStats = buildTreehouseProgressStats(saveData);
     const validSelected =
       selectedPlaymateId && isPartnerUnlocked(saveData, selectedPlaymateId)
         ? selectedPlaymateId
         : playmates[0] || '';
 
-    if (els.thStage) {
+    if (els.thStage && !skipStageRender) {
       els.thStage.innerHTML = renderTreehouseSceneHtml({
         slots: th.slots || {},
         playmates,
         wardrobe: activeW,
         bonds,
         selectedPlaymateId: validSelected,
+        progressStats,
+        activeSlot,
+        decorateMode,
+        lampLit,
         getPinkBunnySvg,
         getCharacterSvg
       });
@@ -1180,9 +1207,10 @@ export function createQuestDialogs({
           (equipped ? ' is-equipped' : '') +
           (owned ? '' : ' is-locked') +
           '">' +
-          '<span class="mqst-th-item-ico" aria-hidden="true">' +
-          item.icon +
-          '</span>' +
+          '<div class="mqst-th-item-thumb" aria-hidden="true">' +
+          renderTreehouseItemPreviewHtml(item, { progressStats }) +
+          '</div>' +
+          '<div class="mqst-th-item-meta">' +
           '<strong class="mqst-th-item-name">' +
           item.name +
           (!realOwned && saveData.devMode ? ' 🧪' : '') +
@@ -1214,7 +1242,7 @@ export function createQuestDialogs({
             (canBuy ? '🪙 ' + item.price + ' 購買' : '🔒 ' + item.price + '（差 ' + (item.price - coins) + '）') +
             '</button>';
         }
-        dHtml += '</div>';
+        dHtml += '</div></div>';
       });
       dHtml += '</div>';
       els.thPaneDecor.innerHTML = dHtml;
@@ -1273,13 +1301,17 @@ export function createQuestDialogs({
           '"' +
           (fullDisabled ? ' disabled title="樹屋遊樂位已滿 3 隻，請先請一隻休息"' : '') +
           '>' +
-          isl.partnerProjectile +
-          ' ' +
+          '<span class="mqst-th-chip-mini-art" aria-hidden="true">' +
+          getCharacterSvg(isl.theme, false, inRoom ? 'happy' : 'normal', { bondLevel: bond.level }) +
+          '</span>' +
+          '<span class="mqst-th-chip-text">' +
           isl.spriteName +
-          ' (Lv.' +
+          ' <small>Lv.' +
           bond.level +
-          ') ' +
+          '</small></span>' +
+          '<span class="mqst-th-chip-status">' +
           (inRoom ? '✅ 樹屋中' : fullDisabled ? '已滿' : '＋ 邀請') +
+          '</span>' +
           '</button>';
       });
       sHtml += '</div></div>';
@@ -1288,12 +1320,17 @@ export function createQuestDialogs({
       const feedBond = getPartnerBondInfo(saveData, feedTarget.fullId);
       sHtml += '<div class="mqst-th-feed-box mqst-th-panel-card">';
       sHtml +=
+        '<div class="mqst-th-feed-head">' +
         '<div class="mqst-th-sub-label">🍪 餵食點心對象：<b>' +
         feedTarget.spriteName +
         '</b>（Lv.' +
         feedBond.level +
         '・' +
-        (feedBond.isMax ? '滿級光環✨' : feedBond.xp + '/' + feedBond.nextThreshold + '）') +
+        (feedBond.isMax ? '滿級光環✨' : feedBond.xp + '/' + feedBond.nextThreshold) +
+        '）</div>' +
+        '<div class="mqst-th-feed-xp-track" aria-hidden="true"><div class="mqst-th-feed-xp-fill" style="width:' +
+        feedBond.pct +
+        '%;"></div></div>' +
         '</div>';
       sHtml += '<div class="mqst-th-feed-targets">';
       unlockedIslands.forEach((isl) => {
@@ -1417,6 +1454,7 @@ export function createQuestDialogs({
     renderDailyDialog,
     renderShopDialog,
     renderTreehouseView,
+    buildTreehouseProgressStats,
     renderTowerDialog,
     setupDialogPolyfill,
     refreshParentLock,

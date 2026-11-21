@@ -1188,46 +1188,71 @@ export function getWardrobeItemsBySlot(slot) {
   return WARDROBE_ITEMS.filter((item) => item.slot === slot);
 }
 
-/* ---------------- Phase 3：秘密樹屋 5 槽位家具與精靈點心 ---------------- */
+/* ---------------- Phase 3：秘密樹屋 7 槽位家具與精靈點心 ---------------- */
 export const TREEHOUSE_SLOTS = [
-  { id: 'wallpaper', icon: '🎨', name: '牆紙風格' },
-  { id: 'rug', icon: '🧶', name: '地毯樣式' },
+  { id: 'wallpaper', icon: '🎨', name: '牆面主題' },
+  { id: 'ceiling', icon: '🏮', name: '天花板吊飾' },
   { id: 'window', icon: '🪟', name: '窗外風景' },
+  { id: 'wall_decor', icon: '🖼️', name: '牆面掛飾' },
   { id: 'furniture', icon: '🛋️', name: '主家具' },
-  { id: 'decor', icon: '🪴', name: '角落擺飾' }
+  { id: 'decor', icon: '🪴', name: '角落擺飾' },
+  { id: 'rug', icon: '🧶', name: '地毯樣式' }
 ];
+
+export const DEFAULT_TREEHOUSE_SLOTS = {
+  wallpaper: 'wood_cozy',
+  ceiling: 'forest_bunting',
+  window: 'forest_morning',
+  wall_decor: 'math_chalkboard',
+  furniture: 'block_shelf',
+  decor: 'sprout_pot',
+  rug: 'carrot_round'
+};
+
+export const DEFAULT_TREEHOUSE_UNLOCKED = Object.values(DEFAULT_TREEHOUSE_SLOTS);
 
 export const STAMP_MILESTONE_DECOR_IDS = ['star_lantern', 'rainbow_musicbox'];
 
 export const TREEHOUSE_ITEMS = [
-  // 1. 牆紙風格（wallpaper）
+  // 1. 牆面主題（wallpaper）
   { id: 'wood_cozy', slot: 'wallpaper', icon: '🪵', name: '暖木繪本牆', desc: '溫潤原木紋理，像走進森林裡的小樹屋。', source: 'free', price: 0 },
   { id: 'cream_bakery', slot: 'wallpaper', icon: '🧈', name: '奶油麵包黃', desc: '像剛烤好的奶油吐司一樣溫暖香甜。', source: 'shop', price: 55 },
   { id: 'ocean_breeze', slot: 'wallpaper', icon: '🌊', name: '泡泡海洋藍', desc: '清爽海風與細小水波紋，涼爽又好專心。', source: 'shop', price: 65 },
   { id: 'starry_violet', slot: 'wallpaper', icon: '🌌', name: '夢幻星空紫', desc: '夜空紫點綴閃亮小星塵，浪漫童話感滿分。', source: 'shop', price: 85 },
 
-  // 2. 地毯樣式（rug）
-  { id: 'carrot_round', slot: 'rug', icon: '🥕', name: '胡蘿蔔圓毯', desc: '軟綿綿橘粉圓地毯，小兔最愛在上面打滾。', source: 'free', price: 0 },
-  { id: 'rainbow_stripe', slot: 'rug', icon: '🌈', name: '彩虹條紋毯', desc: '七彩編織條紋地毯，讓精靈夥伴跳得更開心！', source: 'shop', price: 50 },
-  { id: 'checker_cream', slot: 'rug', icon: '♟️', name: '野餐棋盤格毯', desc: '奶油粉綠格紋地毯，像在森林裡開下午茶派對。', source: 'shop', price: 60 },
+  // 2. 天花板吊飾（ceiling）
+  { id: 'forest_bunting', slot: 'ceiling', icon: '🚩', name: '森林三角彩旗', desc: '掛在樹屋橫樑上的手作彩色小旗幟，微風吹過會輕輕搖擺！', source: 'free', price: 0 },
+  { id: 'pinecone_lights', slot: 'ceiling', icon: '✨', name: '暖光松果串燈', desc: '一串亮晶晶的森林松果小燈泡，點一下就能切換樹屋暖光氛圍！', source: 'shop', price: 60 },
+  { id: 'cloud_windchime', slot: 'ceiling', icon: '🎐', name: '雲朵星星風鈴', desc: '軟綿綿雲朵掛著七彩星星鈴鐺，點一下就會叮咚響出快樂旋律！', source: 'shop', price: 75 },
+  { id: 'star_lantern', slot: 'ceiling', icon: '🏮', name: '星願樹屋吊燈', desc: '【冒險印章本滿 7 章限定贈禮】照亮整個樹屋的暖金星光吊燈！', source: 'stamp_reward', price: 0 },
 
   // 3. 窗外風景（window）
   { id: 'forest_morning', slot: 'window', icon: '🌲', name: '森林清晨', desc: '窗外是翠綠森林與飄浮白雲，小鳥正唱歌呢。', source: 'free', price: 0 },
   { id: 'sunny_bay', slot: 'window', icon: '⛵', name: '陽光海灣', desc: '金色沙灘與藍藍海浪，還有帆船慢慢航過。', source: 'shop', price: 65 },
   { id: 'cloud_starlight', slot: 'window', icon: '🌠', name: '雲端星海', desc: '整片雲朵與流星銀河在窗外閃閃發光。', source: 'shop', price: 90 },
 
-  // 4. 主家具（furniture）
+  // 4. 牆面掛飾（wall_decor）
+  { id: 'math_chalkboard', slot: 'wall_decor', icon: '📝', name: '冒險成果小黑板', desc: '即時寫上粉紅小兔累積的總星星數與寶石數，每天進步都看得見！', source: 'free', price: 0 },
+  { id: 'realm_map_frame', slot: 'wall_decor', icon: '🗺️', name: '三大海域探險地圖', desc: '手繪羊皮紙冒險地圖，標記陽光加減、九九乘法與雲端王國航線！', source: 'shop', price: 65 },
+  { id: 'cuckoo_clock', slot: 'wall_decor', icon: '🕰️', name: '森林布穀鳥掛鐘', desc: '圓滾滾童話木頭小掛鐘，點一下會擺動松果鐘擺叮咚報時！', source: 'shop', price: 75 },
+  { id: 'honor_gallery', slot: 'wall_decor', icon: '🖼️', name: '冒險榮譽相框牆', desc: '依據闖關戰績即時點亮三大海域榮譽勳章，滿滿成就感掛在牆上！', source: 'shop', price: 90 },
+
+  // 5. 主家具（furniture）
   { id: 'block_shelf', slot: 'furniture', icon: '📚', name: '積木書架櫃', desc: '擺滿彩色十進位積木與數學繪本的木櫃。', source: 'free', price: 0 },
   { id: 'dessert_table', slot: 'furniture', icon: '🍰', name: '雙層甜點茶几', desc: '放著草莓蛋糕與熱可可的小圓茶几。', source: 'shop', price: 80 },
   { id: 'cloud_sofa', slot: 'furniture', icon: '☁️', name: '雲朵沙發組', desc: '蓬鬆軟綿的雲朵抱枕沙發，精靈坐上去就不想起來！', source: 'shop', price: 100 },
 
-  // 5. 角落擺飾（decor）
+  // 6. 角落擺飾（decor）
   { id: 'sprout_pot', slot: 'decor', icon: '🪴', name: '微笑小盆栽', desc: '每天澆水就會長出新葉子的幸運小盆栽。', source: 'free', price: 0 },
   { id: 'trophy_stand', slot: 'decor', icon: '🏆', name: '冒險獎盃展示座', desc: '閃亮亮黃金獎盃，記錄粉紅小兔的勇敢戰績！', source: 'shop', price: 70 },
   { id: 'mini_globe', slot: 'decor', icon: '🌍', name: '航行迷你地球儀', desc: '標記三大海域航線的旋轉小地球儀。', source: 'shop', price: 75 },
   { id: 'gramophone', slot: 'decor', icon: '🎵', name: '童話留聲機', desc: '轉動把手就會飄出叮叮咚咚的快樂音符。', source: 'shop', price: 85 },
-  { id: 'star_lantern', slot: 'decor', icon: '🏮', name: '星願樹屋吊燈', desc: '【冒險印章本滿 7 章限定贈禮】照亮整個樹屋的暖金星光吊燈！', source: 'stamp_reward', price: 0 },
-  { id: 'rainbow_musicbox', slot: 'decor', icon: '🎼', name: '彩虹許願音樂盒', desc: '【冒險印章本第 2 輪滿 7 章限定贈禮】打開會飄出七彩音符！', source: 'stamp_reward', price: 0 }
+  { id: 'rainbow_musicbox', slot: 'decor', icon: '🎼', name: '彩虹許願音樂盒', desc: '【冒險印章本第 2 輪滿 7 章限定贈禮】打開會飄出七彩音符！', source: 'stamp_reward', price: 0 },
+
+  // 7. 地毯樣式（rug）
+  { id: 'carrot_round', slot: 'rug', icon: '🥕', name: '胡蘿蔔圓毯', desc: '軟綿綿橘粉圓地毯，小兔最愛在上面打滾。', source: 'free', price: 0 },
+  { id: 'rainbow_stripe', slot: 'rug', icon: '🌈', name: '彩虹條紋毯', desc: '七彩編織條紋地毯，讓精靈夥伴跳得更開心！', source: 'shop', price: 50 },
+  { id: 'checker_cream', slot: 'rug', icon: '♟️', name: '野餐棋盤格毯', desc: '奶油粉綠格紋地毯，像在森林裡開下午茶派對。', source: 'shop', price: 60 }
 ];
 
 export function getTreehouseItemById(id) {

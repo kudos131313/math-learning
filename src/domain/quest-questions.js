@@ -24,7 +24,10 @@ import {
   getSkillCardById,
   BOSS_ALBUM_ENTRIES,
   STORY_ALBUM_ENTRIES,
-  getStoryEntryById
+  getStoryEntryById,
+  DEFAULT_TREEHOUSE_SLOTS,
+  DEFAULT_TREEHOUSE_UNLOCKED,
+  getTreehouseItemById
 } from './quest-data.js';
 import { buildMulQuestion } from './multiplication.js';
 import { randInt } from './number-text.js';
@@ -279,14 +282,8 @@ export function createDefaultSaveV2(now = new Date()) {
       }
     },
     treehouse: {
-      slots: {
-        wallpaper: 'wood_cozy',
-        rug: 'carrot_round',
-        window: 'forest_morning',
-        furniture: 'block_shelf',
-        decor: 'sprout_pot'
-      },
-      unlockedItems: ['wood_cozy', 'carrot_round', 'forest_morning', 'block_shelf', 'sprout_pot'],
+      slots: Object.assign({}, DEFAULT_TREEHOUSE_SLOTS),
+      unlockedItems: DEFAULT_TREEHOUSE_UNLOCKED.slice(),
       playmates: []
     },
     daily: {
@@ -536,10 +533,19 @@ export function normalizeSaveDataV2(parsed, now = new Date()) {
   const treehouseSlots = Object.assign({}, def.treehouse.slots);
   Object.keys(def.treehouse.slots).forEach((slotKey) => {
     const candidate = rawSlots[slotKey];
-    if (typeof candidate === 'string' && (isDevMode || treehouseUnlocked.indexOf(candidate) !== -1)) {
+    const meta = typeof candidate === 'string' ? getTreehouseItemById(candidate) : null;
+    if (meta && meta.slot === slotKey && (isDevMode || treehouseUnlocked.indexOf(candidate) !== -1)) {
       treehouseSlots[slotKey] = candidate;
     }
   });
+  // 舊版 5 槽存檔無損遷移：將原先歸於角落擺飾的星願吊燈自動移回天花板槽位
+  if (
+    rawSlots.decor === 'star_lantern' &&
+    !rawSlots.ceiling &&
+    (isDevMode || treehouseUnlocked.indexOf('star_lantern') !== -1)
+  ) {
+    treehouseSlots.ceiling = 'star_lantern';
+  }
   const treehousePlaymates = uniqueStrings(
     (rawTreehouse.playmates || []).map((pid) => toCanonicalPartnerId(pid))
   )

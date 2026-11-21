@@ -7,6 +7,8 @@ import {
   ISLANDS,
   WARDROBE_ITEMS,
   TREEHOUSE_ITEMS,
+  DEFAULT_TREEHOUSE_SLOTS,
+  DEFAULT_TREEHOUSE_UNLOCKED,
   STAMP_MILESTONE_DECOR_IDS,
   PARTNER_BOND_THRESHOLDS,
   PARTNER_SNACKS,
@@ -783,25 +785,19 @@ export function purchaseTreehouseItem(saveData, itemId, { autoEquip = true } = {
   saveData.starCoins = coins - item.price;
   if (!saveData.treehouse || typeof saveData.treehouse !== 'object') {
     saveData.treehouse = {
-      slots: {
-        wallpaper: 'wood_cozy',
-        rug: 'carrot_round',
-        window: 'forest_morning',
-        furniture: 'block_shelf',
-        decor: 'sprout_pot'
-      },
-      unlockedItems: ['wood_cozy', 'carrot_round', 'forest_morning', 'block_shelf', 'sprout_pot'],
+      slots: Object.assign({}, DEFAULT_TREEHOUSE_SLOTS),
+      unlockedItems: DEFAULT_TREEHOUSE_UNLOCKED.slice(),
       playmates: []
     };
   }
   if (!Array.isArray(saveData.treehouse.unlockedItems)) {
-    saveData.treehouse.unlockedItems = ['wood_cozy', 'carrot_round', 'forest_morning', 'block_shelf', 'sprout_pot'];
+    saveData.treehouse.unlockedItems = DEFAULT_TREEHOUSE_UNLOCKED.slice();
   }
   if (saveData.treehouse.unlockedItems.indexOf(item.id) === -1) {
     saveData.treehouse.unlockedItems.push(item.id);
   }
   if (autoEquip) {
-    if (!saveData.treehouse.slots) saveData.treehouse.slots = {};
+    if (!saveData.treehouse.slots) saveData.treehouse.slots = Object.assign({}, DEFAULT_TREEHOUSE_SLOTS);
     saveData.treehouse.slots[item.slot] = item.id;
   }
   return { ok: true, item, remainingCoins: saveData.starCoins };
@@ -812,8 +808,14 @@ export function equipTreehouseSlot(saveData, slot, itemId) {
   const item = getTreehouseItemById(itemId);
   if (!item || item.slot !== slot) return { ok: false, reason: 'invalid_item' };
   if (!isTreehouseItemUnlocked(saveData, item.id)) return { ok: false, reason: 'locked' };
-  if (!saveData.treehouse) saveData.treehouse = { slots: {}, unlockedItems: [], playmates: [] };
-  if (!saveData.treehouse.slots) saveData.treehouse.slots = {};
+  if (!saveData.treehouse) {
+    saveData.treehouse = {
+      slots: Object.assign({}, DEFAULT_TREEHOUSE_SLOTS),
+      unlockedItems: DEFAULT_TREEHOUSE_UNLOCKED.slice(),
+      playmates: []
+    };
+  }
+  if (!saveData.treehouse.slots) saveData.treehouse.slots = Object.assign({}, DEFAULT_TREEHOUSE_SLOTS);
   saveData.treehouse.slots[slot] = item.id;
   return { ok: true, item };
 }

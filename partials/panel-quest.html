@@ -463,6 +463,9 @@
           </div>
           <div class="mqst-hud-actions">
             <span class="mqst-hud-pill coin" title="目前持有的星星幣">🪙 <strong id="mqst-th-coins">0</strong></span>
+            <button type="button" class="mqst-hud-btn decorate" id="mqst-th-decorate-mode-btn" aria-pressed="false" title="開啟後直接點屋內家具就能切換款式">
+              <span aria-hidden="true">✨</span><span>快速佈置</span>
+            </button>
             <button type="button" class="mqst-hud-btn shop" id="mqst-th-open-shop-btn">
               <span aria-hidden="true">🛍️</span><span>商店</span>
             </button>
@@ -481,12 +484,19 @@
         </div>
 
         <div class="mqst-treehouse-dock" id="mqst-treehouse-dock">
-          <div class="mqst-th-tabs" role="tablist" aria-label="樹屋互動功能切換">
-            <button type="button" class="mqst-th-tab active" id="mqst-th-tab-decor" data-th-tab="decor" role="tab" aria-selected="true" tabindex="0">🪑 佈置樹屋</button>
-            <button type="button" class="mqst-th-tab" id="mqst-th-tab-sprites" data-th-tab="sprites" role="tab" aria-selected="false" tabindex="-1">🐣 精靈遊樂＆餵點心</button>
+          <div class="mqst-th-dock-head">
+            <div class="mqst-th-tabs" role="tablist" aria-label="樹屋互動功能切換">
+              <button type="button" class="mqst-th-tab active" id="mqst-th-tab-decor" data-th-tab="decor" role="tab" aria-selected="true" tabindex="0">🪑 佈置樹屋</button>
+              <button type="button" class="mqst-th-tab" id="mqst-th-tab-sprites" data-th-tab="sprites" role="tab" aria-selected="false" tabindex="-1">🐣 精靈遊樂＆餵點心</button>
+            </div>
+            <button type="button" class="mqst-th-dock-toggle" id="mqst-th-dock-toggle-btn" aria-expanded="true" aria-controls="mqst-th-dock-body">
+              <span aria-hidden="true">🔽</span><span>收起選單</span>
+            </button>
           </div>
-          <div class="mqst-th-pane" id="mqst-th-pane-decor" role="tabpanel" aria-labelledby="mqst-th-tab-decor"></div>
-          <div class="mqst-th-pane" id="mqst-th-pane-sprites" role="tabpanel" aria-labelledby="mqst-th-tab-sprites" hidden></div>
+          <div class="mqst-th-dock-body" id="mqst-th-dock-body">
+            <div class="mqst-th-pane" id="mqst-th-pane-decor" role="tabpanel" aria-labelledby="mqst-th-tab-decor"></div>
+            <div class="mqst-th-pane" id="mqst-th-pane-sprites" role="tabpanel" aria-labelledby="mqst-th-tab-sprites" hidden></div>
+          </div>
         </div>
       </div>
     </div><!-- /#mqst-arcade-overlay -->

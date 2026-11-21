@@ -2,7 +2,9 @@ import { describe, it, expect } from 'vitest';
 import {
   ISLANDS,
   WARDROBE_ITEMS,
+  TREEHOUSE_SLOTS,
   TREEHOUSE_ITEMS,
+  DEFAULT_TREEHOUSE_SLOTS,
   PARTNER_SNACKS,
   getIslandById,
   getWardrobeItemById,
@@ -49,7 +51,11 @@ import {
   getCharacterSvg,
   getProjectileSvg
 } from '../src/quest/svg-art.js';
-import { renderTreehouseSceneHtml } from '../src/quest/treehouse-svg.js';
+import {
+  renderTreehouseSceneHtml,
+  renderTreehouseItemPreviewHtml,
+  getTreehouseInteractMessage
+} from '../src/quest/treehouse-svg.js';
 
 describe('Phase 3：每日冒險委託確定性、海域過濾與不斷簽印章本', () => {
   it('同一本地日期應生成完全一致的 3 個委託，且在未解鎖雲端海域時 120 天內絕不抽出雲端委託', () => {
@@ -430,5 +436,97 @@ describe('Phase 3：秘密樹屋互動、精靈遊樂位上限與四大專長／
     expect(isPartnerUnlocked(save, 'cloud:skycastle')).toBe(false);
     expect(save.wardrobe.active.hat).toBe('star_clip');
     expect(save.treehouse.playmates).toEqual([]);
+  });
+
+  it('秘密樹屋 7 槽位擴充、舊版 star_lantern 無損遷移、實物縮圖 ID 唯一性與數學戰績連動', () => {
+    const def = createDefaultSaveV2();
+    expect(TREEHOUSE_SLOTS).toHaveLength(7);
+    expect(Object.keys(def.treehouse.slots)).toEqual([
+      'wallpaper',
+      'ceiling',
+      'window',
+      'wall_decor',
+      'furniture',
+      'decor',
+      'rug'
+    ]);
+    expect(def.treehouse.slots).toEqual(DEFAULT_TREEHOUSE_SLOTS);
+    expect(isTreehouseItemUnlocked(def, 'forest_bunting')).toBe(true);
+    expect(isTreehouseItemUnlocked(def, 'math_chalkboard')).toBe(true);
+    expect(isTreehouseItemUnlocked(def, 'pinecone_lights')).toBe(false);
+
+    // 商店新上架的天花板與牆面掛飾餘額不足不扣負值、買完自動裝配
+    def.starCoins = 60;
+    expect(purchaseTreehouseItem(def, 'honor_gallery').ok).toBe(false);
+    expect(def.starCoins).toBe(60);
+    const buyLights = purchaseTreehouseItem(def, 'pinecone_lights');
+    expect(buyLights.ok).toBe(true);
+    expect(def.starCoins).toBe(0);
+    expect(def.treehouse.slots.ceiling).toBe('pinecone_lights');
+
+    // 舊版 5 槽存檔：原本裝在 decor 的 star_lantern 應自動無損歸位到 ceiling，缺漏新槽補預設
+    const migratedOld = normalizeSaveDataV2({
+      version: 2,
+      treehouse: {
+        slots: {
+          wallpaper: 'wood_cozy',
+          rug: 'carrot_round',
+          window: 'forest_morning',
+          furniture: 'block_shelf',
+          decor: 'star_lantern'
+        },
+        unlockedItems: ['wood_cozy', 'carrot_round', 'forest_morning', 'block_shelf', 'sprout_pot', 'star_lantern'],
+        playmates: []
+      }
+    });
+    expect(migratedOld.treehouse.slots.ceiling).toBe('star_lantern');
+    expect(migratedOld.treehouse.slots.decor).toBe('sprout_pot');
+    expect(migratedOld.treehouse.slots.wall_decor).toBe('math_chalkboard');
+
+    // 場景 HTML 包含繪本底圖、7 槽位標記、空位實體坐墊（無虛線按鈕字樣）與動態戰績數字
+    const html = renderTreehouseSceneHtml({
+      slots: { ...DEFAULT_TREEHOUSE_SLOTS, wallpaper: 'starry_violet', wall_decor: 'math_chalkboard' },
+      playmates: [],
+      wardrobe: getActiveWardrobe(def),
+      bonds: {},
+      progressStats: {
+        totalStars: 42,
+        maxStars: 135,
+        litGems: 27,
+        spriteCount: 4,
+        maxSprites: 15,
+        realmStars: { sunny: 15, mul: 21, cloud: 6 }
+      },
+      getPinkBunnySvg: renderPinkBunnySvg,
+      getCharacterSvg
+    });
+    expect(html).toContain('assets/quest/treehouse-starry.jpg');
+    expect(html).toContain('data-th-slot="ceiling"');
+    expect(html).toContain('data-th-slot="wall_decor"');
+    expect(html).toContain('mqst-th-empty-cushion-art');
+    expect(html).not.toContain('邀請精靈');
+    expect(html).toContain('42 / 135');
+    expect(html).toContain('27/81');
+
+    // 互動台詞應反映實時戰績
+    const boardMsg = getTreehouseInteractMessage('wall_decor', 'math_chalkboard', {
+      progressStats: { totalStars: 42, litGems: 27, spriteCount: 4 }
+    });
+    expect(boardMsg).toContain('42');
+    expect(boardMsg).toContain('27/81');
+
+    // 所有商品縮圖均可產出且同頁產生的 clipPath / linearGradient id 絕不重複
+    const seenIds = new Set();
+    for (const item of TREEHOUSE_ITEMS) {
+      const thumb = renderTreehouseItemPreviewHtml(item, {
+        progressStats: { totalStars: 12, litGems: 9, spriteCount: 2, realmStars: { sunny: 6, mul: 6, cloud: 0 } }
+      });
+      expect(thumb.length).toBeGreaterThan(20);
+      const idMatches = [...thumb.matchAll(/\bid="([^"]+)"/g)].map((m) => m[1]);
+      for (const id of idMatches) {
+        expect(seenIds.has(id)).toBe(false);
+        seenIds.add(id);
+      }
+    }
   });
 });
