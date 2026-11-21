@@ -45,6 +45,15 @@
             <button type="button" class="mqst-hud-btn audio-mini" id="mqst-map-audio-btn" aria-label="開啟聲音設定" title="聲音設定（音樂／音效／語音）">
               <i data-lucide="volume-2" aria-hidden="true"></i><span>聲音</span>
             </button>
+            <button type="button" class="mqst-hud-btn daily" id="mqst-open-daily-btn" title="每日冒險委託與七日印章本">
+              <span aria-hidden="true">📅</span><span>委託</span><span class="mqst-hud-badge" id="mqst-daily-badge" style="display:none;">0</span>
+            </button>
+            <button type="button" class="mqst-hud-btn treehouse" id="mqst-open-treehouse-btn" title="進入粉紅小兔的秘密樹屋">
+              <span aria-hidden="true">🏡</span><span>樹屋</span>
+            </button>
+            <button type="button" class="mqst-hud-btn shop" id="mqst-open-shop-btn" title="用星星幣購買裝扮、家具與點心">
+              <span aria-hidden="true">🛍️</span><span>商店</span>
+            </button>
             <button type="button" class="mqst-hud-btn wardrobe" id="mqst-open-wardrobe-btn">
               <span aria-hidden="true">🎀</span><span>換裝</span>
             </button>
@@ -166,7 +175,10 @@
               <div class="mqst-partner-actor" id="mqst-partner-actor" style="display:none;">
                 <div class="mqst-partner-speech" id="mqst-partner-speech" aria-live="polite"></div>
                 <div class="mqst-partner-svg" id="mqst-partner-svg" aria-hidden="true"></div>
-                <span class="mqst-actor-label mqst-partner-label" id="mqst-partner-label">守護精靈</span>
+                <div class="mqst-partner-meta-row">
+                  <span class="mqst-actor-label mqst-partner-label" id="mqst-partner-label">守護精靈</span>
+                  <span class="mqst-partner-lv-tag" id="mqst-partner-lv-tag">Lv.1</span>
+                </div>
                 <button type="button" class="mqst-partner-skill-btn" id="mqst-partner-skill-btn" title="每關免費使用 1 次：選擇題消除 1 個錯選項／鍵盤題免費開積木，不扣星、照拿寶石！">
                   ✨ 免費消錯
                 </button>
@@ -407,6 +419,44 @@
               <i data-lucide="map" aria-hidden="true"></i> <span>回世界地圖</span>
             </button>
           </div>
+        </div>
+      </div>
+
+      <!-- 視圖 4：秘密樹屋互動養成空間 -->
+      <div class="mqst-screen mqst-treehouse-screen" id="mqst-treehouse-view" style="display:none;">
+        <header class="mqst-hud-bar mqst-th-hud">
+          <div class="mqst-th-hud-left">
+            <button type="button" class="mqst-hud-btn back" id="mqst-th-back-map-btn">
+              <span aria-hidden="true">🗺️</span><span>地圖</span>
+            </button>
+            <h3 class="mqst-th-title">🏡 粉紅小兔的秘密樹屋</h3>
+          </div>
+          <div class="mqst-hud-actions">
+            <span class="mqst-hud-pill coin" title="目前持有的星星幣">🪙 <strong id="mqst-th-coins">0</strong></span>
+            <button type="button" class="mqst-hud-btn shop" id="mqst-th-open-shop-btn">
+              <span aria-hidden="true">🛍️</span><span>商店</span>
+            </button>
+            <button type="button" class="mqst-hud-btn wardrobe" id="mqst-th-open-wardrobe-btn">
+              <span aria-hidden="true">🎀</span><span>換裝</span>
+            </button>
+            <button type="button" class="mqst-hud-btn exit" id="mqst-th-exit-btn">
+              <span aria-hidden="true">🏠</span><span>回教室</span>
+            </button>
+          </div>
+        </header>
+
+        <div class="mqst-treehouse-stage-wrap">
+          <div class="mqst-treehouse-stage" id="mqst-treehouse-stage"></div>
+          <div class="mqst-treehouse-toast" id="mqst-treehouse-toast" role="status" aria-live="polite">🏡 歡迎來到秘密樹屋！點點家具或邀請守護小精靈來玩吧！</div>
+        </div>
+
+        <div class="mqst-treehouse-dock" id="mqst-treehouse-dock">
+          <div class="mqst-th-tabs" role="tablist" aria-label="樹屋互動功能切換">
+            <button type="button" class="mqst-th-tab active" id="mqst-th-tab-decor" data-th-tab="decor" role="tab" aria-selected="true" tabindex="0">🪑 佈置樹屋</button>
+            <button type="button" class="mqst-th-tab" id="mqst-th-tab-sprites" data-th-tab="sprites" role="tab" aria-selected="false" tabindex="-1">🐣 精靈遊樂＆餵點心</button>
+          </div>
+          <div class="mqst-th-pane" id="mqst-th-pane-decor" role="tabpanel" aria-labelledby="mqst-th-tab-decor"></div>
+          <div class="mqst-th-pane" id="mqst-th-pane-sprites" role="tabpanel" aria-labelledby="mqst-th-tab-sprites" hidden></div>
         </div>
       </div>
     </div><!-- /#mqst-arcade-overlay -->

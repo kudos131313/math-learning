@@ -288,7 +288,8 @@ export function createDefaultSaveV2(now = new Date()) {
       tasks: [],
       replayRewardCount: 0,
       classroomCoinEarned: 0,
-      stampedToday: false
+      stampedToday: false,
+      allClearBonusClaimed: false
     },
     stampBook: {
       count: 0,
@@ -494,9 +495,11 @@ export function normalizeSaveDataV2(parsed, now = new Date()) {
       const pid = toCanonicalPartnerId(k);
       const b = rawPartners.bonds[k];
       if (isPlainObject(b)) {
+        const xp = clampInt(b.xp, 0, 999999);
+        const lv = xp >= 150 ? 3 : xp >= 50 ? 2 : 1;
         bonds[pid] = {
-          xp: clampInt(b.xp, 0, 999999),
-          level: clampInt(b.level || 1, 1, 3)
+          xp,
+          level: lv
         };
       }
     });
@@ -515,9 +518,23 @@ export function normalizeSaveDataV2(parsed, now = new Date()) {
   }
 
   const rawTreehouse = isPlainObject(parsed.treehouse) ? parsed.treehouse : {};
-  const treehouseSlots = Object.assign({}, def.treehouse.slots, isPlainObject(rawTreehouse.slots) ? rawTreehouse.slots : {});
   const treehouseUnlocked = uniqueStrings([...def.treehouse.unlockedItems, ...(rawTreehouse.unlockedItems || [])]);
-  const treehousePlaymates = uniqueStrings(rawTreehouse.playmates || []).slice(0, 3);
+  const rawSlots = isPlainObject(rawTreehouse.slots) ? rawTreehouse.slots : {};
+  const treehouseSlots = Object.assign({}, def.treehouse.slots);
+  Object.keys(def.treehouse.slots).forEach((slotKey) => {
+    const candidate = rawSlots[slotKey];
+    if (typeof candidate === 'string' && treehouseUnlocked.indexOf(candidate) !== -1) {
+      treehouseSlots[slotKey] = candidate;
+    }
+  });
+  const treehousePlaymates = uniqueStrings(
+    (rawTreehouse.playmates || []).map((pid) => toCanonicalPartnerId(pid))
+  )
+    .filter((pid) => {
+      const isl = getIslandById(pid);
+      return Boolean(isl && isl.fullId === pid && (stageStars[toCanonicalStageId(isl.bossStageId)] || 0) >= 1);
+    })
+    .slice(0, 3);
 
   const rawDaily = isPlainObject(parsed.daily) ? parsed.daily : {};
   const sameDay = rawDaily.date === todayKey;
@@ -526,7 +543,8 @@ export function normalizeSaveDataV2(parsed, now = new Date()) {
     tasks: sameDay && Array.isArray(rawDaily.tasks) ? rawDaily.tasks : [],
     replayRewardCount: sameDay ? clampInt(rawDaily.replayRewardCount, 0, 999) : 0,
     classroomCoinEarned: sameDay ? clampInt(rawDaily.classroomCoinEarned, 0, 999) : 0,
-    stampedToday: sameDay ? Boolean(rawDaily.stampedToday) : false
+    stampedToday: sameDay ? Boolean(rawDaily.stampedToday) : false,
+    allClearBonusClaimed: sameDay ? Boolean(rawDaily.allClearBonusClaimed) : false
   };
 
   const rawStamp = isPlainObject(parsed.stampBook) ? parsed.stampBook : {};

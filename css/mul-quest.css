@@ -37,7 +37,9 @@
 #mqst-dex-dialog,
 #mqst-parent-dialog,
 #mqst-audio-dialog,
-#mqst-helper-confirm-dialog {
+#mqst-helper-confirm-dialog,
+#mqst-daily-dialog,
+#mqst-shop-dialog {
   --card: #fffdf8;
   --surface: #ffffff;
   --surface-dim: #f1ede4;
@@ -58,7 +60,11 @@
 #mqst-audio-dialog h3,
 #mqst-audio-dialog h4,
 #mqst-helper-confirm-dialog h3,
-#mqst-helper-confirm-dialog h4 {
+#mqst-helper-confirm-dialog h4,
+#mqst-daily-dialog h3,
+#mqst-daily-dialog h4,
+#mqst-shop-dialog h3,
+#mqst-shop-dialog h4 {
   font-family: "ZCOOL KuaiLe", "Noto Sans TC", sans-serif;
   font-weight: 400;
   letter-spacing: normal;
@@ -2945,13 +2951,14 @@
 .mqst-victory-screen {
   background: radial-gradient(circle at center, #fffbeb 0%, #fde68a 60%, #fbcfe8 100%);
   align-items: center;
-  justify-content: center;
+  justify-content: flex-start;
   padding: 18px;
   overflow-y: auto;
 }
 
 .mqst-victory-stage {
   width: min(640px, 100%);
+  margin: auto 0;
   background: rgba(255, 255, 255, 0.95);
   border: 3.5px solid var(--ink);
   border-radius: 28px;
@@ -3858,3 +3865,848 @@ button.mqst-gem-cell:active {
     min-height: 132px;
   }
 }
+
+/* ==========================================================================
+   Phase 3：耐玩度養成系統（每日委託＆印章本、三部位裝扮商店、秘密樹屋、精靈專長）
+   ========================================================================== */
+
+.mqst-hud-btn.daily {
+  position: relative;
+  background: #fef3c7;
+  color: #92400e;
+}
+.mqst-hud-btn.daily.has-claimable {
+  background: linear-gradient(180deg, #fde047 0%, #f59e0b 100%);
+  color: #451a03;
+  border-color: #b45309;
+}
+.mqst-hud-btn.treehouse {
+  background: #dcfce7;
+  color: #166534;
+}
+.mqst-hud-btn.shop {
+  background: #ffedd5;
+  color: #9a3412;
+}
+.mqst-hud-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 5px;
+  border-radius: 999px;
+  background: #e11d48;
+  color: #ffffff;
+  border: 1.5px solid #ffffff;
+  font-family: "Baloo 2", sans-serif;
+  font-size: 11.5px;
+  font-weight: 900;
+  line-height: 1;
+}
+
+.mqst-partner-meta-row {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+.mqst-partner-lv-tag {
+  padding: 2px 7px;
+  border-radius: 999px;
+  border: 2px solid var(--ink);
+  background: #fde047;
+  color: #451a03;
+  font-family: "Baloo 2", sans-serif;
+  font-size: 11.5px;
+  font-weight: 900;
+  line-height: 1.1;
+}
+.mqst-partner-skill-btn.is-passive.is-shield {
+  background: linear-gradient(180deg, #dbeafe 0%, #93c5fd 100%);
+  color: #1e3a8a;
+  border-color: #1d4ed8;
+}
+.mqst-partner-skill-btn.is-passive.is-lucky {
+  background: linear-gradient(180deg, #fef08a 0%, #fbbf24 100%);
+  color: #78350f;
+  border-color: #b45309;
+}
+.mqst-partner-skill-btn.is-depleted {
+  background: #e5e7eb;
+  color: #6b7280;
+  border-color: #9ca3af;
+}
+
+.mqst-fx-bolt.bolt-carrot {
+  filter: drop-shadow(0 0 14px rgba(249, 115, 22, 0.95));
+}
+.mqst-fx-bolt.bolt-petal {
+  filter: drop-shadow(0 0 14px rgba(236, 72, 153, 0.95));
+}
+.mqst-fx-bolt.bolt-meteor {
+  filter: drop-shadow(0 0 14px rgba(56, 189, 248, 0.95));
+}
+.mqst-fx-bolt.bolt-rainbow {
+  filter: drop-shadow(0 0 16px rgba(168, 85, 247, 0.95));
+}
+.mqst-fx-partner-bolt.is-lucky-rainbow {
+  background: conic-gradient(from 0deg, #fb7185, #facc15, #4ade80, #38bdf8, #a855f7, #fb7185);
+  box-shadow: 0 0 18px rgba(250, 204, 21, 0.95), 0 0 28px rgba(168, 85, 247, 0.8);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .mqst-lv3-aura {
+    animation: mqstAuraPulse 2.6s ease-in-out infinite;
+    transform-origin: 40px 43px;
+  }
+}
+@keyframes mqstAuraPulse {
+  0%, 100% { opacity: 0.82; }
+  50% { opacity: 1; }
+}
+
+/* ---------------- 每日冒險委託＆不斷簽冒險印章本對話框 ---------------- */
+dialog.mqst-daily-dialog,
+dialog.mqst-shop-dialog {
+  width: min(820px, calc(100vw - 28px));
+}
+.mqst-shop-coin-pill {
+  margin-left: 8px;
+}
+
+.mqst-stamp-panel {
+  border: 2.5px solid var(--ink);
+  border-radius: 20px;
+  padding: 14px 16px;
+  background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%);
+  box-shadow: 3px 3px 0 rgba(51, 43, 34, 0.16);
+  margin-bottom: 16px;
+}
+.mqst-stamp-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 12px;
+}
+.mqst-stamp-head h4 {
+  margin: 0 0 4px;
+  font-size: 17px;
+  color: var(--ink);
+}
+.mqst-stamp-head p {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--ink-soft);
+}
+.mqst-stamp-status-pill {
+  padding: 5px 12px;
+  border-radius: 999px;
+  border: 2px solid var(--ink);
+  font-size: 12.5px;
+  font-weight: 900;
+  white-space: nowrap;
+}
+.mqst-stamp-status-pill.is-done {
+  background: #dcfce7;
+  color: #166534;
+  border-color: #16a34a;
+}
+.mqst-stamp-status-pill.is-wait {
+  background: #ffffff;
+  color: #9a3412;
+}
+
+.mqst-stamp-board {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 8px;
+}
+.mqst-stamp-cell {
+  border: 2px dashed rgba(51, 43, 34, 0.3);
+  border-radius: 14px;
+  padding: 8px 4px;
+  background: rgba(255, 255, 255, 0.86);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  text-align: center;
+}
+.mqst-stamp-cell.is-stamped {
+  border-style: solid;
+  border-color: #d97706;
+  background: linear-gradient(180deg, #fef08a 0%, #fde68a 100%);
+}
+.mqst-stamp-cell.is-milestone {
+  border-color: #db2777;
+  background: linear-gradient(180deg, #fff1f2 0%, #fce7f3 100%);
+}
+.mqst-stamp-cell.is-milestone.is-stamped {
+  background: linear-gradient(180deg, #fbcfe8 0%, #fde047 100%);
+}
+.mqst-stamp-day {
+  font-size: 11px;
+  font-weight: 900;
+  color: var(--ink-soft);
+}
+.mqst-stamp-ico {
+  font-size: 24px;
+  line-height: 1.1;
+}
+.mqst-stamp-reward {
+  font-size: 10.5px;
+  font-weight: 800;
+  color: #78350f;
+  line-height: 1.2;
+}
+
+.mqst-daily-section-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 10px;
+  font-size: 15.5px;
+  font-weight: 900;
+}
+.mqst-daily-allclear-pill {
+  padding: 4px 11px;
+  border-radius: 999px;
+  border: 2px solid #d97706;
+  background: #fffbeb;
+  color: #92400e;
+  font-size: 12.5px;
+  font-weight: 800;
+}
+.mqst-daily-allclear-pill.is-done {
+  background: #dcfce7;
+  border-color: #16a34a;
+  color: #166534;
+}
+
+.mqst-daily-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.mqst-daily-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  border-radius: 18px;
+  border: 2.5px solid var(--ink);
+  background: #ffffff;
+  box-shadow: 2px 3px 0 rgba(51, 43, 34, 0.14);
+  flex-wrap: wrap;
+}
+.mqst-daily-card.is-ready {
+  background: linear-gradient(135deg, #f0fdf4 0%, #fef9c3 100%);
+  border-color: #16a34a;
+}
+.mqst-daily-card.is-claimed {
+  background: #f8fafc;
+  opacity: 0.78;
+}
+.mqst-daily-ico {
+  font-size: 30px;
+  flex-shrink: 0;
+}
+.mqst-daily-main {
+  flex: 1;
+  min-width: 220px;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+.mqst-daily-title-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+  font-size: 15px;
+}
+.mqst-daily-slot-tag {
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: #e0f2fe;
+  border: 1.5px solid #0284c7;
+  color: #0369a1;
+  font-size: 11px;
+  font-weight: 900;
+}
+.mqst-daily-coin-tag {
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: #ffedd5;
+  border: 1.5px solid #ea580c;
+  color: #9a3412;
+  font-size: 12px;
+  font-weight: 900;
+}
+.mqst-daily-desc {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--ink-soft);
+}
+.mqst-daily-action {
+  flex-shrink: 0;
+}
+.mqst-claim-daily-btn {
+  min-height: 46px;
+  padding: 8px 16px;
+  border-radius: 14px;
+  border: 2.5px solid var(--ink);
+  background: linear-gradient(180deg, #4ade80 0%, #22c55e 100%);
+  color: #052e16;
+  font-size: 14px;
+  font-weight: 900;
+  cursor: pointer;
+  box-shadow: 0 3px 0 #14532d;
+}
+.mqst-claim-daily-btn:active {
+  transform: translateY(2px);
+  box-shadow: 0 1px 0 #14532d;
+}
+.mqst-daily-go-btn {
+  min-height: 44px;
+  padding: 6px 12px;
+  font-size: 13px;
+  background: #fef3c7;
+}
+.mqst-daily-pending-tag,
+.mqst-daily-done-tag {
+  display: inline-flex;
+  align-items: center;
+  min-height: 40px;
+  padding: 6px 12px;
+  border-radius: 12px;
+  background: var(--surface-dim);
+  font-size: 13px;
+  font-weight: 800;
+  color: var(--ink-soft);
+}
+.mqst-daily-done-tag {
+  background: #dcfce7;
+  color: #166534;
+}
+
+/* ---------------- 三部位換裝篩選、商店按鈕與精靈專長標籤 ---------------- */
+.mqst-wardrobe-slot-pills,
+.mqst-wardrobe-filters,
+.mqst-snack-target-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+.mqst-wardrobe-slot-pill {
+  padding: 4px 10px;
+  border-radius: 999px;
+  border: 1.5px solid var(--ink);
+  background: #ffffff;
+  font-size: 12.5px;
+  font-weight: 800;
+}
+.mqst-filter-pill {
+  min-height: 40px;
+  padding: 5px 12px;
+  border-radius: 999px;
+  border: 2px solid var(--ink);
+  background: #ffffff;
+  color: var(--ink);
+  font-size: 13px;
+  font-weight: 800;
+  cursor: pointer;
+  box-shadow: 1.5px 2px 0 rgba(51, 43, 34, 0.2);
+}
+.mqst-filter-pill.is-active,
+.mqst-filter-pill[aria-pressed="true"] {
+  background: #fde047;
+  color: #451a03;
+}
+.mqst-mini-shop-btn {
+  min-height: 40px;
+  padding: 6px 12px;
+  font-size: 13px;
+  background: #ffedd5;
+  color: #9a3412;
+}
+.mqst-slot-badge {
+  align-self: flex-start;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: #f1f5f9;
+  border: 1.5px solid rgba(51, 43, 34, 0.25);
+  font-size: 11px;
+  font-weight: 900;
+  color: var(--ink-soft);
+}
+.mqst-buy-btn {
+  background: linear-gradient(180deg, #fed7aa 0%, #fb923c 100%);
+  color: #431407;
+}
+.mqst-buy-btn.is-short,
+.mqst-buy-btn:disabled {
+  background: #e2e8f0;
+  color: #991b1b;
+  border-color: #94a3b8;
+  box-shadow: none;
+  cursor: not-allowed;
+}
+
+.mqst-spec-badge {
+  padding: 2px 9px;
+  border-radius: 999px;
+  border: 1.5px solid var(--ink);
+  font-size: 11px;
+  font-weight: 900;
+}
+.mqst-spec-badge.spec-eliminate { background: #dcfce7; color: #166534; }
+.mqst-spec-badge.spec-blocks    { background: #dbeafe; color: #1e40af; }
+.mqst-spec-badge.spec-shield    { background: #ede9fe; color: #5b21b6; }
+.mqst-spec-badge.spec-lucky     { background: #fef9c3; color: #854d0e; }
+.mqst-lv-chip {
+  display: inline-block;
+  padding: 1px 7px;
+  border-radius: 999px;
+  background: #fde047;
+  border: 1.5px solid var(--ink);
+  font-family: "Baloo 2", sans-serif;
+  font-size: 12px;
+}
+.mqst-bond-bar-wrap {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.mqst-sprite-card-actions {
+  width: 100%;
+  margin-top: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.mqst-sprite-equip-btn.treehouse-go {
+  background: #dcfce7;
+  color: #166534;
+}
+
+/* ---------------- 秘密樹屋全螢幕視圖 (View 4) ---------------- */
+.mqst-treehouse-screen {
+  background: linear-gradient(180deg, #fef9c3 0%, #d1fae5 100%);
+}
+.mqst-th-hud-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.mqst-th-title {
+  margin: 0;
+  font-size: clamp(17px, 2.2vw, 22px);
+  color: var(--ink);
+}
+.mqst-treehouse-stage-wrap {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 10px 16px 6px;
+  gap: 8px;
+}
+.mqst-treehouse-stage {
+  flex: 1;
+  min-height: 0;
+  width: min(980px, 100%);
+  display: flex;
+}
+.mqst-th-room {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  min-height: 240px;
+  border: 3.5px solid var(--ink);
+  border-radius: 26px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  box-shadow: 0 8px 0 rgba(51, 43, 34, 0.24);
+  background:
+    repeating-linear-gradient(90deg, transparent 0 38px, var(--th-wall-stripe) 38px 42px),
+    linear-gradient(180deg, var(--th-wall-top) 0%, var(--th-wall-bottom) 100%);
+}
+.mqst-th-beam-top {
+  height: 14px;
+  background: var(--th-beam);
+  border-bottom: 3px solid var(--ink);
+  flex-shrink: 0;
+}
+.mqst-th-wall-items {
+  flex: 1;
+  min-height: 0;
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: end;
+  justify-items: center;
+  padding: 8px 22px 4px;
+  gap: 12px;
+}
+.mqst-th-obj {
+  background: transparent;
+  border: 2px solid transparent;
+  border-radius: 18px;
+  padding: 4px;
+  cursor: pointer;
+  transition: transform 0.12s ease, background-color 0.12s ease;
+}
+.mqst-th-obj:hover {
+  transform: translateY(-3px) scale(1.03);
+  background: rgba(255, 255, 255, 0.35);
+}
+.mqst-th-obj:focus-visible,
+.mqst-th-bunny-btn:focus-visible,
+.mqst-th-playmate-slot:focus-visible {
+  outline: 3px solid #2563eb;
+  outline-offset: 2px;
+}
+.mqst-th-furniture svg { width: clamp(92px, 13vw, 134px); height: auto; display: block; }
+.mqst-th-window svg    { width: clamp(106px, 15vw, 152px); height: auto; display: block; }
+.mqst-th-decor svg     { width: clamp(72px, 9.5vw, 96px); height: auto; display: block; }
+
+.mqst-th-floor {
+  position: relative;
+  flex: 0 0 42%;
+  min-height: 126px;
+  border-top: 3px solid var(--ink);
+  background: linear-gradient(180deg, var(--th-floor) 0%, #b45309 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 6px 18px 10px;
+}
+.mqst-th-rug {
+  position: absolute;
+  left: 50%;
+  bottom: 8px;
+  transform: translateX(-50%);
+  background: transparent;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  z-index: 1;
+}
+.mqst-th-rug svg {
+  width: clamp(220px, 38vw, 340px);
+  height: auto;
+  display: block;
+}
+.mqst-th-characters-row {
+  position: relative;
+  z-index: 2;
+  width: 100%;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  gap: clamp(12px, 3vw, 32px);
+}
+.mqst-th-bunny-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background: transparent;
+  border: none;
+  padding: 2px;
+  cursor: pointer;
+}
+.mqst-th-bunny-btn svg {
+  width: clamp(86px, 11vw, 118px);
+  height: clamp(86px, 11vw, 118px);
+  filter: drop-shadow(0 5px 0 rgba(51, 43, 34, 0.25));
+}
+.mqst-th-bunny-tag,
+.mqst-th-sprite-name {
+  margin-top: -4px;
+  padding: 2px 9px;
+  border-radius: 999px;
+  border: 2px solid var(--ink);
+  background: rgba(255, 255, 255, 0.94);
+  font-size: 11.5px;
+  font-weight: 900;
+  color: var(--ink);
+  white-space: nowrap;
+}
+.mqst-th-playmates-row {
+  display: flex;
+  align-items: flex-end;
+  gap: clamp(8px, 2vw, 18px);
+}
+.mqst-th-playmate-slot {
+  position: relative;
+  min-width: 84px;
+  min-height: 78px;
+  padding: 4px 6px;
+  border-radius: 18px;
+  border: 2px dashed rgba(255, 255, 255, 0.65);
+  background: rgba(255, 255, 255, 0.22);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+  cursor: pointer;
+}
+.mqst-th-playmate-slot.is-occupied {
+  border-color: transparent;
+  background: transparent;
+}
+.mqst-th-playmate-slot.is-occupied.is-selected {
+  background: rgba(254, 240, 138, 0.42);
+  border: 2px solid #fde047;
+}
+.mqst-th-sprite-lv {
+  padding: 1px 7px;
+  border-radius: 999px;
+  border: 1.5px solid var(--ink);
+  background: #fde047;
+  color: #451a03;
+  font-size: 10.5px;
+  font-weight: 900;
+  white-space: nowrap;
+}
+.mqst-th-sprite-svg svg {
+  width: clamp(58px, 7.6vw, 76px);
+  height: clamp(58px, 7.6vw, 76px);
+  display: block;
+}
+.mqst-th-empty-cushion {
+  padding: 8px 10px;
+  border-radius: 999px;
+  border: 2px solid var(--ink);
+  background: rgba(255, 253, 246, 0.9);
+  font-size: 12px;
+  font-weight: 800;
+  color: var(--ink-soft);
+  white-space: nowrap;
+}
+
+.mqst-treehouse-toast {
+  width: min(980px, 100%);
+  padding: 7px 14px;
+  border-radius: 14px;
+  border: 2.5px solid var(--ink);
+  background: rgba(255, 253, 246, 0.96);
+  font-size: 13.5px;
+  font-weight: 800;
+  color: var(--ink);
+  text-align: center;
+  box-shadow: 2px 3px 0 rgba(51, 43, 34, 0.16);
+  flex-shrink: 0;
+}
+
+.mqst-treehouse-dock {
+  flex-shrink: 0;
+  background: rgba(255, 251, 240, 0.96);
+  border-top: 3px solid var(--ink);
+  padding: 8px 14px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.mqst-th-tabs {
+  display: flex;
+  gap: 8px;
+  flex-wrap: nowrap;
+  overflow-x: auto;
+}
+.mqst-th-tab {
+  position: relative;
+  flex: none;
+  min-height: 44px;
+  padding: 6px 16px 8px;
+  border-radius: 999px;
+  border: 2px solid var(--ink);
+  background: #ffffff;
+  color: var(--ink);
+  font-size: 14px;
+  font-weight: 900;
+  cursor: pointer;
+}
+.mqst-th-tab[aria-selected="true"] {
+  background: var(--ink);
+  color: #ffffff;
+}
+.mqst-th-tab[aria-selected="true"]::after {
+  content: "";
+  position: absolute;
+  inset: auto 18px 4px;
+  border-block-end: 3px solid #f59e0b;
+}
+
+.mqst-th-slot-bar {
+  display: flex;
+  gap: 8px;
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  padding-bottom: 4px;
+}
+.mqst-th-items-strip {
+  display: flex;
+  gap: 10px;
+  overflow-x: auto;
+  padding-bottom: 2px;
+}
+.mqst-th-item-card {
+  flex: 0 0 auto;
+  min-width: 144px;
+  padding: 8px 10px;
+  border-radius: 16px;
+  border: 2px solid var(--ink);
+  background: #ffffff;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  text-align: center;
+}
+.mqst-th-item-card.is-equipped {
+  background: #f0fdf4;
+  border-color: #16a34a;
+}
+.mqst-th-item-ico { font-size: 24px; }
+.mqst-th-item-name { font-size: 13px; color: var(--ink); }
+.mqst-th-item-btn {
+  min-height: 40px;
+  width: 100%;
+  padding: 5px 10px;
+  border-radius: 11px;
+  border: 2px solid var(--ink);
+  background: #fde047;
+  color: var(--ink);
+  font-size: 12.5px;
+  font-weight: 900;
+  cursor: pointer;
+}
+.mqst-th-item-btn.active {
+  background: #4ade80;
+  color: #064e3b;
+}
+.mqst-th-item-btn.is-buy {
+  background: #fed7aa;
+  color: #7c2d12;
+}
+.mqst-th-item-btn.is-short,
+.mqst-th-item-btn:disabled {
+  background: #e2e8f0;
+  color: #991b1b;
+  border-color: #94a3b8;
+  cursor: not-allowed;
+}
+.mqst-th-item-lock-note {
+  font-size: 11.5px;
+  font-weight: 800;
+  color: #9d174d;
+  padding: 6px 4px;
+}
+
+.mqst-th-sprites-flex {
+  display: grid;
+  grid-template-columns: 1.2fr 1fr;
+  gap: 12px;
+  align-items: start;
+}
+.mqst-th-sub-label {
+  font-size: 13px;
+  font-weight: 900;
+  color: var(--ink);
+  margin-bottom: 6px;
+}
+.mqst-th-picker-list,
+.mqst-th-feed-targets,
+.mqst-th-snack-btns {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+}
+.mqst-th-sprite-chip {
+  min-height: 40px;
+  padding: 5px 11px;
+  border-radius: 12px;
+  border: 2px solid var(--ink);
+  background: #ffffff;
+  font-size: 12.5px;
+  font-weight: 800;
+  cursor: pointer;
+}
+.mqst-th-sprite-chip.is-in {
+  background: #dcfce7;
+  border-color: #16a34a;
+  color: #14532d;
+}
+.mqst-th-snack-btn {
+  min-height: 44px;
+  padding: 6px 12px;
+  border-radius: 12px;
+  border: 2px solid var(--ink);
+  background: linear-gradient(180deg, #fef08a 0%, #f59e0b 100%);
+  color: #451a03;
+  font-size: 13px;
+  font-weight: 900;
+  cursor: pointer;
+}
+.mqst-th-snack-btn.is-short,
+.mqst-th-snack-btn:disabled {
+  background: #e2e8f0;
+  color: #991b1b;
+  border-color: #94a3b8;
+  cursor: not-allowed;
+}
+.mqst-th-empty-sprites {
+  padding: 10px 14px;
+  border-radius: 14px;
+  border: 2px dashed #0284c7;
+  background: #f0f9ff;
+  font-size: 13.5px;
+  font-weight: 800;
+  color: #0c4a6e;
+}
+
+@media (max-height: 820px) and (min-width: 781px) {
+  .mqst-treehouse-stage-wrap { padding: 6px 14px 4px; gap: 6px; }
+  .mqst-th-wall-items { padding: 4px 18px 2px; }
+  .mqst-th-furniture svg { width: clamp(78px, 10vw, 110px); }
+  .mqst-th-window svg    { width: clamp(92px, 12vw, 126px); }
+  .mqst-th-decor svg     { width: clamp(62px, 7.8vw, 82px); }
+  .mqst-th-floor { min-height: 108px; }
+  .mqst-th-bunny-btn svg { width: 78px; height: 78px; }
+  .mqst-th-sprite-svg svg { width: 54px; height: 54px; }
+  .mqst-treehouse-dock { padding: 6px 12px 9px; gap: 6px; }
+}
+
+@media (max-width: 900px) {
+  .mqst-th-sprites-flex {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (orientation: portrait) and (min-width: 600px) {
+  .mqst-th-room {
+    max-height: 540px;
+  }
+  .mqst-th-sprites-flex {
+    grid-template-columns: 1fr;
+  }
+  .mqst-stamp-board {
+    gap: 5px;
+  }
+}
+

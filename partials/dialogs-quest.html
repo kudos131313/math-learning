@@ -171,3 +171,56 @@
       </form>
     </div>
   </dialog>
+
+  <!-- ================= 原生對話框：每日冒險委託與冒險印章本 ================= -->
+  <dialog class="mqst-dialog mqst-daily-dialog" id="mqst-daily-dialog" closedby="any" aria-labelledby="mqst-daily-title">
+    <div class="mqst-dialog-head">
+      <div class="mqst-dialog-title-wrap">
+        <span class="mqst-dialog-ico" aria-hidden="true">📅</span>
+        <h3 id="mqst-daily-title">每日冒險委託 ＆ 冒險印章本</h3>
+      </div>
+      <form method="dialog">
+        <button type="submit" class="close-modal-btn" value="close" aria-label="關閉每日冒險委託" autofocus>✕</button>
+      </form>
+    </div>
+
+    <div class="mqst-dialog-body" id="mqst-daily-body"></div>
+
+    <div class="mqst-dialog-foot">
+      <form method="dialog">
+        <button type="submit" class="primary-btn" value="done">出發冒險</button>
+      </form>
+    </div>
+  </dialog>
+
+  <!-- ================= 原生對話框：星星幣冒險商店 ================= -->
+  <dialog class="mqst-dialog mqst-shop-dialog" id="mqst-shop-dialog" closedby="any" aria-labelledby="mqst-shop-title">
+    <div class="mqst-dialog-head">
+      <div class="mqst-dialog-title-wrap">
+        <span class="mqst-dialog-ico" aria-hidden="true">🛍️</span>
+        <h3 id="mqst-shop-title">星星幣冒險商店</h3>
+        <span class="mqst-hud-pill coin mqst-shop-coin-pill">🪙 <strong id="mqst-shop-coin-bal">0</strong></span>
+      </div>
+      <form method="dialog">
+        <button type="submit" class="close-modal-btn" value="close" aria-label="關閉星星幣商店" autofocus>✕</button>
+      </form>
+    </div>
+
+    <div class="mqst-dex-tabs mqst-shop-tabs" role="tablist" aria-label="商店分類切換">
+      <button type="button" class="mqst-dex-tab active" id="mqst-shop-tab-wardrobe" data-shop="wardrobe" role="tab" aria-selected="true" tabindex="0">🎀 小兔裝扮</button>
+      <button type="button" class="mqst-dex-tab" id="mqst-shop-tab-treehouse" data-shop="treehouse" role="tab" aria-selected="false" tabindex="-1">🏡 樹屋家具</button>
+      <button type="button" class="mqst-dex-tab" id="mqst-shop-tab-snacks" data-shop="snacks" role="tab" aria-selected="false" tabindex="-1">🍪 精靈點心</button>
+    </div>
+
+    <div class="mqst-dialog-body" id="mqst-shop-body">
+      <div class="mqst-shop-pane active" id="mqst-shop-pane-wardrobe" role="tabpanel" aria-labelledby="mqst-shop-tab-wardrobe"></div>
+      <div class="mqst-shop-pane" id="mqst-shop-pane-treehouse" role="tabpanel" aria-labelledby="mqst-shop-tab-treehouse" hidden></div>
+      <div class="mqst-shop-pane" id="mqst-shop-pane-snacks" role="tabpanel" aria-labelledby="mqst-shop-tab-snacks" hidden></div>
+    </div>
+
+    <div class="mqst-dialog-foot">
+      <form method="dialog">
+        <button type="submit" class="primary-btn" value="done">完成</button>
+      </form>
+    </div>
+  </dialog>

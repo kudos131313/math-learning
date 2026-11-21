@@ -43,6 +43,9 @@ export function createBattleFx({
       els.hitCallout.style.opacity = '0';
       els.hitCallout.style.visibility = 'hidden';
     }
+    if (els.partnerProjectile) {
+      els.partnerProjectile.classList.remove('is-lucky-rainbow');
+    }
     if (typeof window.gsap !== 'undefined') {
       const resetNodes = [
         els.projectile,
@@ -741,11 +744,13 @@ export function createBattleFx({
     });
   }
 
-  function playBunnyAttackAnim(isCombo, shieldEvent, partner) {
+  function playBunnyAttackAnim(isCombo, shieldEvent, partner, fxOptions = {}) {
     const dualAttack = Boolean(partner && session.combo >= 2);
     const heavyHit = isCombo || Boolean(shieldEvent);
+    const luckyRainbowFx = Boolean(fxOptions && fxOptions.luckyRainbowFx);
     if (els.partnerProjectile && dualAttack) {
       els.partnerProjectile.textContent = partner.partnerProjectile || '✨';
+      els.partnerProjectile.classList.toggle('is-lucky-rainbow', luckyRainbowFx);
     }
     if (els.hitCallout) {
       if (shieldEvent === 'broken-all') {
@@ -753,7 +758,9 @@ export function createBattleFx({
       } else if (shieldEvent === 'crack') {
         els.hitCallout.textContent = '護盾碎裂 🛡️';
       } else if (dualAttack) {
-        els.hitCallout.textContent = '精靈合擊 ×' + session.combo + ' 🔥';
+        els.hitCallout.textContent = luckyRainbowFx
+          ? '幸運彩虹合擊 ×' + session.combo + ' 🌈'
+          : '精靈合擊 ×' + session.combo + ' 🔥';
       } else {
         els.hitCallout.textContent = isCombo ? 'COMBO ×' + session.combo + ' 🔥' : 'GREAT! ✨';
       }
@@ -854,6 +861,30 @@ export function createBattleFx({
     });
   }
 
+  function playPartnerShieldAnim() {
+    runAnim(function (gsap) {
+      if (els.partnerActor) {
+        gsap.fromTo(
+          els.partnerActor,
+          { scale: 1, y: 0 },
+          { scale: 1.18, y: -12, duration: 0.18, yoyo: true, repeat: 1, ease: 'power1.out', clearProps: 'transform' }
+        );
+      }
+      if (els.heroAura) {
+        gsap.fromTo(
+          els.heroAura,
+          { autoAlpha: 0, scale: 0.7 },
+          { autoAlpha: 0.95, scale: 1.55, duration: 0.25, ease: 'power2.out' }
+        ).to(els.heroAura, {
+          autoAlpha: session.combo >= 3 ? 0.9 : 0,
+          scale: 1,
+          duration: 0.45,
+          clearProps: 'opacity,transform'
+        });
+      }
+    });
+  }
+
   return {
     initGsapMedia,
     stopAttackAnim,
@@ -862,6 +893,7 @@ export function createBattleFx({
     runAnim,
     isMotionReduced: () => motionReduced,
     playFinisherAnim,
-    playBunnyAttackAnim
+    playBunnyAttackAnim,
+    playPartnerShieldAnim
   };
 }

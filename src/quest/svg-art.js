@@ -1,6 +1,7 @@
 /**
- * 九九乘法冒險：粉紅小兔、關卡寶箱、島嶼魔王與守護小精靈 SVG 繪圖器（純函式模組）
+ * 數學冒險島：粉紅小兔（三部位混搭）、關卡寶箱、島嶼魔王、守護小精靈（含 Lv.3 光環）與魔法彈 SVG 繪圖器（純函式模組）
  */
+import { LEGACY_COSTUME_MIGRATION_MAP } from '../domain/quest-data.js';
 
 let uidCounter = 0;
 function nextUid() {
@@ -54,21 +55,35 @@ export function buildFaceExpression(mood, lx, rx, y, mouthY, r) {
   );
 }
 
-export function buildBunnyCostumeLayers(costumeId) {
-  const cId = costumeId || 'default';
-  let backLayer = '';
+export function resolveWardrobeSpec(costumeOrWardrobe) {
+  if (costumeOrWardrobe && typeof costumeOrWardrobe === 'object') {
+    return {
+      hat: typeof costumeOrWardrobe.hat === 'string' && costumeOrWardrobe.hat ? costumeOrWardrobe.hat : 'star_clip',
+      outfit: typeof costumeOrWardrobe.outfit === 'string' && costumeOrWardrobe.outfit ? costumeOrWardrobe.outfit : 'none',
+      wand: typeof costumeOrWardrobe.wand === 'string' && costumeOrWardrobe.wand ? costumeOrWardrobe.wand : 'none'
+    };
+  }
+  const cId = typeof costumeOrWardrobe === 'string' && costumeOrWardrobe ? costumeOrWardrobe : 'default';
+  const mapped = LEGACY_COSTUME_MIGRATION_MAP[cId];
+  if (mapped) {
+    return {
+      hat: mapped.hat || 'star_clip',
+      outfit: mapped.outfit || 'none',
+      wand: mapped.wand || 'none'
+    };
+  }
+  return { hat: cId, outfit: 'none', wand: 'none' };
+}
+
+function buildHatLayer(hatId) {
   let headFrontLayer = '';
-  let bodyOutfitLayer = '';
   let faceOverlayLayer = '';
 
-  if (cId === 'default') {
+  if (hatId === 'star_clip' || hatId === 'default') {
     headFrontLayer =
       '<polygon points="64,28 66,33 71,33 67,36 69,41 64,38 59,41 61,36 57,33 62,33" fill="#fde047" stroke="#332b22" stroke-width="1.8" stroke-linejoin="round"/>' +
       '<circle cx="64" cy="34.5" r="1.6" fill="#ffffff" opacity="0.85"/>';
-    bodyOutfitLayer =
-      '<path d="M39 65 L50 71 L61 65" fill="none" stroke="#f59e0b" stroke-width="3.6" stroke-linecap="round"/>' +
-      '<polygon points="50,67 51.8,70.5 55.6,70.8 52.8,73.3 53.6,77 50,75 46.4,77 47.2,73.3 44.4,70.8 48.2,70.5" fill="#fde047" stroke="#332b22" stroke-width="1.4" stroke-linejoin="round"/>';
-  } else if (cId === 'ribbon') {
+  } else if (hatId === 'ribbon') {
     headFrontLayer =
       '<g transform="rotate(-14 63 30)">' +
       '<path d="M63 30 C54 21, 47 23, 50 31 C47 38, 55 39, 63 32 Z" fill="#fb7185" stroke="#332b22" stroke-width="2.2" stroke-linejoin="round"/>' +
@@ -78,33 +93,24 @@ export function buildBunnyCostumeLayers(costumeId) {
       '<circle cx="63" cy="31" r="4.2" fill="#f43f5e" stroke="#332b22" stroke-width="2"/>' +
       '<circle cx="63" cy="31" r="1.6" fill="#fde047"/>' +
       '</g>';
-    bodyOutfitLayer =
-      '<path d="M50 69 L41 64 C39 67 39 71 41 74 Z" fill="#fb7185" stroke="#332b22" stroke-width="1.8" stroke-linejoin="round"/>' +
-      '<path d="M50 69 L59 64 C61 67 61 71 59 74 Z" fill="#fb7185" stroke="#332b22" stroke-width="1.8" stroke-linejoin="round"/>' +
-      '<circle cx="50" cy="69" r="3" fill="#f43f5e" stroke="#332b22" stroke-width="1.6"/>';
-  } else if (cId === 'sprout') {
+  } else if (hatId === 'sprout') {
     headFrontLayer =
-      '<path d="M27 40 Q50 21 73 40" fill="none" stroke="#332b22" stroke-width="5.6" stroke-linecap="round"/>' +
-      '<path d="M27 40 Q50 21 73 40" fill="none" stroke="#4ade80" stroke-width="3" stroke-linecap="round"/>' +
-      '<path d="M50 29 Q50 18 50 15" fill="none" stroke="#332b22" stroke-width="3" stroke-linecap="round"/>' +
+      '<path d="M27 38 Q50 21 73 38" fill="none" stroke="#332b22" stroke-width="5.2" stroke-linecap="round"/>' +
+      '<path d="M27 38 Q50 21 73 38" fill="none" stroke="#4ade80" stroke-width="2.8" stroke-linecap="round"/>' +
+      '<path d="M50 28 Q50 18 50 15" fill="none" stroke="#332b22" stroke-width="3" stroke-linecap="round"/>' +
       '<path d="M50 17 C41 8, 33 14, 39 21 C43 24, 50 20, 50 17 Z" fill="#22c55e" stroke="#332b22" stroke-width="2.2" stroke-linejoin="round"/>' +
       '<path d="M50 17 C59 7, 68 13, 62 20 C58 24, 50 20, 50 17 Z" fill="#86efac" stroke="#332b22" stroke-width="2.2" stroke-linejoin="round"/>' +
       '<circle cx="58" cy="14" r="1.6" fill="#ffffff" opacity="0.9"/>';
-    bodyOutfitLayer =
-      '<path d="M35 64 Q42 74 50 69 Q58 74 65 64 Q58 68 50 67 Q42 68 35 64 Z" fill="#4ade80" stroke="#332b22" stroke-width="1.8" stroke-linejoin="round"/>';
-  } else if (cId === 'explorer') {
+  } else if (hatId === 'explorer') {
     headFrontLayer =
       '<path d="M35 30 Q50 13 65 30 Z" fill="#fbbf24" stroke="#332b22" stroke-width="2.6" stroke-linejoin="round"/>' +
       '<path d="M36 27 Q50 23 64 27" fill="none" stroke="#b45309" stroke-width="3.2"/>' +
       '<ellipse cx="50" cy="31" rx="26" ry="5.5" fill="#fde68a" stroke="#332b22" stroke-width="2.6"/>' +
       '<circle cx="50" cy="22" r="4" fill="#38bdf8" stroke="#332b22" stroke-width="1.8"/>' +
       '<circle cx="50" cy="22" r="1.5" fill="#fde047"/>';
-    bodyOutfitLayer =
-      '<path d="M37 64 L50 75 L63 64 Q50 68 37 64 Z" fill="#38bdf8" stroke="#332b22" stroke-width="1.8" stroke-linejoin="round"/>' +
-      '<circle cx="50" cy="69" r="3" fill="#fde047" stroke="#332b22" stroke-width="1.4"/>';
-  } else if (cId === 'flower') {
+  } else if (hatId === 'flower') {
     headFrontLayer =
-      '<path d="M29 38 Q50 22 71 38" fill="none" stroke="#16a34a" stroke-width="3.2" stroke-linecap="round"/>' +
+      '<path d="M29 36 Q50 22 71 36" fill="none" stroke="#16a34a" stroke-width="3.2" stroke-linecap="round"/>' +
       '<g transform="translate(35,30)">' +
       '<circle cx="0" cy="-4.5" r="3.4" fill="#f472b6" stroke="#332b22" stroke-width="1.4"/>' +
       '<circle cx="4.3" cy="-1.4" r="3.4" fill="#f472b6" stroke="#332b22" stroke-width="1.4"/>' +
@@ -129,39 +135,18 @@ export function buildBunnyCostumeLayers(costumeId) {
       '<circle cx="-4.3" cy="-1.4" r="3.4" fill="#60a5fa" stroke="#332b22" stroke-width="1.4"/>' +
       '<circle cx="0" cy="0" r="2.6" fill="#fde047" stroke="#332b22" stroke-width="1.2"/>' +
       '</g>';
-    bodyOutfitLayer =
-      '<path d="M35 65 Q40 72 45 67 Q50 73 55 67 Q60 72 65 65" fill="#fbcfe8" stroke="#332b22" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>';
-  } else if (cId === 'glasses') {
+  } else if (hatId === 'glasses') {
     headFrontLayer =
       '<polygon points="64,28 66,33 71,33 67,36 69,41 64,38 59,41 61,36 57,33 62,33" fill="#38bdf8" stroke="#332b22" stroke-width="1.8" stroke-linejoin="round"/>';
     faceOverlayLayer =
       '<g>' +
-      '<rect x="30" y="42" width="16" height="11" rx="4.5" fill="#1e293b" fill-opacity="0.62" stroke="#fde047" stroke-width="2.4"/>' +
-      '<rect x="54" y="42" width="16" height="11" rx="4.5" fill="#1e293b" fill-opacity="0.62" stroke="#fde047" stroke-width="2.4"/>' +
+      '<rect x="30" y="42" width="16" height="11" rx="4.5" fill="#1e293b" fill-opacity="0.48" stroke="#fde047" stroke-width="2.4"/>' +
+      '<rect x="54" y="42" width="16" height="11" rx="4.5" fill="#1e293b" fill-opacity="0.48" stroke="#fde047" stroke-width="2.4"/>' +
       '<path d="M46 46 Q50 44 54 46" fill="none" stroke="#332b22" stroke-width="2.4" stroke-linecap="round"/>' +
       '<line x1="33" y1="45" x2="37" y2="50" stroke="#ffffff" stroke-width="1.8" stroke-linecap="round" opacity="0.85"/>' +
       '<line x1="57" y1="45" x2="61" y2="50" stroke="#ffffff" stroke-width="1.8" stroke-linecap="round" opacity="0.85"/>' +
       '</g>';
-    bodyOutfitLayer =
-      '<path d="M50 69 L41 64 L41 73 Z" fill="#38bdf8" stroke="#332b22" stroke-width="1.8" stroke-linejoin="round"/>' +
-      '<path d="M50 69 L59 64 L59 73 Z" fill="#38bdf8" stroke="#332b22" stroke-width="1.8" stroke-linejoin="round"/>' +
-      '<circle cx="50" cy="69" r="3" fill="#fde047" stroke="#332b22" stroke-width="1.6"/>';
-  } else if (cId === 'cape') {
-    backLayer =
-      '<path d="M25 60 Q11 79 16 93 Q50 97 84 93 Q89 79 75 60 Z" fill="#312e81" stroke="#332b22" stroke-width="2.8" stroke-linejoin="round"/>' +
-      '<path d="M26 63 Q17 79 20 89 Q50 93 80 89 Q83 79 74 63" fill="none" stroke="#fde047" stroke-width="1.8" stroke-dasharray="4 3"/>' +
-      '<polygon points="22,79 23.5,82 27,82 24.2,84 25.2,87 22,85 18.8,87 19.8,84 17,82 20.5,82" fill="#fde047"/>' +
-      '<polygon points="78,79 79.5,82 83,82 80.2,84 81.2,87 78,85 74.8,87 75.8,84 73,82 76.5,82" fill="#fde047"/>';
-    headFrontLayer =
-      '<polygon points="64,28 66,33 71,33 67,36 69,41 64,38 59,41 61,36 57,33 62,33" fill="#fde047" stroke="#332b22" stroke-width="1.8" stroke-linejoin="round"/>';
-    bodyOutfitLayer =
-      '<path d="M36 64 L50 70 L64 64" fill="none" stroke="#312e81" stroke-width="3.6" stroke-linecap="round"/>' +
-      '<polygon points="50,65 52,69 56,69 53,71.5 54,75.5 50,73 46,75.5 47,71.5 44,69 48,69" fill="#fde047" stroke="#332b22" stroke-width="1.6" stroke-linejoin="round"/>';
-  } else if (cId === 'crown') {
-    backLayer =
-      '<path d="M23 59 Q9 78 15 93 Q50 98 85 93 Q91 78 77 59 Z" fill="#fef08a" stroke="#b45309" stroke-width="2.6" stroke-linejoin="round"/>' +
-      '<polygon points="15,24 16.5,27.5 20,27.5 17.2,29.8 18.2,33 15,31 11.8,33 12.8,29.8 10,27.5 13.5,27.5" fill="#38bdf8"/>' +
-      '<polygon points="85,24 86.5,27.5 90,27.5 87.2,29.8 88.2,33 85,31 81.8,33 82.8,29.8 80,27.5 83.5,27.5" fill="#f472b6"/>';
+  } else if (hatId === 'diamond_crown' || hatId === 'crown') {
     headFrontLayer =
       '<polygon points="36,30 37,16 44,23 50,12 56,23 63,16 64,30" fill="#fbbf24" stroke="#332b22" stroke-width="2.5" stroke-linejoin="round"/>' +
       '<circle cx="37" cy="15" r="2.3" fill="#fffbeb" stroke="#332b22" stroke-width="1.4"/>' +
@@ -170,23 +155,177 @@ export function buildBunnyCostumeLayers(costumeId) {
       '<circle cx="43" cy="26" r="2.2" fill="#f43f5e" stroke="#332b22" stroke-width="1.1"/>' +
       '<circle cx="50" cy="24" r="2.8" fill="#38bdf8" stroke="#332b22" stroke-width="1.2"/>' +
       '<circle cx="57" cy="26" r="2.2" fill="#22c55e" stroke="#332b22" stroke-width="1.1"/>';
+  } else if (hatId === 'croissant_beret') {
+    // 頭頂貝雷帽（嚴格保持 y <= 34，完全不遮眼睛與臉部）
+    headFrontLayer =
+      '<g transform="rotate(-7 50 28)">' +
+      '<ellipse cx="50" cy="24" rx="18" ry="8.5" fill="#f59e0b" stroke="#332b22" stroke-width="2.4"/>' +
+      '<path d="M36 25 Q50 18 64 25" fill="none" stroke="#fef3c7" stroke-width="2.4" stroke-linecap="round"/>' +
+      '<line x1="50" y1="15.5" x2="50" y2="11.5" stroke="#332b22" stroke-width="2.4" stroke-linecap="round"/>' +
+      '<ellipse cx="50" cy="30" rx="15" ry="3.2" fill="#b45309" stroke="#332b22" stroke-width="2"/>' +
+      '<circle cx="41" cy="23" r="1.8" fill="#fef3c7"/><circle cx="59" cy="23" r="1.8" fill="#fef3c7"/>' +
+      '</g>';
+  } else if (hatId === 'conductor_cap') {
+    headFrontLayer =
+      '<path d="M35 28 L38 15 Q50 12 62 15 L65 28 Z" fill="#1e3a8a" stroke="#332b22" stroke-width="2.5" stroke-linejoin="round"/>' +
+      '<rect x="35" y="25" width="30" height="4.5" rx="2" fill="#fde047" stroke="#332b22" stroke-width="1.8"/>' +
+      '<path d="M33 30 Q50 35 67 30 Q50 27 33 30 Z" fill="#172554" stroke="#332b22" stroke-width="2.2" stroke-linejoin="round"/>' +
+      '<circle cx="50" cy="20" r="3.4" fill="#fde047" stroke="#332b22" stroke-width="1.5"/>' +
+      '<circle cx="50" cy="20" r="1.3" fill="#ef4444"/>';
+  } else if (hatId === 'unicorn_band') {
+    headFrontLayer =
+      '<path d="M29 36 Q50 22 71 36" fill="none" stroke="#38bdf8" stroke-width="3.6" stroke-linecap="round"/>' +
+      '<polygon points="50,7 45,27 55,27" fill="#fde047" stroke="#332b22" stroke-width="2.2" stroke-linejoin="round"/>' +
+      '<line x1="47.5" y1="17" x2="53.5" y2="19" stroke="#f59e0b" stroke-width="1.6"/>' +
+      '<line x1="46.5" y1="22" x2="54.2" y2="24" stroke="#f59e0b" stroke-width="1.6"/>' +
+      '<circle cx="38" cy="28" r="4.8" fill="#ffffff" stroke="#332b22" stroke-width="1.8"/>' +
+      '<circle cx="62" cy="28" r="4.8" fill="#ffffff" stroke="#332b22" stroke-width="1.8"/>' +
+      '<circle cx="50" cy="27" r="4" fill="#fbcfe8" stroke="#332b22" stroke-width="1.8"/>';
+  }
+
+  return { headFrontLayer, faceOverlayLayer };
+}
+
+function buildOutfitLayer(outfitId) {
+  let backLayer = '';
+  let bodyOutfitLayer = '';
+
+  if (outfitId === 'star_cape' || outfitId === 'cape') {
+    backLayer =
+      '<path d="M25 60 Q11 79 16 93 Q50 97 84 93 Q89 79 75 60 Z" fill="#312e81" stroke="#332b22" stroke-width="2.8" stroke-linejoin="round"/>' +
+      '<path d="M26 63 Q17 79 20 89 Q50 93 80 89 Q83 79 74 63" fill="none" stroke="#fde047" stroke-width="1.8" stroke-dasharray="4 3"/>' +
+      '<polygon points="22,79 23.5,82 27,82 24.2,84 25.2,87 22,85 18.8,87 19.8,84 17,82 20.5,82" fill="#fde047"/>' +
+      '<polygon points="78,79 79.5,82 83,82 80.2,84 81.2,87 78,85 74.8,87 75.8,84 73,82 76.5,82" fill="#fde047"/>';
+    bodyOutfitLayer =
+      '<path d="M36 64 L50 70 L64 64" fill="none" stroke="#312e81" stroke-width="3.6" stroke-linecap="round"/>' +
+      '<polygon points="50,65 52,69 56,69 53,71.5 54,75.5 50,73 46,75.5 47,71.5 44,69 48,69" fill="#fde047" stroke="#332b22" stroke-width="1.6" stroke-linejoin="round"/>';
+  } else if (outfitId === 'diamond_shawl' || outfitId === 'crown') {
+    backLayer =
+      '<path d="M23 59 Q9 78 15 93 Q50 98 85 93 Q91 78 77 59 Z" fill="#fef08a" stroke="#b45309" stroke-width="2.6" stroke-linejoin="round"/>' +
+      '<polygon points="15,24 16.5,27.5 20,27.5 17.2,29.8 18.2,33 15,31 11.8,33 12.8,29.8 10,27.5 13.5,27.5" fill="#38bdf8"/>' +
+      '<polygon points="85,24 86.5,27.5 90,27.5 87.2,29.8 88.2,33 85,31 81.8,33 82.8,29.8 80,27.5 83.5,27.5" fill="#f472b6"/>';
     bodyOutfitLayer =
       '<path d="M41 66 L50 70 L59 66 L59 73 L50 70 L41 73 Z" fill="#f43f5e" stroke="#332b22" stroke-width="1.6" stroke-linejoin="round"/>' +
       '<circle cx="50" cy="70" r="2.8" fill="#38bdf8" stroke="#332b22" stroke-width="1.4"/>';
+  } else if (outfitId === 'baker_apron') {
+    bodyOutfitLayer =
+      '<path d="M36 65 H64 L66 84 Q50 88 34 84 Z" fill="#fffbeb" stroke="#332b22" stroke-width="2.2" stroke-linejoin="round"/>' +
+      '<path d="M34 83 Q42 87 50 84 Q58 87 66 83" fill="none" stroke="#f59e0b" stroke-width="2.2" stroke-linecap="round"/>' +
+      '<rect x="42" y="72" width="16" height="9" rx="3" fill="#fde68a" stroke="#332b22" stroke-width="1.6"/>' +
+      '<path d="M46 77 Q50 73 54 77" fill="none" stroke="#b45309" stroke-width="2" stroke-linecap="round"/>';
+  } else if (outfitId === 'magic_robe') {
+    backLayer =
+      '<path d="M24 60 Q12 79 17 93 Q50 97 83 93 Q88 79 76 60 Z" fill="#6d28d9" stroke="#332b22" stroke-width="2.8" stroke-linejoin="round"/>' +
+      '<path d="M25 64 Q18 79 21 89 Q50 93 79 89 Q82 79 75 64" fill="none" stroke="#c4b5fd" stroke-width="1.8" stroke-dasharray="4 3"/>';
+    bodyOutfitLayer =
+      '<path d="M35 64 L50 73 L65 64" fill="none" stroke="#4c1d95" stroke-width="4" stroke-linecap="round"/>' +
+      '<polygon points="50,67 53,72 50,77 47,72" fill="#38bdf8" stroke="#332b22" stroke-width="1.6"/>';
+  } else if (outfitId === 'space_suit') {
+    backLayer =
+      '<rect x="19" y="57" width="62" height="27" rx="12" fill="#cbd5e1" stroke="#332b22" stroke-width="2.6"/>';
+    bodyOutfitLayer =
+      '<rect x="33" y="65" width="34" height="20" rx="8" fill="#f8fafc" stroke="#332b22" stroke-width="2.2"/>' +
+      '<rect x="39" y="69" width="22" height="10" rx="4" fill="#0284c7" stroke="#332b22" stroke-width="1.6"/>' +
+      '<circle cx="44" cy="74" r="2.2" fill="#fde047"/><circle cx="50" cy="74" r="2.2" fill="#4ade80"/><circle cx="56" cy="74" r="2.2" fill="#fb7185"/>';
+  }
+
+  return { backLayer, bodyOutfitLayer };
+}
+
+function buildWandLayer(wandId) {
+  if (!wandId || wandId === 'none') return '';
+  if (wandId === 'carrot_wand') {
+    return (
+      '<g transform="rotate(14 78 60)">' +
+      '<line x1="77" y1="80" x2="77" y2="42" stroke="#92400e" stroke-width="4" stroke-linecap="round"/>' +
+      '<line x1="77" y1="80" x2="77" y2="42" stroke="#f59e0b" stroke-width="2" stroke-linecap="round"/>' +
+      '<path d="M77 25 L71 19 M77 25 L77 16 M77 25 L83 19" stroke="#22c55e" stroke-width="2.6" stroke-linecap="round"/>' +
+      '<path d="M69 27 Q77 23 85 27 L79 44 Q77 46 75 44 Z" fill="#f97316" stroke="#332b22" stroke-width="2.2" stroke-linejoin="round"/>' +
+      '<circle cx="77" cy="33" r="2" fill="#fef08a"/>' +
+      '</g>'
+    );
+  }
+  if (wandId === 'butterfly_wand') {
+    return (
+      '<g transform="rotate(14 78 60)">' +
+      '<line x1="77" y1="82" x2="77" y2="40" stroke="#be185d" stroke-width="3.8" stroke-linecap="round"/>' +
+      '<path d="M77 33 C67 24 64 36 73 39 Z" fill="#f472b6" stroke="#332b22" stroke-width="2"/>' +
+      '<path d="M77 33 C87 24 90 36 81 39 Z" fill="#c084fc" stroke="#332b22" stroke-width="2"/>' +
+      '<circle cx="77" cy="34" r="4.5" fill="#fde047" stroke="#332b22" stroke-width="1.8"/>' +
+      '</g>'
+    );
+  }
+  if (wandId === 'meteor_wand') {
+    return (
+      '<g transform="rotate(14 78 60)">' +
+      '<line x1="77" y1="82" x2="77" y2="40" stroke="#312e81" stroke-width="4" stroke-linecap="round"/>' +
+      '<circle cx="77" cy="31" r="9" fill="#38bdf8" stroke="#332b22" stroke-width="2.2"/>' +
+      '<polygon points="77,23 79.3,28.5 85,29 80.5,32.5 82,38 77,35 72,38 73.5,32.5 69,29 74.7,28.5" fill="#fde047" stroke="#332b22" stroke-width="1.3"/>' +
+      '</g>'
+    );
+  }
+  if (wandId === 'rainbow_wand') {
+    return (
+      '<g transform="rotate(14 78 60)">' +
+      '<line x1="77" y1="82" x2="77" y2="42" stroke="#f43f5e" stroke-width="4" stroke-linecap="round"/>' +
+      '<path d="M67 36 A10 10 0 0 1 87 36" fill="none" stroke="#f43f5e" stroke-width="2.8" stroke-linecap="round"/>' +
+      '<path d="M70 36 A7 7 0 0 1 84 36" fill="none" stroke="#facc15" stroke-width="2.6" stroke-linecap="round"/>' +
+      '<path d="M73 36 A4 4 0 0 1 81 36" fill="none" stroke="#38bdf8" stroke-width="2.4" stroke-linecap="round"/>' +
+      '<polygon points="77,17 79.2,22 84.5,22.5 80.3,25.8 81.6,31 77,28 72.4,31 73.7,25.8 69.5,22.5 74.8,22" fill="#fde047" stroke="#332b22" stroke-width="1.5"/>' +
+      '</g>'
+    );
+  }
+  return '';
+}
+
+export function buildBunnyCostumeLayers(costumeOrWardrobe) {
+  const spec = resolveWardrobeSpec(costumeOrWardrobe);
+  const hatLayers = buildHatLayer(spec.hat);
+  const outfitLayers = buildOutfitLayer(spec.outfit);
+  const handWandLayer = buildWandLayer(spec.wand);
+
+  // 相容舊版：當以單一舊字串 (如 'ribbon', 'explorer') 呼叫時保持舊的胸前小飾品呈現
+  let legacyAccent = '';
+  if (typeof costumeOrWardrobe === 'string' && spec.outfit === 'none') {
+    if (costumeOrWardrobe === 'default') {
+      legacyAccent =
+        '<path d="M39 65 L50 71 L61 65" fill="none" stroke="#f59e0b" stroke-width="3.6" stroke-linecap="round"/>' +
+        '<polygon points="50,67 51.8,70.5 55.6,70.8 52.8,73.3 53.6,77 50,75 46.4,77 47.2,73.3 44.4,70.8 48.2,70.5" fill="#fde047" stroke="#332b22" stroke-width="1.4" stroke-linejoin="round"/>';
+    } else if (costumeOrWardrobe === 'ribbon') {
+      legacyAccent =
+        '<path d="M50 69 L41 64 C39 67 39 71 41 74 Z" fill="#fb7185" stroke="#332b22" stroke-width="1.8" stroke-linejoin="round"/>' +
+        '<path d="M50 69 L59 64 C61 67 61 71 59 74 Z" fill="#fb7185" stroke="#332b22" stroke-width="1.8" stroke-linejoin="round"/>' +
+        '<circle cx="50" cy="69" r="3" fill="#f43f5e" stroke="#332b22" stroke-width="1.6"/>';
+    } else if (costumeOrWardrobe === 'sprout') {
+      legacyAccent =
+        '<path d="M35 64 Q42 74 50 69 Q58 74 65 64 Q58 68 50 67 Q42 68 35 64 Z" fill="#4ade80" stroke="#332b22" stroke-width="1.8" stroke-linejoin="round"/>';
+    } else if (costumeOrWardrobe === 'explorer') {
+      legacyAccent =
+        '<path d="M37 64 L50 75 L63 64 Q50 68 37 64 Z" fill="#38bdf8" stroke="#332b22" stroke-width="1.8" stroke-linejoin="round"/>' +
+        '<circle cx="50" cy="69" r="3" fill="#fde047" stroke="#332b22" stroke-width="1.4"/>';
+    } else if (costumeOrWardrobe === 'flower') {
+      legacyAccent =
+        '<path d="M35 65 Q40 72 45 67 Q50 73 55 67 Q60 72 65 65" fill="#fbcfe8" stroke="#332b22" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>';
+    } else if (costumeOrWardrobe === 'glasses') {
+      legacyAccent =
+        '<path d="M50 69 L41 64 L41 73 Z" fill="#38bdf8" stroke="#332b22" stroke-width="1.8" stroke-linejoin="round"/>' +
+        '<path d="M50 69 L59 64 L59 73 Z" fill="#38bdf8" stroke="#332b22" stroke-width="1.8" stroke-linejoin="round"/>' +
+        '<circle cx="50" cy="69" r="3" fill="#fde047" stroke="#332b22" stroke-width="1.6"/>';
+    }
   }
 
   return {
-    backLayer,
-    headFrontLayer,
-    bodyOutfitLayer,
-    faceOverlayLayer
+    backLayer: outfitLayers.backLayer,
+    headFrontLayer: hatLayers.headFrontLayer,
+    bodyOutfitLayer: outfitLayers.bodyOutfitLayer || legacyAccent,
+    faceOverlayLayer: hatLayers.faceOverlayLayer,
+    handWandLayer
   };
 }
 
-export function renderPinkBunnySvg(mood = 'normal', costumeId = 'default') {
+export function renderPinkBunnySvg(mood = 'normal', costumeOrWardrobe = 'default') {
   const m = mood || 'normal';
-  const activeId = costumeId || 'default';
-  const layers = buildBunnyCostumeLayers(activeId);
+  const layers = buildBunnyCostumeLayers(costumeOrWardrobe);
   const bid = 'bn-' + nextUid();
 
   return (
@@ -210,6 +349,7 @@ export function renderPinkBunnySvg(mood = 'normal', costumeId = 'default') {
     '<ellipse cx="50" cy="72" rx="22" ry="18" fill="url(#' + bid + 'b)" stroke="#332b22" stroke-width="3.2"/>' +
     '<ellipse cx="50" cy="75" rx="13" ry="10.5" fill="#fff1f2"/>' +
     layers.bodyOutfitLayer +
+    layers.handWandLayer +
     '<ellipse cx="50" cy="48" rx="25" ry="20" fill="url(#' + bid + 'h)" stroke="#332b22" stroke-width="3.2"/>' +
     layers.headFrontLayer +
     '<ellipse cx="33" cy="54" rx="4.8" ry="2.8" fill="#f472b6" opacity="' + (m === 'fever' ? '0.9' : '0.65') + '"/>' +
@@ -389,7 +529,7 @@ export function getStageChestSvg(theme, mood) {
   );
 }
 
-export function getCharacterSvg(key, isBoss, mood) {
+export function getCharacterSvg(key, isBoss, mood, options = {}) {
   const m = mood || 'normal';
   const uid = nextUid();
 
@@ -1038,5 +1178,72 @@ export function getCharacterSvg(key, isBoss, mood) {
     }
   };
   const fn = spriteMap[key] || spriteMap.forest;
-  return fn();
+  const svg = fn();
+  const bondLevel = Number(options && options.bondLevel) || 1;
+  if (!isBoss && bondLevel >= 3) {
+    const auraGroup =
+      '<g class="mqst-lv3-aura">' +
+      '<circle cx="40" cy="43" r="34" fill="rgba(254,240,138,0.22)" stroke="#f59e0b" stroke-width="2.2" stroke-dasharray="6 4"/>' +
+      '<circle cx="40" cy="43" r="29" fill="none" stroke="#fde047" stroke-width="1.6" opacity="0.85"/>' +
+      '<polygon points="10,16 11.8,20 16,20.5 12.8,23.2 13.6,27 10,25 6.4,27 7.2,23.2 4,20.5 8.2,20" fill="#fde047" stroke="#b45309" stroke-width="1"/>' +
+      '<polygon points="70,16 71.8,20 76,20.5 72.8,23.2 73.6,27 70,25 66.4,27 67.2,23.2 64,20.5 68.2,20" fill="#38bdf8" stroke="#0284c7" stroke-width="1"/>' +
+      '</g>';
+    return svg.replace('<svg viewBox="0 0 80 80">', '<svg viewBox="0 0 80 80">' + auraGroup);
+  }
+  return svg;
+}
+
+export function getProjectileSvg(boltTheme = 'star') {
+  if (boltTheme === 'carrot') {
+    return (
+      '<svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">' +
+      '<circle cx="32" cy="32" r="27" fill="#fb923c" opacity="0.45"/>' +
+      '<path d="M18 14 L25 22 M29 10 L30 20 M14 26 L23 28" stroke="#22c55e" stroke-width="4" stroke-linecap="round"/>' +
+      '<path d="M22 24 Q34 18 42 28 L54 52 Q30 44 22 24 Z" fill="#f97316" stroke="#7c2d12" stroke-width="3.2" stroke-linejoin="round"/>' +
+      '<polygon points="48,14 50,19 55,20 51,23 52,28 48,25 44,28 45,23 41,20 46,19" fill="#fde047"/>' +
+      '</svg>'
+    );
+  }
+  if (boltTheme === 'petal') {
+    return (
+      '<svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">' +
+      '<circle cx="32" cy="32" r="27" fill="#f472b6" opacity="0.42"/>' +
+      '<circle cx="32" cy="17" r="9" fill="#fbcfe8" stroke="#be185d" stroke-width="2.6"/>' +
+      '<circle cx="46" cy="27" r="9" fill="#f9a8d4" stroke="#be185d" stroke-width="2.6"/>' +
+      '<circle cx="41" cy="44" r="9" fill="#fbcfe8" stroke="#be185d" stroke-width="2.6"/>' +
+      '<circle cx="23" cy="44" r="9" fill="#f9a8d4" stroke="#be185d" stroke-width="2.6"/>' +
+      '<circle cx="18" cy="27" r="9" fill="#fbcfe8" stroke="#be185d" stroke-width="2.6"/>' +
+      '<circle cx="32" cy="32" r="8" fill="#fde047" stroke="#b45309" stroke-width="2.4"/>' +
+      '</svg>'
+    );
+  }
+  if (boltTheme === 'meteor') {
+    return (
+      '<svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">' +
+      '<circle cx="32" cy="32" r="27" fill="#38bdf8" opacity="0.45"/>' +
+      '<path d="M12 48 L30 30 M18 54 L36 36" stroke="#c4b5fd" stroke-width="5" stroke-linecap="round"/>' +
+      '<polygon points="37,6 43,21 59,22 46,32 50,48 37,39 24,48 28,32 15,22 31,21" fill="#38bdf8" stroke="#1e3a8a" stroke-width="3.2" stroke-linejoin="round"/>' +
+      '<polygon points="37,14 40,24 50,25 42,31 45,41 37,35 29,41 32,31 24,25 34,24" fill="#fef08a"/>' +
+      '</svg>'
+    );
+  }
+  if (boltTheme === 'rainbow') {
+    return (
+      '<svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">' +
+      '<circle cx="32" cy="32" r="27" fill="#a855f7" opacity="0.42"/>' +
+      '<circle cx="32" cy="32" r="22" fill="none" stroke="#f43f5e" stroke-width="5"/>' +
+      '<circle cx="32" cy="32" r="16" fill="none" stroke="#facc15" stroke-width="5"/>' +
+      '<circle cx="32" cy="32" r="10" fill="#38bdf8" stroke="#ffffff" stroke-width="2.4"/>' +
+      '<polygon points="32,18 35,27 44,28 37,34 39,43 32,38 25,43 27,34 20,28 29,27" fill="#ffffff"/>' +
+      '</svg>'
+    );
+  }
+  return (
+    '<svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">' +
+    '<circle cx="32" cy="32" r="27" fill="#fb923c" opacity="0.45"/>' +
+    '<polygon points="32,3 39,21 59,22 44,35 49,55 32,44 15,55 20,35 5,22 25,21" fill="#facc15" stroke="#ea580c" stroke-width="4" stroke-linejoin="round"/>' +
+    '<polygon points="32,9 37,23 53,24 41,34 45,49 32,40 19,49 23,34 11,24 27,23" fill="#fde047" stroke="#ffffff" stroke-width="2" stroke-linejoin="round"/>' +
+    '<polygon points="32,16 35,26 45,27 37,33 40,42 32,37 24,42 27,33 19,27 29,26" fill="#fffbeb"/>' +
+    '</svg>'
+  );
 }

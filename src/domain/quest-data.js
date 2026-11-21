@@ -82,6 +82,7 @@ export const ISLANDS = [
     partnerProjectile: '🥐',
     partnerSkillDesc: '灑出香噴噴奶油星粉，協助答題並提升星星幣收穫！',
     partnerCheers: ['麵包香噴噴，加油！', '個位十位對齊算得超穩！', '一擊命中太厲害！'],
+    lv3Cheer: '金燦燦的光環點亮麵包村，星星幣滿滿出爐啦！',
     bossStageId: 'sunny:1-3'
   },
   {
@@ -100,6 +101,7 @@ export const ISLANDS = [
     partnerProjectile: '🍓',
     partnerSkillDesc: '變出草莓積木，滿十進一一看就懂！',
     partnerCheers: ['滿十變長條囉！', '草莓魔法甜甜的！', '繼續向下一顆進位前進！'],
+    lv3Cheer: '滿十進化大成功！我們是最甜蜜的進位拍檔！',
     bossStageId: 'sunny:2-3'
   },
   {
@@ -118,6 +120,7 @@ export const ISLANDS = [
     partnerProjectile: '🫧',
     partnerSkillDesc: '吹出珍珠泡泡，幫你找出關鍵線索並消除干擾！',
     partnerCheers: ['找零算得剛剛好！', '泡泡裡藏著正確線索！', '海灣小幫手替你加油！'],
+    lv3Cheer: '閃亮珍珠光環綻放！所有找錢和比較題都難不倒我們！',
     bossStageId: 'sunny:3-3'
   },
   {
@@ -136,6 +139,7 @@ export const ISLANDS = [
     partnerProjectile: '🐾',
     partnerSkillDesc: '揮出貓貓肉球護盾，幫你安心挑戰三位數大採購！',
     partnerCheers: ['三位數難不倒你！', '百格板排整齊囉！', '市集貓咪為你歡呼！'],
+    lv3Cheer: '雙重金色肉球護盾全開！大市集最安心的守護貓隊長！',
     bossStageId: 'sunny:4-3'
   },
   {
@@ -154,6 +158,7 @@ export const ISLANDS = [
     partnerProjectile: '🌈',
     partnerSkillDesc: '展翅發出七彩光芒，照亮跨零借位與神秘未知數！',
     partnerCheers: ['跨零借位看穿啦！', '十位剩 9 記得超清楚！', '陽光群島閃耀七彩光！'],
+    lv3Cheer: '七彩燈塔光環大放異彩！跨零大師和幸運星幣一起飛來啦！',
     bossStageId: 'sunny:5-3'
   },
   {
@@ -172,6 +177,7 @@ export const ISLANDS = [
     partnerProjectile: '🌿',
     partnerSkillDesc: '吹出嫩芽陣風，幫你消除錯選項或免費打開積木提示！',
     partnerCheers: ['嫩芽陪你一起數！', '葉子排好隊囉！', '一擊命中太厲害！'],
+    lv3Cheer: '翠綠星光繞身轉圈！森林小隊長帶你橫掃所有乘法難題！',
     bossStageId: '1-3'
   },
   {
@@ -190,6 +196,7 @@ export const ISLANDS = [
     partnerProjectile: '🧱',
     partnerSkillDesc: '拋出彩色積木，幫你看出分組或免費消去一個干擾選項！',
     partnerCheers: ['積木整齊排好了！', '組裝完成大加分！', '小工匠替你拍拍手！'],
+    lv3Cheer: '黃金小工匠誕生！積木陣法加上滿滿加碼星星幣超開心！',
     bossStageId: '2-3'
   },
   {
@@ -208,6 +215,7 @@ export const ISLANDS = [
     partnerProjectile: '🦋',
     partnerSkillDesc: '撒出蝴蝶光粉，免費開積木提示或變走一個錯答案！',
     partnerCheers: ['蝴蝶翩翩飛來幫你！', '乘法交換魔法超棒！', '花園開滿幸運花！'],
+    lv3Cheer: '雙翼閃耀花園星環！有我們守護連擊絕對不會斷！',
     bossStageId: '3-3'
   },
   {
@@ -226,6 +234,7 @@ export const ISLANDS = [
     partnerProjectile: '🔥',
     partnerSkillDesc: '噴出暖呼呼龍焰，幫你免費提示或震飛一個干擾泡泡！',
     partnerCheers: ['龍龍噴出助陣火球！', '大口訣也難不倒我們！', '氣勢滿分繼續衝！'],
+    lv3Cheer: '聖龍光環覺醒！7、8、9 大口訣通通變成金閃閃星星幣！',
     bossStageId: '4-3'
   },
   {
@@ -244,6 +253,7 @@ export const ISLANDS = [
     partnerProjectile: '👑',
     partnerSkillDesc: '施展皇冠星光，給粉紅小兔最強大的免費提示與雙重助陣！',
     partnerCheers: ['皇冠星光閃耀加持！', '乘法大師就是你！', '守護小隊無人能敵！'],
+    lv3Cheer: '皇家金環降臨！榮耀大師的積木神力無可匹敵！',
     bossStageId: '5-3'
   },
   {
@@ -262,6 +272,7 @@ export const ISLANDS = [
     partnerProjectile: '🚂',
     partnerSkillDesc: '吹響小車長哨子，幫你找出跳數規則或震飛錯選項！',
     partnerCheers: ['噗噗！準時發車向前衝！', '跳數規則抓得超準！', '車站小車長幫你加油！'],
+    lv3Cheer: '雲端特快車全速滿星！小車長光環亮晶晶！',
     bossStageId: 'cloud:1-3'
   },
   {
@@ -280,6 +291,7 @@ export const ISLANDS = [
     partnerProjectile: '💎',
     partnerSkillDesc: '亮出金庫密碼手電筒，讓缺失十位或個位的補零細節無所遁形！',
     partnerCheers: ['卡滋！金庫密碼解開啦！', '補零陷阱完全難不倒你！', '十張百格板閃閃發亮！'],
+    lv3Cheer: '金庫秘寶之環啟動！千以內位值一看就通！',
     bossStageId: 'cloud:2-3'
   },
   {
@@ -298,6 +310,7 @@ export const ISLANDS = [
     partnerProjectile: '🎈',
     partnerSkillDesc: '送出遊樂園彩色氣球，幫你穩住兩步驟節奏！',
     partnerCheers: ['先算乘法小計太棒了！', '氣球飛高高，第二步驟也秒殺！', '遊樂園今日滿星大豐收！'],
+    lv3Cheer: '雙層安全氣球光環展開！遊樂園冒險零失誤！',
     bossStageId: 'cloud:3-3'
   },
   {
@@ -316,6 +329,7 @@ export const ISLANDS = [
     partnerProjectile: '🧁',
     partnerSkillDesc: '飛舞點心花香，替你消除干擾或展開找零推理框！',
     partnerCheers: ['找零一毛錢也不會算錯！', '甜點買好準備派對囉！', '嗡嗡！心算速度超快！'],
+    lv3Cheer: '黃金蜂蜜光環閃耀！點心帳房小神算就是我們！',
     bossStageId: 'cloud:4-3'
   },
   {
@@ -334,6 +348,7 @@ export const ISLANDS = [
     partnerProjectile: '🦄',
     partnerSkillDesc: '揮動彩虹獨角魔法，為粉紅小兔灑下星光祝福與豐盛星星幣！',
     partnerCheers: ['星光彩虹照亮天空城！', '全課綱題目通通難不倒！', '我們是最強冒險拍檔！'],
+    lv3Cheer: '星穹聖獸終極彩虹光環降臨！傳說冒險大勝利！',
     bossStageId: 'cloud:5-3'
   }
 ];
@@ -834,4 +849,420 @@ export function findRecommendedStageForTable(a) {
     if (STAGES[i].tables && STAGES[i].tables.indexOf(a) !== -1) return STAGES[i];
   }
   return STAGES[0];
+}
+
+/* ---------------- Phase 3：守護小精靈親密度與四大專長定義 ---------------- */
+export const PARTNER_BOND_THRESHOLDS = {
+  lv2: 50,
+  lv3: 150
+};
+
+export const PARTNER_SPECIALTIES = {
+  eliminate: {
+    id: 'eliminate',
+    icon: '🌿',
+    name: '智慧消錯系',
+    mode: 'active',
+    modeLabel: '主動技能',
+    shortDesc: '選擇題消除錯選項；鍵盤題提供不劇透的高位或範圍提示',
+    lvDesc: {
+      1: '每關主動施放 1 次：選擇題消 1 錯選項；鍵盤題提示位數與首位數字',
+      2: '進階智慧：選擇題消 2 錯選項；鍵盤題提示更精確的數值範圍',
+      3: '大師共鳴：每關可施放 2 次智慧協助，並閃耀 Lv.3 專屬星光環'
+    }
+  },
+  blocks: {
+    id: 'blocks',
+    icon: '🧱',
+    name: '積木導師系',
+    mode: 'active',
+    modeLabel: '主動技能',
+    shortDesc: '免費開啟積木小幫手，不影響滿星評價與收藏進度',
+    lvDesc: {
+      1: '每關免費開啟 1 次積木小幫手（不扣三星、照拿寶石與技能卡）',
+      2: '導師鼓勵：免費開小幫手外，本關首次施放再送額外 +5 星星幣',
+      3: '大師共鳴：每關可免費開啟 2 次積木小幫手，並閃耀 Lv.3 專屬星光環'
+    }
+  },
+  shield: {
+    id: 'shield',
+    icon: '🛡️',
+    name: '守護護盾系',
+    mode: 'passive',
+    modeLabel: '被動護盾',
+    shortDesc: '答錯瞬間自動發動護盾吸收失誤，保住連擊與三星資格',
+    lvDesc: {
+      1: '被動觸發：每關自動擋下第 1 次答錯（保連擊、不扣三星、不入救援）',
+      2: '貼心護航：護盾擋錯瞬間同步免費展開積木提示方向',
+      3: '大師共鳴：每關可自動擋下 2 次答錯，並閃耀 Lv.3 專屬星光環'
+    }
+  },
+  lucky: {
+    id: 'lucky',
+    icon: '🌟',
+    name: '幸運尋寶系',
+    mode: 'passive',
+    modeLabel: '被動增益',
+    shortDesc: '大幅提升過關星星幣獎勵，高親密度時答題也會掉金幣',
+    lvDesc: {
+      1: '幸運加持：通關獲得的星星幣獎勵 +20%',
+      2: '閃亮連擊：通關星星幣獎勵 +35%，2 連擊精靈合體必出炫彩星光特效',
+      3: '大師共鳴：通關星星幣獎勵 +50%，答對每題有機率額外掉 +2 星星幣'
+    }
+  }
+};
+
+export function getSpecialtyMeta(specialtyId) {
+  return PARTNER_SPECIALTIES[specialtyId] || PARTNER_SPECIALTIES.eliminate;
+}
+
+/* ---------------- Phase 3：小兔三部位裝扮（頭飾 / 服裝 / 魔法杖） ---------------- */
+export const WARDROBE_SLOTS = [
+  { id: 'hat', icon: '👒', name: '頭飾' },
+  { id: 'outfit', icon: '🧥', name: '服裝' },
+  { id: 'wand', icon: '🪄', name: '魔法杖' }
+];
+
+export const WARDROBE_ITEMS = [
+  // 頭飾類（hat）
+  {
+    id: 'star_clip',
+    slot: 'hat',
+    icon: '🌟',
+    name: '經典小星星髮夾',
+    desc: '粉紅小兔最喜歡的金閃閃星星髮飾！',
+    source: 'free',
+    price: 0,
+    legacyCostumeId: 'default',
+    goalText: '初始免費頭飾'
+  },
+  {
+    id: 'ribbon',
+    slot: 'hat',
+    icon: '🎀',
+    name: '草莓蝴蝶結',
+    desc: '戴上甜美點點蝴蝶結，跳躍起來超有精神！',
+    source: 'milestone',
+    price: 0,
+    legacyCostumeId: 'ribbon',
+    unlockType: 'stars',
+    target: 10,
+    goalText: '累積收集 10 顆星星'
+  },
+  {
+    id: 'sprout',
+    slot: 'hat',
+    icon: '🌱',
+    name: '森林嫩芽髮箍',
+    desc: '兩片會晃呀晃的翠綠小嫩芽，帶著森林元氣！',
+    source: 'milestone',
+    price: 0,
+    legacyCostumeId: 'sprout',
+    unlockType: 'gems',
+    target: 15,
+    goalText: '點亮 15 顆九九乘法寶石'
+  },
+  {
+    id: 'explorer',
+    slot: 'hat',
+    icon: '🧢',
+    name: '探險家漁夫帽',
+    desc: '專為兔耳朵留洞的探險帽，出發去高難度島嶼囉！',
+    source: 'milestone',
+    price: 0,
+    legacyCostumeId: 'explorer',
+    unlockType: 'stars',
+    target: 25,
+    goalText: '累積收集 25 顆星星'
+  },
+  {
+    id: 'flower',
+    slot: 'hat',
+    icon: '🌸',
+    name: '魔法花園花冠',
+    desc: '用三色幸運小花編成的花環，讓算式像花一樣綻放！',
+    source: 'milestone',
+    price: 0,
+    legacyCostumeId: 'flower',
+    unlockType: 'gems',
+    target: 35,
+    goalText: '點亮 35 顆九九乘法寶石'
+  },
+  {
+    id: 'glasses',
+    slot: 'hat',
+    icon: '🕶️',
+    name: '炫酷星星墨鏡',
+    desc: '戴上透明星光墨鏡，再難的大魔王也難不倒我！',
+    source: 'milestone',
+    price: 0,
+    legacyCostumeId: 'glasses',
+    unlockType: 'gems',
+    target: 55,
+    goalText: '點亮 55 顆九九乘法寶石'
+  },
+  {
+    id: 'diamond_crown',
+    slot: 'hat',
+    icon: '👑',
+    name: '81 寶石鑽石皇冠',
+    desc: '點亮 81 格寶石牆的終極榮譽！閃耀三色寶石皇冠！',
+    source: 'milestone',
+    price: 0,
+    legacyCostumeId: 'crown',
+    unlockType: 'gems',
+    target: 81,
+    goalText: '點亮全部 81 顆九九乘法寶石'
+  },
+  {
+    id: 'croissant_beret',
+    slot: 'hat',
+    icon: '🥐',
+    name: '牛角麵包貝雷帽',
+    desc: '奶油麵包村師傅特製的鬆軟金黃貝雷帽！',
+    source: 'shop',
+    price: 60,
+    goalText: '星星幣商店 60 枚'
+  },
+  {
+    id: 'conductor_cap',
+    slot: 'hat',
+    icon: '🚂',
+    name: '雲端列車長帽',
+    desc: '戴上神氣深藍列車長帽，準時出發解密跨百跳數！',
+    source: 'shop',
+    price: 80,
+    goalText: '星星幣商店 80 枚'
+  },
+  {
+    id: 'unicorn_band',
+    slot: 'hat',
+    icon: '🦄',
+    name: '雲朵獨角獸髮箍',
+    desc: '粉藍軟綿雲朵配上金色小獨角，夢幻又可愛！',
+    source: 'shop',
+    price: 90,
+    goalText: '星星幣商店 90 枚'
+  },
+
+  // 服裝類（outfit）
+  {
+    id: 'none',
+    slot: 'outfit',
+    icon: '🎀',
+    name: '經典小兔裝',
+    desc: '粉紅小兔原本的經典粉色小背心與金黃星星書包。',
+    source: 'free',
+    price: 0,
+    goalText: '初始免費服裝'
+  },
+  {
+    id: 'star_cape',
+    slot: 'outfit',
+    icon: '🦸',
+    name: '星光小斗篷',
+    desc: '閃耀夜空金星的勇者披風，跑起來帥氣滿分！',
+    source: 'milestone',
+    price: 0,
+    legacyCostumeId: 'cape',
+    unlockType: 'stars',
+    target: 45,
+    goalText: '累積收集 45 顆星星'
+  },
+  {
+    id: 'diamond_shawl',
+    slot: 'outfit',
+    icon: '✨',
+    name: '鑽石星輝披肩',
+    desc: '點亮 81 格寶石牆獲贈的華麗黃金披肩與寶石領結！',
+    source: 'milestone',
+    price: 0,
+    legacyCostumeId: 'crown',
+    unlockType: 'gems',
+    target: 81,
+    goalText: '點亮全部 81 顆九九乘法寶石'
+  },
+  {
+    id: 'baker_apron',
+    slot: 'outfit',
+    icon: '🧥',
+    name: '麵包師傅小圍裙',
+    desc: '印著可愛小可頌的荷葉邊烘焙圍裙，算數像烤麵包一樣準！',
+    source: 'shop',
+    price: 70,
+    goalText: '星星幣商店 70 枚'
+  },
+  {
+    id: 'magic_robe',
+    slot: 'outfit',
+    icon: '🧙',
+    name: '魔法學院披風',
+    desc: '紫羅蘭星空學院斗篷，滿滿都是數學小魔導士氣息！',
+    source: 'shop',
+    price: 100,
+    goalText: '星星幣商店 100 枚'
+  },
+  {
+    id: 'space_suit',
+    slot: 'outfit',
+    icon: '🚀',
+    name: '星空太空服',
+    desc: '穿上宇宙探索小太空服，一口氣飛向星光天空城！',
+    source: 'shop',
+    price: 120,
+    goalText: '星星幣商店 120 枚'
+  },
+
+  // 魔法杖類（wand）
+  {
+    id: 'none',
+    slot: 'wand',
+    icon: '✨',
+    name: '經典星星魔法',
+    desc: '用雙手發出金黃閃亮星星彈（四種必殺技隨機施放）。',
+    source: 'free',
+    price: 0,
+    boltTheme: 'star',
+    preferredFinisher: '',
+    goalText: '初始免費魔法'
+  },
+  {
+    id: 'carrot_wand',
+    slot: 'wand',
+    icon: '🥕',
+    name: '胡蘿蔔糖果杖',
+    desc: '發射香甜胡蘿蔔星彈！最後一擊優先召喚「🥕 巨無霸胡蘿蔔砸擊」！',
+    source: 'shop',
+    price: 75,
+    boltTheme: 'carrot',
+    preferredFinisher: 'carrot',
+    goalText: '星星幣商店 75 枚'
+  },
+  {
+    id: 'butterfly_wand',
+    slot: 'wand',
+    icon: '🌸',
+    name: '蝴蝶星辰杖',
+    desc: '發射粉櫻花瓣光彈！最後一擊優先發動「⚔️ 星辰十字斬」！',
+    source: 'shop',
+    price: 95,
+    boltTheme: 'petal',
+    preferredFinisher: 'slash',
+    goalText: '星星幣商店 95 枚'
+  },
+  {
+    id: 'meteor_wand',
+    slot: 'wand',
+    icon: '🌠',
+    name: '流星許願權杖',
+    desc: '發射新月藍紫星彈！最後一擊優先召喚「🌠 超級流星雨」！',
+    source: 'shop',
+    price: 110,
+    boltTheme: 'meteor',
+    preferredFinisher: 'meteor',
+    goalText: '星星幣商店 110 枚'
+  },
+  {
+    id: 'rainbow_wand',
+    slot: 'wand',
+    icon: '⚡',
+    name: '彩虹星星魔杖',
+    desc: '發射七彩稜鏡光彈！最後一擊優先施放「🌈 彩虹光束砲」！',
+    source: 'shop',
+    price: 130,
+    boltTheme: 'rainbow',
+    preferredFinisher: 'rainbow',
+    goalText: '星星幣商店 130 枚'
+  }
+];
+
+export function getWardrobeItemById(id, slotHint) {
+  for (let i = 0; i < WARDROBE_ITEMS.length; i++) {
+    const it = WARDROBE_ITEMS[i];
+    if (it.id === id && (!slotHint || it.slot === slotHint)) return it;
+  }
+  return null;
+}
+
+export function getWardrobeItemsBySlot(slot) {
+  return WARDROBE_ITEMS.filter((item) => item.slot === slot);
+}
+
+/* ---------------- Phase 3：秘密樹屋 5 槽位家具與精靈點心 ---------------- */
+export const TREEHOUSE_SLOTS = [
+  { id: 'wallpaper', icon: '🎨', name: '牆紙風格' },
+  { id: 'rug', icon: '🧶', name: '地毯樣式' },
+  { id: 'window', icon: '🪟', name: '窗外風景' },
+  { id: 'furniture', icon: '🛋️', name: '主家具' },
+  { id: 'decor', icon: '🪴', name: '角落擺飾' }
+];
+
+export const STAMP_MILESTONE_DECOR_IDS = ['star_lantern', 'rainbow_musicbox'];
+
+export const TREEHOUSE_ITEMS = [
+  // 1. 牆紙風格（wallpaper）
+  { id: 'wood_cozy', slot: 'wallpaper', icon: '🪵', name: '暖木繪本牆', desc: '溫潤原木紋理，像走進森林裡的小樹屋。', source: 'free', price: 0 },
+  { id: 'cream_bakery', slot: 'wallpaper', icon: '🧈', name: '奶油麵包黃', desc: '像剛烤好的奶油吐司一樣溫暖香甜。', source: 'shop', price: 55 },
+  { id: 'ocean_breeze', slot: 'wallpaper', icon: '🌊', name: '泡泡海洋藍', desc: '清爽海風與細小水波紋，涼爽又好專心。', source: 'shop', price: 65 },
+  { id: 'starry_violet', slot: 'wallpaper', icon: '🌌', name: '夢幻星空紫', desc: '夜空紫點綴閃亮小星塵，浪漫童話感滿分。', source: 'shop', price: 85 },
+
+  // 2. 地毯樣式（rug）
+  { id: 'carrot_round', slot: 'rug', icon: '🥕', name: '胡蘿蔔圓毯', desc: '軟綿綿橘粉圓地毯，小兔最愛在上面打滾。', source: 'free', price: 0 },
+  { id: 'rainbow_stripe', slot: 'rug', icon: '🌈', name: '彩虹條紋毯', desc: '七彩編織條紋地毯，讓精靈夥伴跳得更開心！', source: 'shop', price: 50 },
+  { id: 'checker_cream', slot: 'rug', icon: '♟️', name: '野餐棋盤格毯', desc: '奶油粉綠格紋地毯，像在森林裡開下午茶派對。', source: 'shop', price: 60 },
+
+  // 3. 窗外風景（window）
+  { id: 'forest_morning', slot: 'window', icon: '🌲', name: '森林清晨', desc: '窗外是翠綠森林與飄浮白雲，小鳥正唱歌呢。', source: 'free', price: 0 },
+  { id: 'sunny_bay', slot: 'window', icon: '⛵', name: '陽光海灣', desc: '金色沙灘與藍藍海浪，還有帆船慢慢航過。', source: 'shop', price: 65 },
+  { id: 'cloud_starlight', slot: 'window', icon: '🌠', name: '雲端星海', desc: '整片雲朵與流星銀河在窗外閃閃發光。', source: 'shop', price: 90 },
+
+  // 4. 主家具（furniture）
+  { id: 'block_shelf', slot: 'furniture', icon: '📚', name: '積木書架櫃', desc: '擺滿彩色十進位積木與數學繪本的木櫃。', source: 'free', price: 0 },
+  { id: 'dessert_table', slot: 'furniture', icon: '🍰', name: '雙層甜點茶几', desc: '放著草莓蛋糕與熱可可的小圓茶几。', source: 'shop', price: 80 },
+  { id: 'cloud_sofa', slot: 'furniture', icon: '☁️', name: '雲朵沙發組', desc: '蓬鬆軟綿的雲朵抱枕沙發，精靈坐上去就不想起來！', source: 'shop', price: 100 },
+
+  // 5. 角落擺飾（decor）
+  { id: 'sprout_pot', slot: 'decor', icon: '🪴', name: '微笑小盆栽', desc: '每天澆水就會長出新葉子的幸運小盆栽。', source: 'free', price: 0 },
+  { id: 'trophy_stand', slot: 'decor', icon: '🏆', name: '冒險獎盃展示座', desc: '閃亮亮黃金獎盃，記錄粉紅小兔的勇敢戰績！', source: 'shop', price: 70 },
+  { id: 'mini_globe', slot: 'decor', icon: '🌍', name: '航行迷你地球儀', desc: '標記三大海域航線的旋轉小地球儀。', source: 'shop', price: 75 },
+  { id: 'gramophone', slot: 'decor', icon: '🎵', name: '童話留聲機', desc: '轉動把手就會飄出叮叮咚咚的快樂音符。', source: 'shop', price: 85 },
+  { id: 'star_lantern', slot: 'decor', icon: '🏮', name: '星願樹屋吊燈', desc: '【冒險印章本滿 7 章限定贈禮】照亮整個樹屋的暖金星光吊燈！', source: 'stamp_reward', price: 0 },
+  { id: 'rainbow_musicbox', slot: 'decor', icon: '🎼', name: '彩虹許願音樂盒', desc: '【冒險印章本第 2 輪滿 7 章限定贈禮】打開會飄出七彩音符！', source: 'stamp_reward', price: 0 }
+];
+
+export function getTreehouseItemById(id) {
+  for (let i = 0; i < TREEHOUSE_ITEMS.length; i++) {
+    if (TREEHOUSE_ITEMS[i].id === id) return TREEHOUSE_ITEMS[i];
+  }
+  return null;
+}
+
+export function getTreehouseItemsBySlot(slot) {
+  return TREEHOUSE_ITEMS.filter((item) => item.slot === slot);
+}
+
+export const PARTNER_SNACKS = [
+  {
+    id: 'carrot_cookie',
+    icon: '🍪',
+    name: '胡蘿蔔餅乾',
+    price: 20,
+    bondXp: 20,
+    desc: '烤得酥酥脆脆的胡蘿蔔造型餅乾，小精靈吃了立刻增加 +20 親密度！'
+  },
+  {
+    id: 'star_jelly',
+    icon: '🍮',
+    name: '星空果凍',
+    price: 45,
+    bondXp: 50,
+    desc: '閃著星塵微光的夢幻果凍，一口就能提升 +50 親密度！'
+  }
+];
+
+export function getSnackById(id) {
+  for (let i = 0; i < PARTNER_SNACKS.length; i++) {
+    if (PARTNER_SNACKS[i].id === id) return PARTNER_SNACKS[i];
+  }
+  return null;
 }

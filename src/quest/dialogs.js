@@ -1,17 +1,23 @@
 /**
- * 數學冒險島：圖鑑面板、換裝衣櫥、家長鎖定對話框與預習切換模組
+ * 數學冒險島：圖鑑面板、三部位換裝衣櫥、每日委託＆印章本、星星幣商店、秘密樹屋與家長設定模組
  */
 import {
   REALMS,
   ISLANDS,
   STAGES,
   BADGES,
-  BUNNY_COSTUMES,
   SKILL_CARDS,
   SKILL_TIER_THRESHOLDS,
+  WARDROBE_SLOTS,
+  WARDROBE_ITEMS,
+  TREEHOUSE_SLOTS,
+  TREEHOUSE_ITEMS,
+  PARTNER_SNACKS,
   getStageById,
-  getCostumeById,
-  getIslandsByRealm
+  getIslandById,
+  getIslandsByRealm,
+  getSpecialtyMeta,
+  getWardrobeItemById
 } from '../domain/quest-data.js';
 import {
   isStageUnlocked,
@@ -20,13 +26,55 @@ import {
   countTotalStars,
   countLitGems,
   countUnlockedSprites,
-  getActiveCostumeId,
-  countUnlockedCostumes,
-  getCostumeProgress,
   getSkillCardProgress,
-  countUnlockedSkillCards
+  countUnlockedSkillCards,
+  getLocalDateKey
 } from '../domain/quest-questions.js';
+import {
+  DAILY_ALL_CLEAR_BONUS,
+  STAMP_STEP_COINS,
+  STAMP_ROUND_COMPLETE_COINS,
+  ensureDailyQuests,
+  getPartnerBondInfo,
+  getPartnerSpecialtyEffects,
+  getActiveWardrobe,
+  isWardrobeItemUnlocked,
+  countUnlockedWardrobeItems,
+  isTreehouseItemUnlocked,
+  isPartnerUnlocked,
+  getTreehousePlaymates
+} from '../domain/quest-retention.js';
+import { renderTreehouseSceneHtml } from './treehouse-svg.js';
 import { randInt } from '../domain/number-text.js';
+
+function buildShopBuyBtnHtml({ attrName, itemId, price, coins, labelPrefix = '🪙 ' }) {
+  const safeCoins = Math.max(0, Math.floor(Number(coins || 0)));
+  const canAfford = safeCoins >= price;
+  if (canAfford) {
+    return (
+      '<button type="button" class="mqst-costume-equip-btn mqst-buy-btn" ' +
+      attrName +
+      '="' +
+      itemId +
+      '">' +
+      labelPrefix +
+      price +
+      ' 購買</button>'
+    );
+  }
+  const missing = price - safeCoins;
+  return (
+    '<button type="button" class="mqst-costume-equip-btn mqst-buy-btn is-short" ' +
+    attrName +
+    '="' +
+    itemId +
+    '" disabled aria-disabled="true">🔒 ' +
+    price +
+    ' 🪙（還差 ' +
+    missing +
+    ' 枚）</button>'
+  );
+}
 
 export function createQuestDialogs({
   els,
@@ -36,134 +84,165 @@ export function createQuestDialogs({
   getCollectableUnlitGems
 }) {
   let parentChallengeAns = 42;
+  let wardrobeSlotFilter = 'all';
+  let shopSelectedPartnerId = '';
 
-  function renderWardrobePane() {
+  function getWardrobeProgressMeta(item, saveData, stars, gems) {
+    const unlocked = isWardrobeItemUnlocked(saveData, item.id);
+    if (item.source !== 'milestone') {
+      return { unlocked, current: 1, target: 1, pct: 100, unit: '' };
+    }
+    const cur = item.unlockType === 'stars' ? stars : gems;
+    const tgt = item.target || 1;
+    const pct = Math.min(100, Math.round((cur / tgt) * 100));
+    const unit = item.unlockType === 'stars' ? '顆星星' : '顆寶石';
+    return { unlocked, current: cur, target: tgt, pct, unit };
+  }
+
+  function renderWardrobePane(filterOverride) {
     if (!els.paneWardrobe) return;
+    if (filterOverride) wardrobeSlotFilter = filterOverride;
+
     const saveData = getSaveData();
-    const activeId = getActiveCostumeId(saveData);
-    const activeCostume = getCostumeById(activeId);
+    const activeW = getActiveWardrobe(saveData);
     const stars = countTotalStars(saveData);
     const gems = countLitGems(saveData);
-    const unlockedCount = countUnlockedCostumes(saveData);
+    const coins = Math.max(0, Math.floor(Number(saveData.starCoins || 0)));
     const collectableUnlit = getCollectableUnlitGems();
 
-    let nextHintHtml = '';
-    let nextLocked = null;
-    let bestRemainRatio = 2;
-    BUNNY_COSTUMES.forEach(function (c) {
-      const prog = getCostumeProgress(c, saveData);
-      if (!prog.unlocked) {
-        const ratio = (prog.target - prog.current) / prog.target;
-        if (ratio < bestRemainRatio) {
-          bestRemainRatio = ratio;
-          nextLocked = { costume: c, prog };
-        }
-      }
-    });
-    if (nextLocked) {
-      const diff = Math.max(1, nextLocked.prog.target - nextLocked.prog.current);
-      nextHintHtml =
-        '<div class="mqst-wardrobe-next-tip">🎯 下一個目標：再收集 <b>' +
-        diff +
-        ' ' +
-        nextLocked.prog.unit +
-        '</b>，就能解鎖【' +
-        nextLocked.costume.icon +
-        ' ' +
-        nextLocked.costume.name +
-        '】喔！</div>';
-    } else {
-      nextHintHtml =
-        '<div class="mqst-wardrobe-next-tip" style="border-color:#16a34a;color:#14532d;background:#dcfce7;">🎉 太厲害了！你已集齊全部 <b>' +
-        BUNNY_COSTUMES.length +
-        '</b> 款小兔夢幻造型！</div>';
-    }
+    const activeHat = getWardrobeItemById(activeW.hat, 'hat') || getWardrobeItemById('star_clip', 'hat');
+    const activeOutfit = getWardrobeItemById(activeW.outfit, 'outfit') || getWardrobeItemById('none', 'outfit');
+    const activeWand = getWardrobeItemById(activeW.wand, 'wand') || getWardrobeItemById('none', 'wand');
+
+    const totalCollectable = WARDROBE_ITEMS.filter((it) => it.id !== 'none').length;
+    const unlockedCount = countUnlockedWardrobeItems(saveData);
 
     let wbHtml =
       '<div class="mqst-gem-summary">' +
-      '<span>🎀 已解鎖小兔造型：<b>' +
+      '<span>🎀 已解鎖小兔裝扮：<b>' +
       unlockedCount +
       ' / ' +
-      BUNNY_COSTUMES.length +
-      '</b> 款</span>' +
-      '<span style="font-size:13px;color:var(--ink-soft);">收集星星與 81 顆寶石就能解鎖頭飾，換上後全遊戲都會變裝喔！</span>' +
+      totalCollectable +
+      '</b> 件</span>' +
+      '<button type="button" class="mqst-tool-btn mqst-mini-shop-btn" data-goto-shop="wardrobe">🛍️ 逛星星幣商店（🪙 ' +
+      coins +
+      '）</button>' +
       '</div>';
 
     wbHtml +=
       '<div class="mqst-wardrobe-stage">' +
       '<button type="button" class="mqst-wardrobe-preview-btn" id="mqst-wardrobe-preview-btn" aria-label="點擊試衣鏡中的粉紅小兔互動" title="點點粉紅小兔試穿效果！">' +
-      getPinkBunnySvg('happy', activeId) +
+      getPinkBunnySvg('happy', activeW) +
       '</button>' +
       '<div class="mqst-wardrobe-info">' +
-      '<div class="mqst-wardrobe-current">' +
-      activeCostume.icon +
-      ' 目前穿戴：' +
-      activeCostume.name +
-      '</div>' +
-      '<p class="mqst-wardrobe-sub">' +
-      activeCostume.desc +
-      '</p>' +
-      '<div class="mqst-wardrobe-meters">' +
-      '<span class="mqst-wardrobe-meter-pill">⭐ 星星收集：<b>' +
-      stars +
-      ' / ' +
-      STAGES.length * 3 +
+      '<div class="mqst-wardrobe-current">✨ 目前混搭造型</div>' +
+      '<div class="mqst-wardrobe-slot-pills">' +
+      '<span class="mqst-wardrobe-slot-pill">👒 頭飾：<b>' +
+      (activeHat ? activeHat.name : '經典小星星') +
       '</b></span>' +
-      '<span class="mqst-wardrobe-meter-pill">💎 寶石圖鑑：<b>' +
-      gems +
-      ' / 81</b></span>' +
+      '<span class="mqst-wardrobe-slot-pill">🧥 服裝：<b>' +
+      (activeOutfit ? activeOutfit.name : '經典小兔裝') +
+      '</b></span>' +
+      '<span class="mqst-wardrobe-slot-pill">🪄 魔法杖：<b>' +
+      (activeWand ? activeWand.name : '經典星星魔法') +
+      '</b></span>' +
       '</div>' +
-      nextHintHtml +
+      (activeWand && activeWand.id !== 'none'
+        ? '<div class="mqst-wardrobe-next-tip">⚡ 魔法杖效果：' + activeWand.desc + '</div>'
+        : '<div class="mqst-wardrobe-next-tip">💡 可自由混搭「頭飾＋服裝＋魔法杖」，裝備魔法杖還會改變戰鬥魔法彈與必殺技喔！</div>') +
       '</div></div>';
 
+    wbHtml += '<div class="mqst-wardrobe-filters" role="group" aria-label="裝扮部位篩選">';
+    const filters = [{ id: 'all', icon: '✨', name: '全部部位' }].concat(WARDROBE_SLOTS);
+    filters.forEach((f) => {
+      const act = wardrobeSlotFilter === f.id;
+      wbHtml +=
+        '<button type="button" class="mqst-filter-pill' +
+        (act ? ' is-active' : '') +
+        '" data-wardrobe-filter="' +
+        f.id +
+        '" aria-pressed="' +
+        String(act) +
+        '">' +
+        f.icon +
+        ' ' +
+        f.name +
+        '</button>';
+    });
+    wbHtml += '</div>';
+
+    const visibleItems = WARDROBE_ITEMS.filter(
+      (it) => wardrobeSlotFilter === 'all' || it.slot === wardrobeSlotFilter
+    );
+
     wbHtml += '<div class="mqst-collection-grid">';
-    BUNNY_COSTUMES.forEach(function (c) {
-      const prog = getCostumeProgress(c, saveData);
-      const isEquipped = prog.unlocked && activeId === c.id;
+    visibleItems.forEach((item) => {
+      const prog = getWardrobeProgressMeta(item, saveData, stars, gems);
+      const isEquipped = prog.unlocked && activeW[item.slot] === item.id;
+      const previewSpec = Object.assign({}, activeW);
+      previewSpec[item.slot] = item.id;
+
+      const slotMeta = WARDROBE_SLOTS.find((s) => s.id === item.slot);
       wbHtml +=
         '<div class="mqst-collect-card' +
         (prog.unlocked ? '' : ' locked') +
         (isEquipped ? ' is-equipped' : '') +
         '">' +
+        '<span class="mqst-slot-badge">' +
+        (slotMeta ? slotMeta.icon + ' ' + slotMeta.name : item.slot) +
+        '</span>' +
         (isEquipped ? '<span class="mqst-equipped-tag">⭐ 穿戴中</span>' : '') +
         '<div class="mqst-costume-art" aria-hidden="true">' +
-        getPinkBunnySvg(isEquipped ? 'happy' : 'normal', c.id) +
+        getPinkBunnySvg(isEquipped ? 'happy' : 'normal', previewSpec) +
         '</div>' +
         '<div class="mqst-collect-name">' +
-        c.icon +
+        item.icon +
         ' ' +
-        c.name +
+        item.name +
         '</div>' +
         '<p class="mqst-collect-desc">' +
-        c.desc +
+        item.desc +
         '</p>';
 
       if (prog.unlocked) {
         wbHtml +=
           '<p class="mqst-collect-skill">' +
-          (c.unlockType === 'free' ? '✨ 冒險初始造型' : '🔓 達成條件：' + c.goalText) +
+          (item.source === 'free' ? '✨ 基礎造型' : item.source === 'shop' ? '🛍️ 商店收藏品' : '🔓 ' + item.goalText) +
           '</p>' +
           '<button type="button" class="mqst-costume-equip-btn' +
           (isEquipped ? ' active' : '') +
-          '" data-equip-costume="' +
-          c.id +
+          '" data-equip-slot="' +
+          item.slot +
+          '" data-equip-item="' +
+          item.id +
           '" aria-pressed="' +
           String(isEquipped) +
           '">' +
-          (isEquipped ? '✅ 目前穿戴中' : '👗 換上這套') +
+          (isEquipped ? '✅ 穿戴中' : '👗 穿戴此部位') +
           '</button>';
+      } else if (item.source === 'shop') {
+        wbHtml +=
+          '<div class="mqst-costume-progress-wrap">' +
+          '<div class="mqst-costume-goal-text">🛍️ 星星幣商店限定</div>' +
+          buildShopBuyBtnHtml({
+            attrName: 'data-buy-wardrobe-item',
+            itemId: item.id,
+            price: item.price,
+            coins
+          }) +
+          '</div>';
       } else {
         wbHtml +=
           '<div class="mqst-costume-progress-wrap">' +
           '<div class="mqst-costume-goal-text">🔒 ' +
-          c.goalText +
+          item.goalText +
           '（' +
           prog.current +
           ' / ' +
           prog.target +
           '）</div>' +
           '<div class="mqst-costume-progress-track" role="progressbar" aria-label="' +
-          c.name +
+          item.name +
           ' 解鎖進度" aria-valuenow="' +
           prog.current +
           '" aria-valuemin="0" aria-valuemax="' +
@@ -173,7 +252,7 @@ export function createQuestDialogs({
           prog.pct +
           '%;"></div>' +
           '</div>' +
-          (c.unlockType === 'gems' && collectableUnlit.length > 0
+          (item.unlockType === 'gems' && collectableUnlit.length > 0
             ? '<button type="button" class="mqst-sprite-equip-btn goto" data-wardrobe-gem-hunt="1">✨ 補齊寶石衝進度</button>'
             : '') +
           '</div>';
@@ -185,15 +264,14 @@ export function createQuestDialogs({
   }
 
   function renderSkillCodexPane() {
-    if (!els.paneSprites && !els.paneSkills) return;
     if (!els.paneSkills) return;
     const saveData = getSaveData();
     const unlockedSkills = countUnlockedSkillCards(saveData);
     const tierMeta = {
-      none: { label: '尚未啟封', badgeCls: 'tier-none', icon: '🔒' },
-      bronze: { label: '🥉 銅卡', badgeCls: 'tier-bronze', icon: '🥉' },
-      silver: { label: '🥈 銀卡', badgeCls: 'tier-silver', icon: '🥈' },
-      gold: { label: '🥇 金卡大師', badgeCls: 'tier-gold', icon: '🥇' }
+      none: { label: '尚未啟封', badgeCls: 'tier-none' },
+      bronze: { label: '🥉 銅卡', badgeCls: 'tier-bronze' },
+      silver: { label: '🥈 銀卡', badgeCls: 'tier-silver' },
+      gold: { label: '🥇 金卡大師', badgeCls: 'tier-gold' }
     };
 
     let html =
@@ -211,8 +289,6 @@ export function createQuestDialogs({
       SKILL_TIER_THRESHOLDS.gold +
       ' 題），升階送星星幣！</span>' +
       '</div>';
-
-    html += '</div>';
 
     const groups = [
       { id: 'sunny', title: '☀️ 陽光加減群島（10 張）' },
@@ -241,7 +317,13 @@ export function createQuestDialogs({
         const canPlay = sampleSt && isStageUnlocked(sampleSt.stageKey || sampleSt.id, saveData);
         const goalTxt = prog.isMax
           ? '🏆 已達最高金卡榮譽（共 ' + prog.count + ' 題）'
-          : '進度：' + prog.count + ' / ' + prog.nextTarget + ' 題（下一階：' + (prog.nextTier === 'bronze' ? '銅卡' : prog.nextTier === 'silver' ? '銀卡' : '金卡') + '）';
+          : '進度：' +
+            prog.count +
+            ' / ' +
+            prog.nextTarget +
+            ' 題（下一階：' +
+            (prog.nextTier === 'bronze' ? '銅卡' : prog.nextTier === 'silver' ? '銀卡' : '金卡') +
+            '）';
 
         html +=
           '<div class="mqst-collect-card mqst-skill-card ' +
@@ -349,7 +431,7 @@ export function createQuestDialogs({
       ' / ' +
       ISLANDS.length +
       '</b> 隻</span>' +
-      '<span style="font-size:13px;color:var(--ink-soft);">打敗每座島嶼的 👑 魔王關即可收服！每關可免費施展 1 次精靈魔法（選擇題消錯／鍵盤題開積木），不扣星、照拿收藏！</span>' +
+      '<span style="font-size:13px;color:var(--ink-soft);">四大專長各顯神通！帶牠出戰或到秘密樹屋餵點心升至 Lv.3，即可強化專長並解鎖閃耀星光環！</span>' +
       '</div>';
 
     const activePartnerFullId = getActivePartnerId(saveData);
@@ -370,50 +452,81 @@ export function createQuestDialogs({
       realmIslands.forEach(function (isl) {
         const got = getStageStars(saveData, isl.bossStageId) >= 1;
         const equipped = got && activePartnerFullId === isl.fullId;
+        const bond = getPartnerBondInfo(saveData, isl.fullId);
+        const specMeta = getSpecialtyMeta(isl.specialty);
         const bossSt = getStageById(isl.bossStageId);
         const bossUnlocked = isStageUnlocked(isl.bossStageId, saveData);
-        const bossLabel = bossSt ? (bossSt.displayNum || bossSt.id) : isl.bossStageId;
+        const bossLabel = bossSt ? bossSt.displayNum || bossSt.id : isl.bossStageId;
+
         spHtml +=
           '<div class="mqst-collect-card' +
           (got ? '' : ' locked') +
           (equipped ? ' is-equipped' : '') +
           '">' +
+          '<span class="mqst-spec-badge spec-' +
+          isl.specialty +
+          '">' +
+          specMeta.icon +
+          ' ' +
+          specMeta.name +
+          '</span>' +
           (equipped ? '<span class="mqst-equipped-tag">⭐ 同行夥伴</span>' : '') +
           '<div class="mqst-collect-art">' +
-          getCharacterSvg(isl.theme, false, equipped ? 'happy' : 'normal') +
+          getCharacterSvg(isl.theme, false, equipped ? 'happy' : 'normal', { bondLevel: got ? bond.level : 1 }) +
           '</div>' +
           '<div class="mqst-collect-name">' +
           (got ? isl.spriteName : '???（尚未收服）') +
+          (got ? ' <span class="mqst-lv-chip">Lv.' + bond.level + '</span>' : '') +
           '</div>' +
           '<p class="mqst-collect-desc">' +
           isl.spriteDesc +
-          '</p>' +
-          (got
-            ? '<p class="mqst-collect-skill">' +
-              isl.partnerProjectile +
-              ' 助陣魔法：' +
-              isl.partnerSkillDesc +
-              '</p>' +
-              '<button type="button" class="mqst-sprite-equip-btn' +
-              (equipped ? ' active' : '') +
-              '" data-equip-sprite="' +
-              isl.fullId +
-              '">' +
-              (equipped ? '✅ 目前同行中（點此休息）' : '🤝 帶牠去冒險') +
-              '</button>'
-            : '<p class="mqst-collect-skill mqst-locked-goal">👑 打敗【' +
-              bossLabel +
-              ' · ' +
-              (bossSt ? bossSt.label : '島嶼魔王') +
-              '】即可收服</p>' +
-              (bossUnlocked
-                ? '<button type="button" class="mqst-sprite-equip-btn goto" data-goto-boss="' +
-                  isl.bossStageId +
-                  '">⚔️ 前往挑戰 ' +
-                  bossLabel +
-                  '</button>'
-                : '')) +
-          '</div>';
+          '</p>';
+
+        if (got) {
+          spHtml +=
+            '<p class="mqst-collect-skill">' +
+            specMeta.icon +
+            ' <b>Lv.' +
+            bond.level +
+            ' 效果：</b>' +
+            specMeta.lvDesc[bond.level] +
+            '</p>' +
+            '<div class="mqst-bond-bar-wrap">' +
+            '<div class="mqst-costume-goal-text">' +
+            (bond.isMax ? '✨ 親密度滿級（' + bond.xp + ' 點）・專屬光環閃耀中' : '💖 親密度：' + bond.xp + ' / ' + bond.nextThreshold + '（Lv.' + (bond.level + 1) + '）') +
+            '</div>' +
+            '<div class="mqst-costume-progress-track"><div class="mqst-costume-progress-fill" style="width:' +
+            bond.pct +
+            '%;"></div></div>' +
+            '</div>' +
+            '<div class="mqst-sprite-card-actions">' +
+            '<button type="button" class="mqst-sprite-equip-btn' +
+            (equipped ? ' active' : '') +
+            '" data-equip-sprite="' +
+            isl.fullId +
+            '">' +
+            (equipped ? '✅ 同行中（點此休息）' : '🤝 帶牠去冒險') +
+            '</button>' +
+            '<button type="button" class="mqst-sprite-equip-btn treehouse-go" data-goto-treehouse-sprite="' +
+            isl.fullId +
+            '">🏡 樹屋餵點心</button>' +
+            '</div>';
+        } else {
+          spHtml +=
+            '<p class="mqst-collect-skill mqst-locked-goal">👑 打敗【' +
+            bossLabel +
+            ' · ' +
+            (bossSt ? bossSt.label : '島嶼魔王') +
+            '】即可收服</p>' +
+            (bossUnlocked
+              ? '<button type="button" class="mqst-sprite-equip-btn goto" data-goto-boss="' +
+                isl.bossStageId +
+                '">⚔️ 前往挑戰 ' +
+                bossLabel +
+                '</button>'
+              : '');
+        }
+        spHtml += '</div>';
       });
       spHtml += '</div>';
     });
@@ -441,6 +554,535 @@ export function createQuestDialogs({
 
     renderSkillCodexPane();
     renderWardrobePane();
+  }
+
+  /* ---------------- 每日冒險委託與不斷簽印章本渲染 ---------------- */
+  function renderDailyDialog() {
+    if (!els.dailyBody) return;
+    const saveData = getSaveData();
+    const todayKey = getLocalDateKey();
+    const daily = ensureDailyQuests(saveData, todayKey);
+    const stampBook = saveData.stampBook || { count: 0, round: 1 };
+    const count = Math.max(0, Math.min(7, Number(stampBook.count || 0)));
+    const round = Math.max(1, Number(stampBook.round || 1));
+
+    let stampHtml = '<div class="mqst-stamp-panel">';
+    stampHtml +=
+      '<div class="mqst-stamp-head">' +
+      '<div><h4>📖 冒險印章本 · 第 ' +
+      round +
+      ' 輪（已集 ' +
+      count +
+      ' / 7 章）</h4>' +
+      '<p>每天完成並領取任 1 項委託就能蓋章（每日限 1 章），<b>中斷天數絕不歸零</b>！</p></div>' +
+      '<span class="mqst-stamp-status-pill ' +
+      (daily.stampedToday ? 'is-done' : 'is-wait') +
+      '">' +
+      (daily.stampedToday ? '✅ 今日已蓋章' : '✨ 今日尚未蓋章') +
+      '</span></div>';
+
+    stampHtml += '<div class="mqst-stamp-board">';
+    for (let i = 1; i <= 7; i++) {
+      const stamped = i <= count;
+      const is7 = i === 7;
+      stampHtml +=
+        '<div class="mqst-stamp-cell' +
+        (stamped ? ' is-stamped' : '') +
+        (is7 ? ' is-milestone' : '') +
+        '">' +
+        '<span class="mqst-stamp-day">第 ' +
+        i +
+        ' 章</span>' +
+        '<span class="mqst-stamp-ico" aria-hidden="true">' +
+        (stamped ? '💮' : is7 ? '🎁' : '⬜') +
+        '</span>' +
+        '<span class="mqst-stamp-reward">' +
+        (is7 ? '+' + STAMP_ROUND_COMPLETE_COINS + '🪙<br>＋限定擺飾' : '+' + STAMP_STEP_COINS + '🪙') +
+        '</span>' +
+        '</div>';
+    }
+    stampHtml += '</div></div>';
+
+    const tasks = daily.tasks || [];
+    const claimedCount = tasks.filter((t) => t && t.claimed).length;
+    let tasksHtml =
+      '<div class="mqst-daily-section-head">' +
+      '<span>🗓️ 今日冒險委託（' +
+      todayKey +
+      '）</span>' +
+      '<span class="mqst-daily-allclear-pill' +
+      (daily.allClearBonusClaimed ? ' is-done' : '') +
+      '">' +
+      (daily.allClearBonusClaimed
+        ? '🎉 全勤獎勵 +' + DAILY_ALL_CLEAR_BONUS + ' 🪙 已領取！'
+        : '🌟 三項全領再加碼 +' + DAILY_ALL_CLEAR_BONUS + ' 🪙（' + claimedCount + '/3）') +
+      '</span></div>';
+
+    tasksHtml += '<div class="mqst-daily-list">';
+    tasks.forEach((t) => {
+      const prog = Math.min(t.target, Number(t.progress || 0));
+      const done = prog >= t.target;
+      const pct = Math.min(100, Math.round((prog / Math.max(1, t.target)) * 100));
+
+      let actionHtml = '';
+      if (t.claimed) {
+        actionHtml = '<span class="mqst-daily-done-tag">✅ 已領取</span>';
+      } else if (done) {
+        actionHtml =
+          '<button type="button" class="mqst-claim-daily-btn" data-claim-daily-task="' +
+          t.id +
+          '">🎁 領取 +' +
+          t.rewardCoins +
+          ' 🪙</button>';
+      } else if (t.metric === 'treehouse_interact') {
+        actionHtml =
+          '<button type="button" class="mqst-tool-btn mqst-daily-go-btn" data-daily-goto-treehouse="1">🏡 去樹屋互動</button>';
+      } else if (t.realmFilter && t.realmFilter !== 'any') {
+        const realmObj = REALMS.find((r) => r.id === t.realmFilter);
+        actionHtml =
+          '<button type="button" class="mqst-tool-btn mqst-daily-go-btn" data-daily-goto-realm="' +
+          t.realmFilter +
+          '">' +
+          (realmObj ? realmObj.icon + ' 前往' + realmObj.shortTitle : '🗺️ 前往挑戰') +
+          '</button>';
+      } else {
+        actionHtml = '<span class="mqst-daily-pending-tag">進行中（' + prog + ' / ' + t.target + '）</span>';
+      }
+
+      tasksHtml +=
+        '<div class="mqst-daily-card' +
+        (t.claimed ? ' is-claimed' : done ? ' is-ready' : '') +
+        '">' +
+        '<div class="mqst-daily-ico" aria-hidden="true">' +
+        t.icon +
+        '</div>' +
+        '<div class="mqst-daily-main">' +
+        '<div class="mqst-daily-title-row">' +
+        '<span class="mqst-daily-slot-tag">' +
+        t.slotLabel +
+        '</span>' +
+        '<strong>' +
+        t.title +
+        '</strong>' +
+        '<span class="mqst-daily-coin-tag">+' +
+        t.rewardCoins +
+        ' 🪙</span>' +
+        '</div>' +
+        '<p class="mqst-daily-desc">' +
+        t.desc +
+        '</p>' +
+        '<div class="mqst-costume-progress-track"><div class="mqst-costume-progress-fill" style="width:' +
+        pct +
+        '%;"></div></div>' +
+        '</div>' +
+        '<div class="mqst-daily-action">' +
+        actionHtml +
+        '</div></div>';
+    });
+    tasksHtml += '</div>';
+
+    els.dailyBody.innerHTML = stampHtml + tasksHtml;
+  }
+
+  /* ---------------- 星星幣冒險商店渲染 ---------------- */
+  function renderShopDialog() {
+    const saveData = getSaveData();
+    const coins = Math.max(0, Math.floor(Number(saveData.starCoins || 0)));
+    if (els.shopCoinBal) els.shopCoinBal.textContent = String(coins);
+
+    // 1. 小兔裝扮分頁
+    if (els.shopPaneWardrobe) {
+      const activeW = getActiveWardrobe(saveData);
+      const shopWardrobe = WARDROBE_ITEMS.filter((it) => it.source === 'shop');
+      let wHtml =
+        '<div class="mqst-gem-summary">' +
+        '<span>🎀 三部位混搭新品（頭飾・服裝・魔法杖）</span>' +
+        '<span style="font-size:13px;color:var(--ink-soft);">買下後會直接放入小兔衣櫥，裝備魔法杖還會改變戰鬥魔法彈喔！</span>' +
+        '</div><div class="mqst-collection-grid">';
+
+      shopWardrobe.forEach((item) => {
+        const owned = isWardrobeItemUnlocked(saveData, item.id);
+        const equipped = owned && activeW[item.slot] === item.id;
+        const previewSpec = Object.assign({}, activeW);
+        previewSpec[item.slot] = item.id;
+        const slotMeta = WARDROBE_SLOTS.find((s) => s.id === item.slot);
+
+        wHtml +=
+          '<div class="mqst-collect-card' +
+          (equipped ? ' is-equipped' : '') +
+          '">' +
+          '<span class="mqst-slot-badge">' +
+          (slotMeta ? slotMeta.icon + ' ' + slotMeta.name : item.slot) +
+          '</span>' +
+          '<div class="mqst-costume-art" aria-hidden="true">' +
+          getPinkBunnySvg(equipped ? 'happy' : 'normal', previewSpec) +
+          '</div>' +
+          '<div class="mqst-collect-name">' +
+          item.icon +
+          ' ' +
+          item.name +
+          '</div>' +
+          '<p class="mqst-collect-desc">' +
+          item.desc +
+          '</p>' +
+          '<div class="mqst-costume-progress-wrap">' +
+          (owned
+            ? '<button type="button" class="mqst-costume-equip-btn' +
+              (equipped ? ' active' : '') +
+              '" data-shop-equip-wardrobe-slot="' +
+              item.slot +
+              '" data-shop-equip-wardrobe-id="' +
+              item.id +
+              '">' +
+              (equipped ? '✅ 穿戴中' : '👗 穿戴這件') +
+              '</button>'
+            : buildShopBuyBtnHtml({
+                attrName: 'data-shop-buy-wardrobe',
+                itemId: item.id,
+                price: item.price,
+                coins
+              })) +
+          '</div></div>';
+      });
+      wHtml += '</div>';
+      els.shopPaneWardrobe.innerHTML = wHtml;
+    }
+
+    // 2. 樹屋家具分頁
+    if (els.shopPaneTreehouse) {
+      const thSlots = (saveData.treehouse && saveData.treehouse.slots) || {};
+      let tHtml =
+        '<div class="mqst-gem-summary">' +
+        '<span>🏡 秘密樹屋家具與風景裝飾</span>' +
+        '<button type="button" class="mqst-tool-btn mqst-mini-shop-btn" data-shop-goto-treehouse="1">🏡 前往秘密樹屋佈置</button>' +
+        '</div>';
+
+      TREEHOUSE_SLOTS.forEach((slotMeta) => {
+        const items = TREEHOUSE_ITEMS.filter((it) => it.slot === slotMeta.id);
+        tHtml += '<div class="mqst-dex-group-title">' + slotMeta.icon + ' ' + slotMeta.name + '</div>';
+        tHtml += '<div class="mqst-collection-grid">';
+        items.forEach((item) => {
+          const owned = isTreehouseItemUnlocked(saveData, item.id);
+          const equipped = owned && thSlots[item.slot] === item.id;
+          tHtml +=
+            '<div class="mqst-collect-card' +
+            (equipped ? ' is-equipped' : '') +
+            '">' +
+            '<div class="mqst-skill-ico" aria-hidden="true">' +
+            item.icon +
+            '</div>' +
+            '<div class="mqst-collect-name">' +
+            item.name +
+            '</div>' +
+            '<p class="mqst-collect-desc">' +
+            item.desc +
+            '</p>' +
+            '<div class="mqst-costume-progress-wrap">';
+
+          if (owned) {
+            tHtml +=
+              '<button type="button" class="mqst-costume-equip-btn' +
+              (equipped ? ' active' : '') +
+              '" data-shop-equip-th-slot="' +
+              item.slot +
+              '" data-shop-equip-th-id="' +
+              item.id +
+              '">' +
+              (equipped ? '✅ 樹屋擺設中' : '🏡 擺進樹屋') +
+              '</button>';
+          } else if (item.source === 'stamp_reward') {
+            tHtml += '<span class="mqst-costume-goal-text">🎁 冒險印章本滿 7 章限定贈禮</span>';
+          } else {
+            tHtml += buildShopBuyBtnHtml({
+              attrName: 'data-shop-buy-treehouse',
+              itemId: item.id,
+              price: item.price,
+              coins
+            });
+          }
+          tHtml += '</div></div>';
+        });
+        tHtml += '</div>';
+      });
+      els.shopPaneTreehouse.innerHTML = tHtml;
+    }
+
+    // 3. 精靈點心分頁
+    if (els.shopPaneSnacks) {
+      const unlockedIslands = ISLANDS.filter((isl) => isPartnerUnlocked(saveData, isl.fullId));
+      if (unlockedIslands.length === 0) {
+        els.shopPaneSnacks.innerHTML =
+          '<div class="mqst-realm-unlock-box">🐣 尚未收服守護小精靈！打敗任一座島嶼的 👑 魔王關後，就能買點心餵食牠、提升親密度到 Lv.3 囉！</div>';
+        return;
+      }
+
+      if (!shopSelectedPartnerId || !isPartnerUnlocked(saveData, shopSelectedPartnerId)) {
+        const activeP = getActivePartnerId(saveData);
+        shopSelectedPartnerId = activeP || unlockedIslands[0].fullId;
+      }
+      const targetIsl = getIslandById(shopSelectedPartnerId);
+      const bond = getPartnerBondInfo(saveData, targetIsl.fullId);
+
+      let sHtml =
+        '<div class="mqst-gem-summary">' +
+        '<span>🍪 餵點心提升守護小精靈親密度（Lv.1 ➔ Lv.2 需 50 點・Lv.3 需 150 點）</span>' +
+        '</div>';
+
+      sHtml += '<div class="mqst-snack-target-bar" role="group" aria-label="選擇要餵食的守護小精靈">';
+      unlockedIslands.forEach((isl) => {
+        const b = getPartnerBondInfo(saveData, isl.fullId);
+        const active = isl.fullId === targetIsl.fullId;
+        sHtml +=
+          '<button type="button" class="mqst-filter-pill' +
+          (active ? ' is-active' : '') +
+          '" data-shop-select-partner="' +
+          isl.fullId +
+          '" aria-pressed="' +
+          String(active) +
+          '">' +
+          isl.partnerProjectile +
+          ' ' +
+          isl.spriteName +
+          ' (Lv.' +
+          b.level +
+          ')</button>';
+      });
+      sHtml += '</div>';
+
+      sHtml +=
+        '<div class="mqst-wardrobe-stage mqst-snack-preview">' +
+        '<div class="mqst-collect-art">' +
+        getCharacterSvg(targetIsl.theme, false, 'happy', { bondLevel: bond.level }) +
+        '</div>' +
+        '<div class="mqst-wardrobe-info">' +
+        '<div class="mqst-wardrobe-current">' +
+        targetIsl.spriteName +
+        ' · 親密度 Lv.' +
+        bond.level +
+        '</div>' +
+        '<p class="mqst-wardrobe-sub">' +
+        (bond.isMax
+          ? '🏆 已達最高 Lv.3（' + bond.xp + ' 點），專屬閃耀光環已啟用！繼續餵食也會開心感謝你！'
+          : '目前經驗：' + bond.xp + ' / ' + bond.nextThreshold + '（再 ' + (bond.nextThreshold - bond.xp) + ' 點升至 Lv.' + (bond.level + 1) + '）') +
+        '</p>' +
+        '<div class="mqst-costume-progress-track"><div class="mqst-costume-progress-fill" style="width:' +
+        bond.pct +
+        '%;"></div></div>' +
+        '</div></div>';
+
+      sHtml += '<div class="mqst-collection-grid">';
+      PARTNER_SNACKS.forEach((snack) => {
+        sHtml +=
+          '<div class="mqst-collect-card">' +
+          '<div class="mqst-skill-ico" aria-hidden="true">' +
+          snack.icon +
+          '</div>' +
+          '<div class="mqst-collect-name">' +
+          snack.name +
+          '（+' +
+          snack.bondXp +
+          ' 親密度）</div>' +
+          '<p class="mqst-collect-desc">' +
+          snack.desc +
+          '</p>' +
+          '<div class="mqst-costume-progress-wrap">' +
+          buildShopBuyBtnHtml({
+            attrName: 'data-shop-feed-snack',
+            itemId: snack.id,
+            price: snack.price,
+            coins,
+            labelPrefix: '🪙 '
+          }).replace(' 購買</button>', ' 餵食</button>') +
+          '</div></div>';
+      });
+      sHtml += '</div>';
+      els.shopPaneSnacks.innerHTML = sHtml;
+    }
+  }
+
+  /* ---------------- 秘密樹屋視圖渲染 ---------------- */
+  function renderTreehouseView({
+    activeTab = 'decor',
+    activeSlot = 'wallpaper',
+    selectedPlaymateId = ''
+  } = {}) {
+    const saveData = getSaveData();
+    const coins = Math.max(0, Math.floor(Number(saveData.starCoins || 0)));
+    if (els.thCoins) els.thCoins.textContent = String(coins);
+
+    const th = saveData.treehouse || { slots: {}, unlockedItems: [], playmates: [] };
+    const playmates = getTreehousePlaymates(saveData);
+    const activeW = getActiveWardrobe(saveData);
+    const bonds = (saveData.partners && saveData.partners.bonds) || {};
+    const validSelected =
+      selectedPlaymateId && isPartnerUnlocked(saveData, selectedPlaymateId)
+        ? selectedPlaymateId
+        : playmates[0] || '';
+
+    if (els.thStage) {
+      els.thStage.innerHTML = renderTreehouseSceneHtml({
+        slots: th.slots || {},
+        playmates,
+        wardrobe: activeW,
+        bonds,
+        selectedPlaymateId: validSelected,
+        getPinkBunnySvg,
+        getCharacterSvg
+      });
+    }
+
+    if (els.thPaneDecor) {
+      let dHtml = '<div class="mqst-th-slot-bar" role="group" aria-label="樹屋佈置槽位切換">';
+      TREEHOUSE_SLOTS.forEach((slotMeta) => {
+        const act = activeSlot === slotMeta.id;
+        dHtml +=
+          '<button type="button" class="mqst-filter-pill' +
+          (act ? ' is-active' : '') +
+          '" data-th-slot-select="' +
+          slotMeta.id +
+          '" aria-pressed="' +
+          String(act) +
+          '">' +
+          slotMeta.icon +
+          ' ' +
+          slotMeta.name +
+          '</button>';
+      });
+      dHtml += '</div><div class="mqst-th-items-strip">';
+
+      TREEHOUSE_ITEMS.filter((it) => it.slot === activeSlot).forEach((item) => {
+        const owned = isTreehouseItemUnlocked(saveData, item.id);
+        const equipped = owned && th.slots && th.slots[activeSlot] === item.id;
+
+        dHtml +=
+          '<div class="mqst-th-item-card' +
+          (equipped ? ' is-equipped' : '') +
+          (owned ? '' : ' is-locked') +
+          '">' +
+          '<span class="mqst-th-item-ico" aria-hidden="true">' +
+          item.icon +
+          '</span>' +
+          '<strong class="mqst-th-item-name">' +
+          item.name +
+          '</strong>';
+
+        if (owned) {
+          dHtml +=
+            '<button type="button" class="mqst-th-item-btn' +
+            (equipped ? ' active' : '') +
+            '" data-th-equip-slot="' +
+            item.slot +
+            '" data-th-equip-item="' +
+            item.id +
+            '">' +
+            (equipped ? '✅ 擺設中' : '擺上這個') +
+            '</button>';
+        } else if (item.source === 'stamp_reward') {
+          dHtml += '<span class="mqst-th-item-lock-note">🎁 印章本 7 章解鎖</span>';
+        } else {
+          const canBuy = coins >= item.price;
+          dHtml +=
+            '<button type="button" class="mqst-th-item-btn is-buy' +
+            (canBuy ? '' : ' is-short') +
+            '" data-th-buy-item="' +
+            item.id +
+            '"' +
+            (canBuy ? '' : ' disabled aria-disabled="true"') +
+            '>' +
+            (canBuy ? '🪙 ' + item.price + ' 購買' : '🔒 ' + item.price + '（差 ' + (item.price - coins) + '）') +
+            '</button>';
+        }
+        dHtml += '</div>';
+      });
+      dHtml += '</div>';
+      els.thPaneDecor.innerHTML = dHtml;
+    }
+
+    if (els.thPaneSprites) {
+      const unlockedIslands = ISLANDS.filter((isl) => isPartnerUnlocked(saveData, isl.fullId));
+      if (unlockedIslands.length === 0) {
+        els.thPaneSprites.innerHTML =
+          '<div class="mqst-th-empty-sprites">👑 尚未收服任何守護小精靈！前往陽光加減群島或九九乘法奇幻群島打敗任一島嶼魔王，就能邀請牠來樹屋玩並餵食點心喔！</div>';
+        return;
+      }
+
+      let sHtml = '<div class="mqst-th-sprites-flex">';
+      sHtml += '<div class="mqst-th-playmate-picker"><div class="mqst-th-sub-label">🐣 遊樂位邀請（最多 3 隻・已邀請 ' + playmates.length + '/3）</div><div class="mqst-th-picker-list">';
+      unlockedIslands.forEach((isl) => {
+        const inRoom = playmates.indexOf(isl.fullId) !== -1;
+        const bond = getPartnerBondInfo(saveData, isl.fullId);
+        const fullDisabled = !inRoom && playmates.length >= 3;
+        sHtml +=
+          '<button type="button" class="mqst-th-sprite-chip' +
+          (inRoom ? ' is-in' : '') +
+          '" data-th-toggle-playmate="' +
+          isl.fullId +
+          '"' +
+          (fullDisabled ? ' disabled title="樹屋遊樂位已滿 3 隻，請先請一隻休息"' : '') +
+          '>' +
+          isl.partnerProjectile +
+          ' ' +
+          isl.spriteName +
+          ' (Lv.' +
+          bond.level +
+          ') ' +
+          (inRoom ? '✅ 樹屋中' : fullDisabled ? '已滿' : '＋ 邀請') +
+          '</button>';
+      });
+      sHtml += '</div></div>';
+
+      const feedTarget = getIslandById(validSelected || unlockedIslands[0].fullId);
+      const feedBond = getPartnerBondInfo(saveData, feedTarget.fullId);
+      sHtml += '<div class="mqst-th-feed-box">';
+      sHtml +=
+        '<div class="mqst-th-sub-label">🍪 餵食點心對象：<b>' +
+        feedTarget.spriteName +
+        '</b>（Lv.' +
+        feedBond.level +
+        '・' +
+        (feedBond.isMax ? '滿級光環✨' : feedBond.xp + '/' + feedBond.nextThreshold + '）') +
+        '</div>';
+      sHtml += '<div class="mqst-th-feed-targets">';
+      unlockedIslands.forEach((isl) => {
+        const sel = isl.fullId === feedTarget.fullId;
+        sHtml +=
+          '<button type="button" class="mqst-filter-pill' +
+          (sel ? ' is-active' : '') +
+          '" data-th-select-feed="' +
+          isl.fullId +
+          '" aria-pressed="' +
+          String(sel) +
+          '">' +
+          isl.partnerProjectile +
+          ' ' +
+          isl.spriteName +
+          '</button>';
+      });
+      sHtml += '</div><div class="mqst-th-snack-btns">';
+      PARTNER_SNACKS.forEach((sn) => {
+        const canAfford = coins >= sn.price;
+        sHtml +=
+          '<button type="button" class="mqst-th-snack-btn' +
+          (canAfford ? '' : ' is-short') +
+          '" data-th-feed-snack="' +
+          sn.id +
+          '" data-th-feed-partner="' +
+          feedTarget.fullId +
+          '"' +
+          (canAfford ? '' : ' disabled aria-disabled="true"') +
+          '>' +
+          sn.icon +
+          ' ' +
+          sn.name +
+          ' (+' +
+          sn.bondXp +
+          '💖) · ' +
+          (canAfford ? '🪙 ' + sn.price : '還差 ' + (sn.price - coins) + ' 🪙') +
+          '</button>';
+      });
+      sHtml += '</div></div></div>';
+      els.thPaneSprites.innerHTML = sHtml;
+    }
   }
 
   function setupDialogPolyfill(dlg) {
@@ -490,9 +1132,15 @@ export function createQuestDialogs({
   return {
     renderDexDialog,
     renderWardrobePane,
+    renderDailyDialog,
+    renderShopDialog,
+    renderTreehouseView,
     setupDialogPolyfill,
     refreshParentLock,
     getParentChallengeAns: () => parentChallengeAns,
-    updatePreviewToggleBtn
+    updatePreviewToggleBtn,
+    setShopSelectedPartnerId: (pid) => {
+      shopSelectedPartnerId = pid;
+    }
   };
 }

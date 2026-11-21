@@ -16,11 +16,16 @@ import {
   FINISHER_DEFS,
   FINISHER_KEYS,
   SKILL_CARDS,
+  WARDROBE_ITEMS,
+  TREEHOUSE_ITEMS,
+  PARTNER_SNACKS,
   getRealmById,
   getIslandById,
   getStageById,
   getStagesByRealm,
   getCostumeById,
+  getSpecialtyMeta,
+  getWardrobeItemById,
   toCanonicalStageId,
   toLegacyStageId,
   toCanonicalPartnerId,
@@ -43,7 +48,6 @@ import {
   countLitGems as countQuestLitGems,
   countUnlockedSprites as countQuestUnlockedSprites,
   getActiveCostumeId as resolveActiveCostumeId,
-  countUnlockedCostumes as countQuestUnlockedCostumes,
   evaluateUnlockedBadges,
   evaluateUnlockedCostumes,
   createRescueCaseFromQuestion,
@@ -58,6 +62,28 @@ import {
   getCollectableUnlitGems as findCollectableUnlitGems,
   buildGemHuntQuestions as buildQuestGemHuntQuestions
 } from '../src/domain/quest-questions.js';
+import {
+  ensureDailyQuests,
+  recordDailyQuestProgress,
+  countClaimableDailyQuests,
+  claimDailyQuestReward,
+  getPartnerBondInfo,
+  computeBattleBondXp,
+  addPartnerBondXp,
+  getPartnerSpecialtyEffects,
+  resolveWrongAnswerWithShield,
+  calculateLuckyCoinBonus,
+  rollLuckyPerCorrectDrop,
+  buildEliminateKeypadHint,
+  getActiveWardrobe,
+  countUnlockedWardrobeItems,
+  purchaseWardrobeItem,
+  equipWardrobeItem,
+  purchaseTreehouseItem,
+  equipTreehouseSlot,
+  toggleTreehousePlaymate,
+  feedPartnerSnack
+} from '../src/domain/quest-retention.js';
 import { generateCalcChoices } from '../src/domain/quest-calc-questions.js';
 import { generateCloudChoices } from '../src/domain/quest-cloud-questions.js';
 import { renderCalcEquationHtml, renderCalcHelperHtml } from '../src/quest/calc-ui.js';
@@ -65,8 +91,10 @@ import { renderCloudQuestionHtml, renderCloudHelperHtml } from '../src/quest/clo
 import {
   renderPinkBunnySvg,
   getStageChestSvg,
-  getCharacterSvg
+  getCharacterSvg,
+  getProjectileSvg
 } from '../src/quest/svg-art.js';
+import { getTreehouseInteractMessage } from '../src/quest/treehouse-svg.js';
 import { createBattleFx } from '../src/quest/battle-fx.js';
 import { createQuestDialogs } from '../src/quest/dialogs.js';
 
@@ -75,8 +103,8 @@ import { createQuestDialogs } from '../src/quest/dialogs.js';
 
   var MathApp = window.MathApp = window.MathApp || {};
 
-  function getPinkBunnySvg(mood, costumeId){
-    return renderPinkBunnySvg(mood, costumeId || getActiveCostumeId());
+  function getPinkBunnySvg(mood, costumeOrWardrobe){
+    return renderPinkBunnySvg(mood, costumeOrWardrobe || getActiveWardrobe(saveData));
   }
 
   /* ---------------- 存檔管理（v2 讀取 ＋ v1 自動無縫遷移） ---------------- */
@@ -141,10 +169,21 @@ import { createQuestDialogs } from '../src/quest/dialogs.js';
     bossShield: 0,
     bossShieldMax: 0,
     partnerUsedSkill: false,
+    battlePartnerId: '',
+    partnerEffects: null,
+    partnerSkillUsesLeft: 0,
+    partnerShieldChargesLeft: 0,
+    partnerSkillBonusCoins: 0,
+    partnerLuckyDropCoins: 0,
+    partnerShieldTriggeredCount: 0,
+    finisherCountThisRun: 0,
     battleTheme: 'forest',
     battleBossObj: null,
     activeInput: null,
-    nextLocked: false
+    nextLocked: false,
+    treehouseTab: 'decor',
+    treehouseSlot: 'wallpaper',
+    treehouseSelectedPartner: ''
   };
 
   var els = {};
@@ -156,7 +195,19 @@ import { createQuestDialogs } from '../src/quest/dialogs.js';
   var finisherBag = [];
   var lastFinisherId = '';
 
+  function getActiveWandDef(){
+    var activeW = getActiveWardrobe(saveData);
+    return getWardrobeItemById(activeW.wand, 'wand') || getWardrobeItemById('none', 'wand');
+  }
+
   function pickNextFinisher(){
+    var wandDef = getActiveWandDef();
+    if(wandDef && wandDef.preferredFinisher && FINISHER_DEFS[wandDef.preferredFinisher]){
+      if(session.finisherCountThisRun === 0 || Math.random() < 0.65){
+        lastFinisherId = wandDef.preferredFinisher;
+        return wandDef.preferredFinisher;
+      }
+    }
     if(finisherBag.length === 0){
       finisherBag = FINISHER_KEYS.slice();
       for(var i = finisherBag.length - 1; i > 0; i--){
@@ -243,7 +294,7 @@ import { createQuestDialogs } from '../src/quest/dialogs.js';
   function countLitGems(){ return countQuestLitGems(saveData); }
   function countUnlockedSprites(realmId){ return countQuestUnlockedSprites(saveData, realmId); }
   function getActiveCostumeId(){ return resolveActiveCostumeId(saveData); }
-  function countUnlockedCostumes(){ return countQuestUnlockedCostumes(saveData); }
+  function countUnlockedCostumes(){ return countUnlockedWardrobeItems(saveData); }
 
   function checkAndUnlockBadges(){
     var newlyUnlocked = evaluateUnlockedBadges(saveData);
@@ -275,18 +326,26 @@ import { createQuestDialogs } from '../src/quest/dialogs.js';
   }
 
   function syncAllBunnyVisuals(){
-    var cId = getActiveCostumeId();
-    var normalSvg = getPinkBunnySvg('normal', cId);
+    var activeW = getActiveWardrobe(saveData);
+    var normalSvg = getPinkBunnySvg('normal', activeW);
     if(els.launcherBunny) els.launcherBunny.innerHTML = normalSvg;
     if(els.hudAvatar)     els.hudAvatar.innerHTML     = normalSvg;
     if(els.bunnyAvatar)   els.bunnyAvatar.innerHTML   = normalSvg;
     if(els.heroSvg){
       var battleMood = (session.active && session.combo >= 3) ? 'fever' : 'normal';
-      els.heroSvg.innerHTML = getPinkBunnySvg(battleMood, cId);
+      els.heroSvg.innerHTML = getPinkBunnySvg(battleMood, activeW);
     }
     if(els.victoryBunny){
-      els.victoryBunny.innerHTML = getPinkBunnySvg('happy', cId);
+      els.victoryBunny.innerHTML = getPinkBunnySvg('happy', activeW);
     }
+  }
+
+  function syncProjectileVisual(){
+    if(!els.projectile) return;
+    var wandDef = getActiveWandDef();
+    var boltTheme = (wandDef && wandDef.boltTheme) || 'star';
+    els.projectile.innerHTML = getProjectileSvg(boltTheme);
+    els.projectile.className = 'mqst-projectile mqst-fx-bolt bolt-' + boltTheme;
   }
 
   /* ---------------- 題庫生成 ---------------- */
@@ -316,6 +375,9 @@ import { createQuestDialogs } from '../src/quest/dialogs.js';
 
   var renderDexDialog = dialogs.renderDexDialog;
   var renderWardrobePane = dialogs.renderWardrobePane;
+  var renderDailyDialog = dialogs.renderDailyDialog;
+  var renderShopDialog = dialogs.renderShopDialog;
+  var renderTreehouseView = dialogs.renderTreehouseView;
   var setupDialogPolyfill = dialogs.setupDialogPolyfill;
   var refreshParentLock = dialogs.refreshParentLock;
   var updatePreviewToggleBtn = dialogs.updatePreviewToggleBtn;
@@ -345,6 +407,10 @@ import { createQuestDialogs } from '../src/quest/dialogs.js';
     els.spriteCountMax = document.getElementById('mqst-sprite-count-max');
     els.rescueBtn      = document.getElementById('mqst-rescue-btn');
     els.rescueCount    = document.getElementById('mqst-rescue-count');
+    els.openDailyBtn   = document.getElementById('mqst-open-daily-btn');
+    els.dailyBadge     = document.getElementById('mqst-daily-badge');
+    els.openTreehouseBtn = document.getElementById('mqst-open-treehouse-btn');
+    els.openShopBtn    = document.getElementById('mqst-open-shop-btn');
     els.openWardrobeBtn= document.getElementById('mqst-open-wardrobe-btn');
     els.openDexBtn     = document.getElementById('mqst-open-dex-btn');
     els.openParentBtn  = document.getElementById('mqst-open-parent-btn');
@@ -387,6 +453,7 @@ import { createQuestDialogs } from '../src/quest/dialogs.js';
     els.partnerSpeech  = document.getElementById('mqst-partner-speech');
     els.partnerSvg     = document.getElementById('mqst-partner-svg');
     els.partnerLabel   = document.getElementById('mqst-partner-label');
+    els.partnerLvTag   = document.getElementById('mqst-partner-lv-tag');
     els.partnerSkillBtn= document.getElementById('mqst-partner-skill-btn');
     els.fxLayer        = document.getElementById('mqst-fx-layer');
     els.fxImpact       = document.getElementById('mqst-fx-impact');
@@ -454,12 +521,32 @@ import { createQuestDialogs } from '../src/quest/dialogs.js';
     els.resRetryBtn    = document.getElementById('mqst-res-retry-btn');
     els.resMapBtn      = document.getElementById('mqst-res-map-btn');
 
+    els.treehouseView  = document.getElementById('mqst-treehouse-view');
+    els.thBackMapBtn   = document.getElementById('mqst-th-back-map-btn');
+    els.thCoins        = document.getElementById('mqst-th-coins');
+    els.thOpenShopBtn  = document.getElementById('mqst-th-open-shop-btn');
+    els.thOpenWardrobeBtn = document.getElementById('mqst-th-open-wardrobe-btn');
+    els.thExitBtn      = document.getElementById('mqst-th-exit-btn');
+    els.thStage        = document.getElementById('mqst-treehouse-stage');
+    els.thToast        = document.getElementById('mqst-treehouse-toast');
+    els.thDock         = document.getElementById('mqst-treehouse-dock');
+    els.thPaneDecor    = document.getElementById('mqst-th-pane-decor');
+    els.thPaneSprites  = document.getElementById('mqst-th-pane-sprites');
+
     els.dexDialog      = document.getElementById('mqst-dex-dialog');
     els.paneGems       = document.getElementById('mqst-pane-gems');
     els.paneSkills     = document.getElementById('mqst-pane-skills');
     els.paneWardrobe   = document.getElementById('mqst-pane-wardrobe');
     els.paneSprites    = document.getElementById('mqst-pane-sprites');
     els.paneBadges     = document.getElementById('mqst-pane-badges');
+
+    els.dailyDialog    = document.getElementById('mqst-daily-dialog');
+    els.dailyBody      = document.getElementById('mqst-daily-body');
+    els.shopDialog     = document.getElementById('mqst-shop-dialog');
+    els.shopCoinBal    = document.getElementById('mqst-shop-coin-bal');
+    els.shopPaneWardrobe  = document.getElementById('mqst-shop-pane-wardrobe');
+    els.shopPaneTreehouse = document.getElementById('mqst-shop-pane-treehouse');
+    els.shopPaneSnacks    = document.getElementById('mqst-shop-pane-snacks');
 
     els.parentDialog   = document.getElementById('mqst-parent-dialog');
     els.previewToggle  = document.getElementById('mqst-preview-toggle-btn');
@@ -510,6 +597,7 @@ import { createQuestDialogs } from '../src/quest/dialogs.js';
     session.arcadeOpen = true;
     els.arcadeOverlay.classList.add('is-open');
     els.arcadeOverlay.setAttribute('aria-hidden', 'false');
+    ensureDailyQuests(saveData, getLocalDateKey());
     syncAudioButtons();
     showView('map');
     if(migratedWelcomeCoins > 0){
@@ -562,6 +650,7 @@ import { createQuestDialogs } from '../src/quest/dialogs.js';
   }
 
   function updateHubStats(){
+    ensureDailyQuests(saveData, getLocalDateKey());
     var maxStars = STAGES.length * 3;
     var maxSprites = ISLANDS.length;
     var stars = countTotalStars();
@@ -569,10 +658,12 @@ import { createQuestDialogs } from '../src/quest/dialogs.js';
     var gems = countLitGems();
     var sprites = countUnlockedSprites();
     var costumes = countUnlockedCostumes();
+    var claimableDaily = countClaimableDailyQuests(saveData);
 
     if(els.totalStars)       els.totalStars.textContent       = String(stars);
     if(els.totalStarsMax)    els.totalStarsMax.textContent    = String(maxStars);
     if(els.coinCount)        els.coinCount.textContent        = String(coins);
+    if(els.thCoins)          els.thCoins.textContent          = String(coins);
     if(els.gemCount)         els.gemCount.textContent         = String(gems);
     if(els.spriteCount)      els.spriteCount.textContent      = String(sprites);
     if(els.spriteCountMax)   els.spriteCountMax.textContent   = String(maxSprites);
@@ -583,6 +674,14 @@ import { createQuestDialogs } from '../src/quest/dialogs.js';
     if(els.launchSprites)    els.launchSprites.textContent    = String(sprites);
     if(els.launchSpritesMax) els.launchSpritesMax.textContent = String(maxSprites);
     if(els.launchCostumes)   els.launchCostumes.textContent   = String(costumes);
+
+    if(els.openDailyBtn){
+      els.openDailyBtn.classList.toggle('has-claimable', claimableDaily > 0);
+    }
+    if(els.dailyBadge){
+      els.dailyBadge.style.display = claimableDaily > 0 ? 'inline-flex' : 'none';
+      els.dailyBadge.textContent = String(claimableDaily);
+    }
 
     if(els.openWardrobeBtn){
       els.openWardrobeBtn.classList.toggle('has-new', Boolean(saveData.hasNewCostume));
@@ -827,8 +926,9 @@ import { createQuestDialogs } from '../src/quest/dialogs.js';
     var partner = getActivePartnerIsland();
     if(els.partnerMapAvatar){
       if(partner){
+        var mapPartnerBond = getPartnerBondInfo(saveData, partner.fullId);
         els.partnerMapAvatar.style.display = 'block';
-        els.partnerMapAvatar.innerHTML = getCharacterSvg(partner.theme, false, 'normal');
+        els.partnerMapAvatar.innerHTML = getCharacterSvg(partner.theme, false, 'normal', { bondLevel: mapPartnerBond.level });
         els.partnerMapAvatar.style.left = focusStage.mapPos.x + '%';
         els.partnerMapAvatar.style.top  = focusStage.mapPos.y + '%';
         if(partnerIdleTween){ partnerIdleTween.kill(); partnerIdleTween = null; }
@@ -851,7 +951,8 @@ import { createQuestDialogs } from '../src/quest/dialogs.js';
       if(focusStage.isBoss && focusStars === 0 && focusIsland){
         els.mapTip.textContent = '👑 【' + focusStage.label + '】就在前方！打敗牠就能收服【' + focusIsland.spriteName + '】加入隊伍喔！';
       } else if(partner){
-        els.mapTip.textContent = '🐣 【' + partner.spriteName + '】正陪著粉紅小兔冒險中！可在右上「圖鑑」切換精靈夥伴。';
+        var tipBond = getPartnerBondInfo(saveData, partner.fullId);
+        els.mapTip.textContent = '🐣 【' + partner.spriteName + ' (Lv.' + tipBond.level + ')】正陪著粉紅小兔冒險中！可在右上「圖鑑」或「🏡 樹屋」培養親密度。';
       } else {
         els.mapTip.textContent = '✨ 點擊發亮的關卡圓牌開始冒險！打敗各島 👑 魔王關就能收服守護小精靈喔！';
       }
@@ -870,19 +971,162 @@ import { createQuestDialogs } from '../src/quest/dialogs.js';
     }
   }
 
+  function applyTabUi(tabs, attrName, target, focusTab){
+    for(var i = 0; i < tabs.length; i++){
+      var t = tabs[i];
+      var act = (t.getAttribute(attrName) === target);
+      t.classList.toggle('active', act);
+      t.setAttribute('aria-selected', String(act));
+      t.setAttribute('tabindex', act ? '0' : '-1');
+      if(act){
+        if(t.scrollIntoView){
+          try { t.scrollIntoView({ block: 'nearest', inline: 'nearest' }); } catch(err){}
+        }
+        if(focusTab) t.focus();
+      }
+    }
+  }
+
+  function bindTabGroup(tabs, attrName, onSwitch){
+    Array.prototype.forEach.call(tabs, function(tab, idx){
+      tab.addEventListener('click', function(){
+        if(MathApp.sfx) MathApp.sfx('click');
+        onSwitch(tab.getAttribute(attrName), false);
+      });
+      tab.addEventListener('keydown', function(e){
+        var nextIdx = -1;
+        if(e.key === 'ArrowRight') nextIdx = (idx + 1) % tabs.length;
+        else if(e.key === 'ArrowLeft') nextIdx = (idx - 1 + tabs.length) % tabs.length;
+        else if(e.key === 'Home') nextIdx = 0;
+        else if(e.key === 'End') nextIdx = tabs.length - 1;
+        if(nextIdx !== -1){
+          e.preventDefault();
+          if(MathApp.sfx) MathApp.sfx('click');
+          onSwitch(tabs[nextIdx].getAttribute(attrName), true);
+        }
+      });
+    });
+  }
+
+  function syncTreehouseTabUi(target, focusTab){
+    var cur = target || session.treehouseTab || 'decor';
+    session.treehouseTab = cur;
+    if(els.treehouseView){
+      var thTabs = els.treehouseView.querySelectorAll('.mqst-th-tab[data-th-tab]');
+      applyTabUi(thTabs, 'data-th-tab', cur, focusTab);
+    }
+    if(els.thPaneDecor)   els.thPaneDecor.hidden   = (cur !== 'decor');
+    if(els.thPaneSprites) els.thPaneSprites.hidden = (cur !== 'sprites');
+  }
+
+  function renderCurrentTreehouse(){
+    syncTreehouseTabUi(session.treehouseTab || 'decor', false);
+    renderTreehouseView({
+      activeTab: session.treehouseTab || 'decor',
+      activeSlot: session.treehouseSlot || 'wallpaper',
+      selectedPlaymateId: session.treehouseSelectedPartner || ''
+    });
+  }
+
+  function switchDexTab(target, focusTab){
+    if(target === 'wardrobe' && saveData.hasNewCostume){
+      saveData.hasNewCostume = false;
+      persistSave();
+      updateHubStats();
+    }
+    if(els.dexDialog){
+      var dexTabs = els.dexDialog.querySelectorAll('.mqst-dex-tab[data-dex]');
+      applyTabUi(dexTabs, 'data-dex', target, focusTab);
+    }
+    if(els.paneGems)     els.paneGems.hidden     = (target !== 'gems');
+    if(els.paneSkills)   els.paneSkills.hidden   = (target !== 'skills');
+    if(els.paneWardrobe) els.paneWardrobe.hidden = (target !== 'wardrobe');
+    if(els.paneSprites)  els.paneSprites.hidden  = (target !== 'sprites');
+    if(els.paneBadges)   els.paneBadges.hidden   = (target !== 'badges');
+  }
+
+  function openDexDialog(initialTab){
+    if(!els.dexDialog) return;
+    if(MathApp.sfx) MathApp.sfx('click');
+    var tab = initialTab || ((saveData.activeRealm === 'sunny' || saveData.activeRealm === 'cloud') ? 'skills' : 'gems');
+    if(tab === 'wardrobe' && saveData.hasNewCostume){
+      saveData.hasNewCostume = false;
+      persistSave();
+      updateHubStats();
+    }
+    renderDexDialog();
+    switchDexTab(tab, false);
+    els.dexDialog.showModal();
+  }
+
+  function jumpToStageFromDex(stageId){
+    var st = getStageById(stageId);
+    if(!st) return;
+    if(els.dexDialog && els.dexDialog.open) els.dexDialog.close();
+    if(saveData.activeRealm !== st.realmId){
+      switchRealm(st.realmId, false);
+    }
+    walkBunnyAndStart(st.stageKey || st.id);
+  }
+
+  function openDailyDialog(){
+    if(!els.dailyDialog) return;
+    if(MathApp.sfx) MathApp.sfx('click');
+    ensureDailyQuests(saveData, getLocalDateKey());
+    renderDailyDialog();
+    els.dailyDialog.showModal();
+  }
+
+  function switchShopTab(target, focusTab){
+    var cur = target || 'wardrobe';
+    if(els.shopDialog){
+      var shopTabs = els.shopDialog.querySelectorAll('.mqst-dex-tab[data-shop]');
+      applyTabUi(shopTabs, 'data-shop', cur, focusTab);
+    }
+    if(els.shopPaneWardrobe)  els.shopPaneWardrobe.hidden  = (cur !== 'wardrobe');
+    if(els.shopPaneTreehouse) els.shopPaneTreehouse.hidden = (cur !== 'treehouse');
+    if(els.shopPaneSnacks)    els.shopPaneSnacks.hidden    = (cur !== 'snacks');
+  }
+
+  function openShopDialog(initialTab){
+    if(!els.shopDialog) return;
+    if(MathApp.sfx) MathApp.sfx('click');
+    renderShopDialog();
+    switchShopTab(initialTab || 'wardrobe', false);
+    els.shopDialog.showModal();
+  }
+
+  function openTreehouse(initialTab, selectedPartnerId){
+    if(initialTab) session.treehouseTab = initialTab;
+    if(selectedPartnerId) session.treehouseSelectedPartner = toCanonicalPartnerId(selectedPartnerId);
+    if(!session.arcadeOpen){
+      openArcade();
+    }
+    showView('treehouse');
+  }
+
   /* ---------------- 視圖切換 ---------------- */
   function showView(viewName){
     clearSpeakTimer();
     if(MathApp.stopSpeak) MathApp.stopSpeak();
-    if(els.mapView)    els.mapView.style.display    = (viewName === 'map') ? 'flex' : 'none';
-    if(els.battleView) els.battleView.style.display = (viewName === 'battle') ? 'flex' : 'none';
-    if(els.resultView) els.resultView.style.display = (viewName === 'result') ? 'flex' : 'none';
+    if(els.mapView)       els.mapView.style.display       = (viewName === 'map') ? 'flex' : 'none';
+    if(els.battleView)    els.battleView.style.display    = (viewName === 'battle') ? 'flex' : 'none';
+    if(els.resultView)    els.resultView.style.display    = (viewName === 'result') ? 'flex' : 'none';
+    if(els.treehouseView) els.treehouseView.style.display = (viewName === 'treehouse') ? 'flex' : 'none';
 
     if(viewName === 'map'){
       stopBattleIdleAnims();
       session.active = false;
       session.isMovingOnMap = false;
       renderMap();
+      if(session.arcadeOpen && MathApp.audio && MathApp.audio.startBgm){
+        MathApp.audio.startBgm('map');
+      }
+    } else if(viewName === 'treehouse'){
+      stopBattleIdleAnims();
+      session.active = false;
+      session.isMovingOnMap = false;
+      renderCurrentTreehouse();
       if(session.arcadeOpen && MathApp.audio && MathApp.audio.startBgm){
         MathApp.audio.startBgm('map');
       }
@@ -949,16 +1193,14 @@ import { createQuestDialogs } from '../src/quest/dialogs.js';
   }
 
   /* ---------------- 開始關卡或特訓戰鬥 ---------------- */
-  function startStage(stageId){
-    var st = getStageById(stageId);
-    if(!st || !isStageUnlocked(st.stageKey || st.id)) return;
-
+  function initBattleSessionState({ stage, questions, isRescueMode, isGemHuntMode }){
+    ensureDailyQuests(saveData, getLocalDateKey());
     session.active = true;
-    session.isRescueMode = false;
-    session.isGemHuntMode = false;
-    session.stage = st;
+    session.isRescueMode = Boolean(isRescueMode);
+    session.isGemHuntMode = Boolean(isGemHuntMode);
+    session.stage = stage || null;
     session.cloudUnlockedBefore = isRealmUnlocked('cloud', saveData);
-    session.questions = buildStageQuestions(st);
+    session.questions = questions;
     session.idx = 0;
     session.guidedStepIdx = 0;
     session.combo = 0;
@@ -970,42 +1212,60 @@ import { createQuestDialogs } from '../src/quest/dialogs.js';
     session.skillUpgradesThisRun = [];
     session.earnedCoinsThisRun = 0;
     session.rescuedThisRun = 0;
-    session.enemyMaxHp = session.questions.length;
+    session.enemyMaxHp = questions.length;
     session.enemyHp = session.enemyMaxHp;
-    session.bossShieldMax = st.isBoss ? (st.bossShield || ((st.islandId === 'forest' || st.islandId === 'workshop') ? 1 : 2)) : 0;
+    session.bossShieldMax = (stage && stage.isBoss)
+      ? (stage.bossShield || ((stage.islandId === 'forest' || stage.islandId === 'workshop') ? 1 : 2))
+      : 0;
     session.bossShield = session.bossShieldMax;
     session.partnerUsedSkill = false;
+    session.partnerSkillBonusCoins = 0;
+    session.partnerLuckyDropCoins = 0;
+    session.partnerShieldTriggeredCount = 0;
+    session.finisherCountThisRun = 0;
 
+    var partner = getActivePartnerIsland();
+    if(partner){
+      var bond = getPartnerBondInfo(saveData, partner.fullId);
+      var eff = getPartnerSpecialtyEffects(partner, bond.level);
+      session.battlePartnerId = partner.fullId;
+      session.partnerEffects = eff;
+      session.partnerSkillUsesLeft = eff.isActive ? (eff.maxUses || 1) : 0;
+      session.partnerShieldChargesLeft = eff.type === 'shield' ? (eff.passiveShieldCharges || 1) : 0;
+    } else {
+      session.battlePartnerId = '';
+      session.partnerEffects = null;
+      session.partnerSkillUsesLeft = 0;
+      session.partnerShieldChargesLeft = 0;
+    }
+    syncProjectileVisual();
+  }
+
+  function startStage(stageId){
+    var st = getStageById(stageId);
+    if(!st || !isStageUnlocked(st.stageKey || st.id)) return;
+
+    initBattleSessionState({
+      stage: st,
+      questions: buildStageQuestions(st),
+      isRescueMode: false,
+      isGemHuntMode: false
+    });
     var isl = getIslandById(st.islandId);
     beginBattleUI((st.displayNum || st.id) + ' · ' + st.label, isl.bgImg, st.islandId, st.isBoss ? st.boss : null);
   }
 
   function startRescueBattle(){
     if(!saveData.rescueCases || saveData.rescueCases.length === 0) return;
-    session.active = true;
-    session.isRescueMode = true;
-    session.isGemHuntMode = false;
-    session.stage = null;
-    session.cloudUnlockedBefore = isRealmUnlocked('cloud', saveData);
-    session.questions = buildRescueQuestions();
-    session.idx = 0;
-    session.guidedStepIdx = 0;
-    session.combo = 0;
-    session.maxCombo = 0;
-    session.firstTryCorrect = 0;
-    session.usedHelperInStage = false;
-    session.newGemsThisRun = [];
-    session.skillHitsThisRun = 0;
-    session.skillUpgradesThisRun = [];
-    session.earnedCoinsThisRun = 0;
-    session.rescuedThisRun = 0;
-    session.enemyMaxHp = session.questions.length;
-    session.enemyHp = session.enemyMaxHp;
-    session.bossShieldMax = 0;
-    session.bossShield = 0;
-    session.partnerUsedSkill = false;
+    var qs = buildRescueQuestions();
+    initBattleSessionState({
+      stage: null,
+      questions: qs,
+      isRescueMode: true,
+      isGemHuntMode: false
+    });
 
-    var firstQ = session.questions[0];
+    var firstQ = qs[0];
     var isCloudRescue = Boolean(firstQ && firstQ.realm === 'cloud');
     var isSunnyRescue = Boolean(firstQ && firstQ.realm === 'sunny');
     var rescueBg = isCloudRescue
@@ -1020,27 +1280,12 @@ import { createQuestDialogs } from '../src/quest/dialogs.js';
     if(unlit.length === 0) return;
     if(els.dexDialog && els.dexDialog.open) els.dexDialog.close();
 
-    session.active = true;
-    session.isRescueMode = false;
-    session.isGemHuntMode = true;
-    session.stage = null;
-    session.questions = buildGemHuntQuestions(unlit);
-    session.idx = 0;
-    session.combo = 0;
-    session.maxCombo = 0;
-    session.firstTryCorrect = 0;
-    session.usedHelperInStage = false;
-    session.newGemsThisRun = [];
-    session.skillHitsThisRun = 0;
-    session.skillUpgradesThisRun = [];
-    session.earnedCoinsThisRun = 0;
-    session.rescuedThisRun = 0;
-    session.enemyMaxHp = session.questions.length;
-    session.enemyHp = session.enemyMaxHp;
-    session.bossShieldMax = 0;
-    session.bossShield = 0;
-    session.partnerUsedSkill = false;
-
+    initBattleSessionState({
+      stage: null,
+      questions: buildGemHuntQuestions(unlit),
+      isRescueMode: false,
+      isGemHuntMode: true
+    });
     beginBattleUI('💎 未點亮寶石補完特訓', 'assets/quest/bg-castle.jpg', 'castle', null);
   }
 
@@ -1057,7 +1302,8 @@ import { createQuestDialogs } from '../src/quest/dialogs.js';
     }
     var partner = getActivePartnerIsland();
     if(partner && els.partnerSvg){
-      els.partnerSvg.innerHTML = getCharacterSvg(partner.theme, false, partnerMood || 'normal');
+      var pBond = getPartnerBondInfo(saveData, partner.fullId);
+      els.partnerSvg.innerHTML = getCharacterSvg(partner.theme, false, partnerMood || 'normal', { bondLevel: pBond.level });
     }
   }
 
@@ -1088,19 +1334,43 @@ import { createQuestDialogs } from '../src/quest/dialogs.js';
       els.partnerSkillBtn.style.display = 'none';
       return;
     }
+    var bond = getPartnerBondInfo(saveData, partner.fullId);
+    var eff = session.partnerEffects || getPartnerSpecialtyEffects(partner, bond.level);
+    var specMeta = getSpecialtyMeta(partner.specialty);
+
     els.partnerSkillBtn.style.display = 'inline-flex';
-    els.partnerSkillBtn.disabled = Boolean(session.partnerUsedSkill);
-    if(session.partnerUsedSkill){
-      els.partnerSkillBtn.textContent = '✨ 魔法已施展';
-      els.partnerSkillBtn.title = '本關的守護精靈免費魔法已經施展過囉！';
+    els.partnerSkillBtn.className = 'mqst-partner-skill-btn';
+
+    if(eff.type === 'shield'){
+      var leftSh = Math.max(0, Number(session.partnerShieldChargesLeft || 0));
+      els.partnerSkillBtn.disabled = false;
+      els.partnerSkillBtn.classList.add('is-passive', leftSh > 0 ? 'is-shield' : 'is-depleted');
+      els.partnerSkillBtn.textContent = leftSh > 0 ? ('🛡️ 護盾待命 ×' + leftSh) : '🛡️ 護盾已觸發';
+      els.partnerSkillBtn.title = specMeta.lvDesc[bond.level];
       return;
     }
-    var q = (session.questions && session.questions[session.idx]) ? session.questions[session.idx] : null;
-    var isChoice = Boolean(q && q.uiMode === 'choice');
-    els.partnerSkillBtn.textContent = isChoice ? '✨ 免費消錯' : '✨ 免費積木';
-    els.partnerSkillBtn.title = isChoice
-      ? '每關免費 1 次：幫你消除 1 個錯誤選項，不扣星、照拿寶石！'
-      : '每關免費 1 次：免費打開積木提示，不扣星、照拿寶石！';
+    if(eff.type === 'lucky'){
+      els.partnerSkillBtn.disabled = false;
+      els.partnerSkillBtn.classList.add('is-passive', 'is-lucky');
+      els.partnerSkillBtn.textContent = '🌟 星幣 +' + eff.bonusPct + '%';
+      els.partnerSkillBtn.title = specMeta.lvDesc[bond.level];
+      return;
+    }
+
+    var usesLeft = Math.max(0, Number(session.partnerSkillUsesLeft || 0));
+    els.partnerSkillBtn.disabled = (usesLeft <= 0);
+    if(usesLeft <= 0){
+      els.partnerSkillBtn.textContent = '✨ 魔法已施展';
+      els.partnerSkillBtn.title = '本關的守護精靈免費魔法次數已用完囉！';
+      return;
+    }
+    if(eff.type === 'blocks'){
+      els.partnerSkillBtn.textContent = '🧱 免費積木 (剩 ' + usesLeft + ')';
+      els.partnerSkillBtn.title = specMeta.lvDesc[bond.level];
+    } else {
+      els.partnerSkillBtn.textContent = '🌿 智慧消錯 (剩 ' + usesLeft + ')';
+      els.partnerSkillBtn.title = specMeta.lvDesc[bond.level];
+    }
   }
 
   function beginBattleUI(chipTitle, bgSrc, theme, bossObj){
@@ -1129,9 +1399,15 @@ import { createQuestDialogs } from '../src/quest/dialogs.js';
     var partner = getActivePartnerIsland();
     if(els.partnerActor){
       if(partner){
+        var bInfo = getPartnerBondInfo(saveData, partner.fullId);
         els.partnerActor.style.display = 'flex';
         if(els.partnerLabel) els.partnerLabel.textContent = partner.spriteName;
-        setPartnerSpeech('一起加油吧！');
+        if(els.partnerLvTag) els.partnerLvTag.textContent = 'Lv.' + bInfo.level;
+        setPartnerSpeech(
+          partner.specialty === 'shield'
+            ? '守護護盾待命！放心作答！'
+            : (partner.specialty === 'lucky' ? '幸運星幣加成開啟囉！' : '一起加油吧！')
+        );
       } else {
         els.partnerActor.style.display = 'none';
         setPartnerSpeech('');
@@ -1402,12 +1678,31 @@ import { createQuestDialogs } from '../src/quest/dialogs.js';
 
   /* ---------------- 粉紅小兔攻擊演出 & 精靈助陣 & 答對/答錯 ---------------- */
   function usePartnerSkill(){
-    if(!session.active || session.locked || session.partnerUsedSkill) return;
+    if(!session.active || session.locked) return;
     var q = session.questions[session.idx];
     var partner = getActivePartnerIsland();
     if(!q || !partner) return;
 
-    session.partnerUsedSkill = true;
+    var bond = getPartnerBondInfo(saveData, partner.fullId);
+    var eff = session.partnerEffects || getPartnerSpecialtyEffects(partner, bond.level);
+
+    if(!eff.isActive){
+      if(MathApp.sfx) MathApp.sfx('pop');
+      var passiveMsg = eff.type === 'shield'
+        ? ('🛡️ ' + partner.spriteName + ' 的護盾為被動技能！答錯瞬間自動保護連擊與三星（剩餘 ×' + session.partnerShieldChargesLeft + '）！')
+        : ('🌟 ' + partner.spriteName + ' 的幸運加持自動運作中！過關星星幣獎勵 +' + eff.bonusPct + '%！');
+      setPartnerSpeech(eff.type === 'shield' ? '護盾待命中，別緊張！' : '幸運星光會一直陪著你！');
+      if(els.feedback){
+        els.feedback.textContent = passiveMsg;
+        els.feedback.className = 'mqst-stage-toast hint';
+      }
+      return;
+    }
+
+    if(session.partnerSkillUsesLeft <= 0) return;
+
+    session.partnerSkillUsesLeft--;
+    if(session.partnerSkillUsesLeft <= 0) session.partnerUsedSkill = true;
     updatePartnerSkillButton();
     updateBattleMoods(session.combo >= 3 ? 'fever' : 'happy', 'normal', 'happy');
     if(MathApp.sfx) MathApp.sfx('magic');
@@ -1418,32 +1713,54 @@ import { createQuestDialogs } from '../src/quest/dialogs.js';
       }
     });
 
-    if(q.uiMode === 'choice' && els.choicesGrid){
-      var bubbles = els.choicesGrid.querySelectorAll('.mqst-choice-bubble:not(:disabled)');
-      var wrongBtns = [];
-      for(var i = 0; i < bubbles.length; i++){
-        if(Number(bubbles[i].getAttribute('data-choice')) !== q.slots[0].expected){
-          wrongBtns.push(bubbles[i]);
+    if(eff.type === 'eliminate'){
+      if(q.uiMode === 'choice' && els.choicesGrid){
+        var bubbles = els.choicesGrid.querySelectorAll('.mqst-choice-bubble:not(:disabled)');
+        var wrongBtns = [];
+        for(var i = 0; i < bubbles.length; i++){
+          if(Number(bubbles[i].getAttribute('data-choice')) !== q.slots[0].expected){
+            wrongBtns.push(bubbles[i]);
+          }
+        }
+        var maxToRemove = Math.max(0, bubbles.length - 2);
+        var removeCount = Math.min(eff.removeWrongCount || 1, wrongBtns.length, maxToRemove || (wrongBtns.length > 0 ? 1 : 0));
+        if(removeCount > 0){
+          for(var r = 0; r < removeCount; r++){
+            var idxPick = MathApp.utils.randInt(0, wrongBtns.length - 1);
+            var picked = wrongBtns.splice(idxPick, 1)[0];
+            picked.classList.add('is-wrong');
+            picked.disabled = true;
+          }
+          setPartnerSpeech('幫你消除了 ' + removeCount + ' 個錯選項囉！');
+          if(els.feedback){
+            els.feedback.textContent = '🌿 ' + partner.spriteName + ' 施展智慧消錯！移除了 ' + removeCount + ' 個干擾選項（不影響滿星！）';
+            els.feedback.className = 'mqst-stage-toast good';
+          }
+          return;
         }
       }
-      if(wrongBtns.length > 0){
-        var picked = wrongBtns[MathApp.utils.randInt(0, wrongBtns.length - 1)];
-        picked.classList.add('is-wrong');
-        picked.disabled = true;
-        setPartnerSpeech('幫你變走一個錯答案囉！');
-        if(els.feedback){
-          els.feedback.textContent = '✨ ' + partner.spriteName + ' 施展魔法！消除了 1 個干擾選項（不影響滿星！）';
-          els.feedback.className = 'mqst-stage-toast good';
-        }
-        return;
+      var hintText = buildEliminateKeypadHint(q, session.guidedStepIdx, eff.keypadHintLevel);
+      setPartnerSpeech('看我的智慧提示線索！');
+      if(els.feedback){
+        els.feedback.textContent = hintText + '（不影響滿星！）';
+        els.feedback.className = 'mqst-stage-toast good';
       }
+      return;
     }
 
-    // 鍵盤題或無法消除泡泡時，免費展開魔法積木輔助且不扣三星資格
-    openHelperDrawer('✨ 精靈免費積木（不扣星、照拿寶石！）');
-    setPartnerSpeech('積木提示免費幫你看，一樣拿滿星！');
+    // 積木導師系：免費展開視覺積木輔助且不扣三星資格；Lv.2+ 額外加贈 +5 星星幣
+    var bonusNote = '';
+    if(eff.bonusCoinsOnUse > 0 && session.partnerSkillBonusCoins === 0){
+      session.partnerSkillBonusCoins = eff.bonusCoinsOnUse;
+      saveData.starCoins = Number(saveData.starCoins || 0) + eff.bonusCoinsOnUse;
+      persistSave();
+      updateHubStats();
+      bonusNote = '（Lv.' + bond.level + ' 導師加碼 +' + eff.bonusCoinsOnUse + ' 🪙！）';
+    }
+    openHelperDrawer('🧱 積木導師免費輔助（不扣星、照拿收藏！）');
+    setPartnerSpeech('積木提示免費看，一樣拿滿星！');
     if(els.feedback){
-      els.feedback.textContent = '✨ ' + partner.spriteName + ' 施展魔法！免費打開積木提示（不影響滿星！）';
+      els.feedback.textContent = '🧱 ' + partner.spriteName + ' 免費打開積木提示！' + bonusNote;
       els.feedback.className = 'mqst-stage-toast good';
     }
   }
@@ -1505,6 +1822,27 @@ import { createQuestDialogs } from '../src/quest/dialogs.js';
       }
     }
 
+    var partner = getActivePartnerIsland();
+    var partnerBond = partner ? getPartnerBondInfo(saveData, partner.fullId) : { level: 1 };
+    var luckyDrop = (partner && partner.specialty === 'lucky') ? rollLuckyPerCorrectDrop(partnerBond.level) : 0;
+    var luckyDropNote = '';
+    if(luckyDrop > 0){
+      saveData.starCoins = Number(saveData.starCoins || 0) + luckyDrop;
+      session.partnerLuckyDropCoins += luckyDrop;
+      luckyDropNote = '（🌟 幸運掉落 +' + luckyDrop + '🪙！）';
+    }
+
+    recordDailyQuestProgress(
+      saveData,
+      {
+        type: 'question_correct',
+        realmId: q.realm || (session.stage && session.stage.realmId) || 'mul',
+        cleanFirstTry: cleanFirstTry,
+        combo: session.combo
+      },
+      getLocalDateKey()
+    );
+
     var shieldEvent = '';
     if(session.bossShield > 0){
       session.bossShield--;
@@ -1533,6 +1871,7 @@ import { createQuestDialogs } from '../src/quest/dialogs.js';
     var isFinalBlow = (session.enemyHp === 0);
     var isBoss = Boolean(session.stage && session.stage.isBoss);
     var finisherId = isFinalBlow ? pickNextFinisher() : '';
+    if(isFinalBlow) session.finisherCountThisRun++;
 
     if(isFinalBlow && MathApp.audio && MathApp.audio.sfxFinisher){
       MathApp.audio.sfxFinisher(finisherId, isBoss);
@@ -1542,7 +1881,6 @@ import { createQuestDialogs } from '../src/quest/dialogs.js';
       MathApp.sfx(session.combo >= 3 ? 'combo' : (isBoss ? 'hit' : 'correct'));
     }
 
-    var partner = getActivePartnerIsland();
     var heroMood = session.combo >= 3 ? 'fever' : 'happy';
     var deferEnemyDefeatMood = isFinalBlow && !battleFx.isMotionReduced() && typeof window.gsap !== 'undefined';
     var enemyMood = isFinalBlow ? (deferEnemyDefeatMood ? 'hit' : (session.battleBossObj ? 'dizzy' : 'open')) : 'hit';
@@ -1555,13 +1893,15 @@ import { createQuestDialogs } from '../src/quest/dialogs.js';
     if(isFinalBlow){
       playFinisherAnim(finisherId, isBoss, partner);
     } else {
-      playBunnyAttackAnim(session.combo >= 3, shieldEvent, partner);
+      playBunnyAttackAnim(session.combo >= 3, shieldEvent, partner, {
+        luckyRainbowFx: Boolean(partner && partner.specialty === 'lucky' && partnerBond.level >= 2)
+      });
     }
 
     var shieldNote = shieldEvent === 'broken-all' ? ' 💥 Boss 護盾全破！' : (shieldEvent === 'crack' ? ' 🛡️ 擊碎一層護盾！' : '');
     var finisherNote = isFinalBlow ? (' 【' + FINISHER_DEFS[finisherId].badge + '】') : '';
     if(els.feedback){
-      els.feedback.textContent = '🎉 答對了！' + finisherNote + shieldNote + gemNote + skillUpgradeNote;
+      els.feedback.textContent = '🎉 答對了！' + finisherNote + shieldNote + gemNote + luckyDropNote + skillUpgradeNote;
       els.feedback.className = 'mqst-stage-toast good';
     }
 
@@ -1618,6 +1958,37 @@ import { createQuestDialogs } from '../src/quest/dialogs.js';
   function handleWrong(q){
     clearSpeakTimer();
     if(MathApp.stopSpeak) MathApp.stopSpeak();
+
+    var partner = getActivePartnerIsland();
+    if(partner){
+      var bond = getPartnerBondInfo(saveData, partner.fullId);
+      var shieldRes = resolveWrongAnswerWithShield({
+        specialty: partner.specialty,
+        bondLevel: bond.level,
+        shieldChargesLeft: session.partnerShieldChargesLeft
+      });
+      if(shieldRes.absorbed){
+        session.partnerShieldChargesLeft = shieldRes.nextShieldCharges;
+        session.partnerShieldTriggeredCount++;
+        updatePartnerSkillButton();
+        if(MathApp.sfx) MathApp.sfx('magic');
+        battleFx.playPartnerShieldAnim();
+        updateBattleMoods('happy', 'normal', 'happy');
+        setPartnerSpeech('護盾幫你擋住了！連擊和三星都沒事！');
+        if(els.feedback){
+          els.feedback.textContent = '🛡️ 【' + partner.spriteName + '】護盾發動！幫你擋下失誤，連擊與三星資格完整保留！（剩餘護盾 ×' + shieldRes.nextShieldCharges + '）';
+          els.feedback.className = 'mqst-stage-toast good';
+        }
+        if(shieldRes.autoOpenFreeHelper){
+          openHelperDrawer('🛡️ Lv.' + bond.level + ' 護盾免費提示（不扣星！）');
+        }
+        runAnim(function(gsap){
+          gsap.fromTo(els.questionStage, { x: -5 }, { x: 0, duration: 0.25, ease: 'elastic.out(1.2, 0.4)', clearProps: 'transform' });
+        });
+        return;
+      }
+    }
+
     session.hadWrongOnCurrent = true;
     session.combo = 0;
     updateComboUI();
@@ -1636,7 +2007,7 @@ import { createQuestDialogs } from '../src/quest/dialogs.js';
 
     if(MathApp.sfx) MathApp.sfx('wrong');
     updateBattleMoods('oops', 'normal', 'normal');
-    if(getActivePartnerIsland()){
+    if(partner){
       setPartnerSpeech('沒關係！看看積木再試一次！');
     }
 
@@ -1835,15 +2206,10 @@ import { createQuestDialogs } from '../src/quest/dialogs.js';
     }
 
     var todayKey = getLocalDateKey();
-    if(!saveData.daily || saveData.daily.date !== todayKey){
-      saveData.daily = {
-        date: todayKey,
-        tasks: [],
-        replayRewardCount: 0,
-        classroomCoinEarned: 0,
-        stampedToday: false
-      };
-    }
+    ensureDailyQuests(saveData, todayKey);
+
+    var battlePartner = session.battlePartnerId ? getIslandById(session.battlePartnerId) : null;
+    var battlePartnerBond = battlePartner ? getPartnerBondInfo(saveData, battlePartner.fullId) : { level: 1 };
 
     var prevStars = 0;
     var unlockedSprite = null;
@@ -1878,14 +2244,40 @@ import { createQuestDialogs } from '../src/quest/dialogs.js';
       isGemHuntMode: session.isGemHuntMode,
       dailyReplayCount: saveData.daily.replayRewardCount || 0
     });
+    var luckyBonusCoins = (battlePartner && battlePartner.specialty === 'lucky')
+      ? calculateLuckyCoinBonus(coinOutcome.coins, battlePartnerBond.level)
+      : 0;
     var skillUpgradeBonus = session.skillUpgradesThisRun.reduce(function(acc, item){
       return acc + (Number(item && item.bonusCoins) || 0);
     }, 0);
-    session.earnedCoinsThisRun = coinOutcome.coins + skillUpgradeBonus;
-    saveData.starCoins = Number(saveData.starCoins || 0) + coinOutcome.coins;
+    session.earnedCoinsThisRun = coinOutcome.coins + luckyBonusCoins + skillUpgradeBonus + Number(session.partnerSkillBonusCoins || 0) + Number(session.partnerLuckyDropCoins || 0);
+    saveData.starCoins = Number(saveData.starCoins || 0) + coinOutcome.coins + luckyBonusCoins;
     if(coinOutcome.consumesDailyReplay){
       saveData.daily.replayRewardCount = (saveData.daily.replayRewardCount || 0) + 1;
     }
+
+    var partnerBondUp = null;
+    if(battlePartner){
+      var bondXpGain = computeBattleBondXp({
+        stars: stars,
+        isRescueMode: session.isRescueMode,
+        isGemHuntMode: session.isGemHuntMode
+      });
+      partnerBondUp = addPartnerBondXp(saveData, battlePartner.fullId, bondXpGain);
+    }
+
+    var newlyCompletedDaily = recordDailyQuestProgress(
+      saveData,
+      {
+        type: 'stage_clear',
+        realmId: (session.stage && session.stage.realmId) || saveData.activeRealm || 'mul',
+        stars: stars,
+        maxCombo: session.maxCombo,
+        isRescueMode: session.isRescueMode,
+        isGemHuntMode: session.isGemHuntMode
+      },
+      todayKey
+    );
 
     var newBadges = checkAndUnlockBadges();
     var newCostumes = checkAndUnlockCostumes(false);
@@ -1895,10 +2287,11 @@ import { createQuestDialogs } from '../src/quest/dialogs.js';
     var partner = getActivePartnerIsland();
     if(els.victoryBunny) els.victoryBunny.innerHTML = getPinkBunnySvg('happy');
     if(els.victorySprite){
-      var showSp = unlockedSprite || partner;
+      var showSp = unlockedSprite || battlePartner || partner;
       if(showSp){
+        var showBond = getPartnerBondInfo(saveData, showSp.fullId);
         els.victorySprite.style.display = 'block';
-        els.victorySprite.innerHTML = getCharacterSvg(showSp.theme, false, 'happy');
+        els.victorySprite.innerHTML = getCharacterSvg(showSp.theme, false, 'happy', { bondLevel: showBond.level });
       } else {
         els.victorySprite.style.display = 'none';
       }
@@ -1951,11 +2344,44 @@ import { createQuestDialogs } from '../src/quest/dialogs.js';
 
     var showcaseHtml = '';
     if(unlockedSprite){
+      var unlockedSpecMeta = getSpecialtyMeta(unlockedSprite.specialty);
       showcaseHtml += '<div class="mqst-unlock-banner">' +
-        getCharacterSvg(unlockedSprite.theme, false, 'happy') +
-        '<div><div>🎉 成功收服守護小精靈：【' + unlockedSprite.spriteName + '】！</div>' +
+        getCharacterSvg(unlockedSprite.theme, false, 'happy', { bondLevel: 1 }) +
+        '<div><div>🎉 成功收服守護小精靈：【' + unlockedSprite.spriteName + '】（' + unlockedSpecMeta.icon + ' ' + unlockedSpecMeta.name + '）！</div>' +
         '<div style="font-size:13px;font-weight:700;color:var(--ink-soft);">' + unlockedSprite.spriteDesc + '</div>' +
-        '<div class="mqst-unlock-subnote">🤝 已自動加入冒險隊伍！戰鬥時點「✨ 精靈魔法」可幫忙解圍，2連擊還會合體攻擊！</div></div></div>';
+        '<div class="mqst-unlock-subnote">🤝 已自動加入冒險隊伍！專長 Lv.1：' + unlockedSpecMeta.lvDesc[1] + '</div></div></div>';
+    }
+    var totalLuckyExtra = luckyBonusCoins + Number(session.partnerLuckyDropCoins || 0);
+    if(battlePartner && battlePartner.specialty === 'lucky' && totalLuckyExtra > 0){
+      showcaseHtml += '<div class="mqst-unlock-banner" style="background:linear-gradient(135deg,#fef9c3 0%,#fde68a 100%);border-color:#eab308;">' +
+        '<span style="font-size:32px;" aria-hidden="true">🌟</span>' +
+        '<div><div>幸運尋寶加成：【' + battlePartner.spriteName + '】幫你多撿回 +' + totalLuckyExtra + ' 🪙！</div>' +
+        '<div style="font-size:13px;font-weight:700;color:var(--ink-soft);">通關加成 +' + luckyBonusCoins + ' 🪙' +
+        (session.partnerLuckyDropCoins > 0 ? ('・答對幸運掉落 +' + session.partnerLuckyDropCoins + ' 🪙') : '') + '</div></div></div>';
+    }
+    if(partnerBondUp && partnerBondUp.leveledUp && battlePartner){
+      var upSpecMeta = getSpecialtyMeta(battlePartner.specialty);
+      showcaseHtml += '<div class="mqst-unlock-banner" style="background:linear-gradient(135deg,#fce7f3 0%,#fbcfe8 100%);border-color:#db2777;">' +
+        getCharacterSvg(battlePartner.theme, false, 'happy', { bondLevel: partnerBondUp.newLevel }) +
+        '<div><div>💖 親密度升級：【' + battlePartner.spriteName + '】升上 Lv.' + partnerBondUp.newLevel + ' 囉！</div>' +
+        '<div style="font-size:13px;font-weight:700;color:var(--ink-soft);">' +
+        (partnerBondUp.unlockedAura
+          ? ('✨ 解鎖專屬閃耀光環！' + (battlePartner.lv3Cheer || upSpecMeta.lvDesc[3]))
+          : (upSpecMeta.icon + ' 專長進化：' + upSpecMeta.lvDesc[partnerBondUp.newLevel])) +
+        '</div></div></div>';
+    }
+    var claimableDailyCnt = countClaimableDailyQuests(saveData);
+    if(newlyCompletedDaily.length > 0 || claimableDailyCnt > 0){
+      var completedTitle = newlyCompletedDaily.length > 0
+        ? ('今日委託【' + newlyCompletedDaily[0].title + '】達成！')
+        : ('目前有 ' + claimableDailyCnt + ' 項每日委託可領獎！');
+      showcaseHtml += '<div class="mqst-unlock-banner is-costume" style="background:linear-gradient(135deg,#e0e7ff 0%,#ddd6fe 100%);border-color:#6366f1;">' +
+        '<div class="mqst-unlock-costume-main">' +
+          '<span style="font-size:32px;" aria-hidden="true">📅</span>' +
+          '<div><div>' + completedTitle + '</div>' +
+          '<div style="font-size:13px;font-weight:700;color:var(--ink-soft);">領取獎勵還能順便在冒險印章本蓋下今天的一章喔！</div></div>' +
+        '</div>' +
+        '<button type="button" class="mqst-unlock-equip-btn" data-result-open-daily="1">🎁 領獎＆蓋印章</button></div>';
     }
     newCostumes.forEach(function(c){
       var isEq = (getActiveCostumeId() === c.id);
@@ -1993,13 +2419,15 @@ import { createQuestDialogs } from '../src/quest/dialogs.js';
 
     if(unlockedSprite && MathApp.utils && MathApp.utils.showToast){
       MathApp.utils.showToast('🎉 成功收服【' + unlockedSprite.spriteName + '】！已加入你的冒險隊伍！');
+    } else if(partnerBondUp && partnerBondUp.leveledUp && battlePartner && MathApp.utils && MathApp.utils.showToast){
+      MathApp.utils.showToast('💖 【' + battlePartner.spriteName + '】親密度升至 Lv.' + partnerBondUp.newLevel + (partnerBondUp.unlockedAura ? '，解鎖專屬閃耀光環！' : '！'));
     } else if(newCostumes.length > 0 && MathApp.utils && MathApp.utils.showToast){
       MathApp.utils.showToast('🎀 解鎖小兔新造型【' + newCostumes[0].name + '】！點「馬上換上」試穿吧！');
     }
 
     if(MathApp.sfx) MathApp.sfx('fanfare');
     if(MathApp.utils && MathApp.utils.launchConfetti){
-      MathApp.utils.launchConfetti(stars === 3 || Boolean(unlockedSprite) || newCostumes.length > 0);
+      MathApp.utils.launchConfetti(stars === 3 || Boolean(unlockedSprite) || newCostumes.length > 0 || Boolean(partnerBondUp && partnerBondUp.leveledUp));
     }
     var costumeVoiceNote = newCostumes.length > 0
       ? ('，還解鎖了小兔新造型 ' + newCostumes[0].name + ' 喔！')
@@ -2241,7 +2669,11 @@ import { createQuestDialogs } from '../src/quest/dialogs.js';
         }
         if(els.helperConfirmDialog && typeof els.helperConfirmDialog.showModal === 'function'){
           if(els.helperConfirmTip){
-            var canUseFreePartner = Boolean(getActivePartnerIsland() && !session.partnerUsedSkill);
+            var activeP = getActivePartnerIsland();
+            var activeEff = activeP
+              ? (session.partnerEffects || getPartnerSpecialtyEffects(activeP, getPartnerBondInfo(saveData, activeP.fullId).level))
+              : null;
+            var canUseFreePartner = Boolean(activeP && activeEff && activeEff.isActive && session.partnerSkillUsesLeft > 0);
             els.helperConfirmTip.style.display = canUseFreePartner ? 'block' : 'none';
           }
           els.helperConfirmDialog.showModal();
@@ -2340,8 +2772,118 @@ import { createQuestDialogs } from '../src/quest/dialogs.js';
       return true;
     }
 
+    function refreshUiAfterWardrobeChange(){
+      persistSave();
+      syncAllBunnyVisuals();
+      syncProjectileVisual();
+      updateHubStats();
+    }
+
+    function handleEquipWardrobePiece(slot, itemId, afterFn){
+      var res = equipWardrobeItem(saveData, slot, itemId);
+      if(!res.ok) return false;
+      refreshUiAfterWardrobeChange();
+      if(MathApp.audio && MathApp.audio.sfxJump) MathApp.audio.sfxJump();
+      else if(MathApp.sfx) MathApp.sfx('pop');
+      if(MathApp.utils && MathApp.utils.showToast && res.item){
+        var msg = res.item.slot === 'wand'
+          ? (res.item.icon + ' 已裝備【' + res.item.name + '】！戰鬥會發射專屬魔法彈囉！')
+          : (res.item.icon + ' 粉紅小兔換上【' + res.item.name + '】囉！');
+        MathApp.utils.showToast(msg);
+      }
+      if(afterFn) afterFn(res);
+      return true;
+    }
+
+    function handleBuyWardrobeItem(itemId, afterFn){
+      var res = purchaseWardrobeItem(saveData, itemId, { autoEquip: true });
+      if(!res.ok){
+        if(res.reason === 'insufficient_coins' && MathApp.utils && MathApp.utils.showToast){
+          MathApp.utils.showToast('🪙 星星幣還差 ' + res.missing + ' 枚！破關或領每日委託就能賺星星幣喔！');
+        }
+        return false;
+      }
+      refreshUiAfterWardrobeChange();
+      if(MathApp.sfx) MathApp.sfx('magic');
+      if(MathApp.utils && MathApp.utils.showToast && res.item){
+        MathApp.utils.showToast('🛍️ 已買下【' + res.item.name + '】並幫小兔穿戴好囉！');
+      }
+      if(afterFn) afterFn(res);
+      return true;
+    }
+
+    function handleEquipTreehouseDecor(slot, itemId, afterFn){
+      var res = equipTreehouseSlot(saveData, slot, itemId);
+      if(!res.ok) return false;
+      persistSave();
+      if(MathApp.sfx) MathApp.sfx('pop');
+      if(els.thToast && res.item){
+        els.thToast.textContent = res.item.icon + ' 已為秘密樹屋換上【' + res.item.name + '】！';
+      }
+      if(afterFn) afterFn(res);
+      return true;
+    }
+
+    function handleBuyTreehouseItem(itemId, afterFn){
+      var res = purchaseTreehouseItem(saveData, itemId, { autoEquip: true });
+      if(!res.ok){
+        if(res.reason === 'insufficient_coins' && MathApp.utils && MathApp.utils.showToast){
+          MathApp.utils.showToast('🪙 星星幣還差 ' + res.missing + ' 枚，無法購買這件家具喔！');
+        }
+        return false;
+      }
+      persistSave();
+      updateHubStats();
+      if(MathApp.sfx) MathApp.sfx('magic');
+      if(els.thToast && res.item){
+        els.thToast.textContent = '🛍️ 已購買並擺設【' + res.item.name + '】！';
+      }
+      if(MathApp.utils && MathApp.utils.showToast && res.item){
+        MathApp.utils.showToast('🏡 已購買並擺設樹屋家具【' + res.item.name + '】！');
+      }
+      if(afterFn) afterFn(res);
+      return true;
+    }
+
+    function handleFeedPartnerSnack(partnerId, snackId, afterFn){
+      var res = feedPartnerSnack(saveData, partnerId, snackId);
+      if(!res.ok){
+        if(res.reason === 'insufficient_coins' && MathApp.utils && MathApp.utils.showToast){
+          MathApp.utils.showToast('🪙 星星幣還差 ' + res.missing + ' 枚，還買不起這份點心喔！');
+        }
+        return false;
+      }
+      persistSave();
+      updateHubStats();
+      var isl = getIslandById(res.partnerId);
+      var spName = isl ? isl.spriteName : '守護小精靈';
+      var bondRes = res.bondRes || {};
+      if(bondRes.unlockedAura){
+        if(MathApp.sfx) MathApp.sfx('fanfare');
+        if(MathApp.utils && MathApp.utils.launchConfetti) MathApp.utils.launchConfetti(true);
+      } else if(bondRes.leveledUp){
+        if(MathApp.sfx) MathApp.sfx('star');
+      } else {
+        if(MathApp.sfx) MathApp.sfx('pop');
+      }
+      var feedMsg = bondRes.unlockedAura
+        ? ('✨ 【' + spName + '】親密度升上 Lv.3，解鎖專屬閃耀光環！「' + ((isl && isl.lv3Cheer) || '太喜歡你了！') + '」')
+        : (bondRes.leveledUp
+            ? ('💖 【' + spName + '】吃下' + res.snack.name + '後升上親密度 Lv.' + bondRes.newLevel + ' 囉！')
+            : (res.snack.icon + ' 餵【' + spName + '】吃' + res.snack.name + '（親密度 +' + res.snack.bondXp + '，目前 ' + bondRes.xp + ' 點）！'));
+      if(els.thToast) els.thToast.textContent = feedMsg;
+      if(MathApp.utils && MathApp.utils.showToast) MathApp.utils.showToast(feedMsg);
+      if(afterFn) afterFn(res);
+      return true;
+    }
+
     if(els.unlockShowcase){
       els.unlockShowcase.addEventListener('click', function(e){
+        var dailyOpenBtn = e.target.closest('[data-result-open-daily]');
+        if(dailyOpenBtn){
+          openDailyDialog();
+          return;
+        }
         var quickBtn = e.target.closest('[data-quick-equip-costume]');
         if(!quickBtn) return;
         var cId = quickBtn.getAttribute('data-quick-equip-costume');
@@ -2357,54 +2899,6 @@ import { createQuestDialogs } from '../src/quest/dialogs.js';
     setupDialogPolyfill(els.dexDialog);
     if(els.dexDialog){
       var dexTabs = Array.prototype.slice.call(els.dexDialog.querySelectorAll('.mqst-dex-tab[data-dex]'));
-
-      function switchDexTab(target, focusTab){
-        if(target === 'wardrobe' && saveData.hasNewCostume){
-          saveData.hasNewCostume = false;
-          persistSave();
-          updateHubStats();
-        }
-        dexTabs.forEach(function(t){
-          var act = (t.getAttribute('data-dex') === target);
-          t.classList.toggle('active', act);
-          t.setAttribute('aria-selected', String(act));
-          t.setAttribute('tabindex', act ? '0' : '-1');
-          if(act){
-            if(t.scrollIntoView){
-              try { t.scrollIntoView({ block: 'nearest', inline: 'nearest' }); } catch(err){}
-            }
-            if(focusTab) t.focus();
-          }
-        });
-        if(els.paneGems)     els.paneGems.hidden     = (target !== 'gems');
-        if(els.paneSkills)   els.paneSkills.hidden   = (target !== 'skills');
-        if(els.paneWardrobe) els.paneWardrobe.hidden = (target !== 'wardrobe');
-        if(els.paneSprites)  els.paneSprites.hidden  = (target !== 'sprites');
-        if(els.paneBadges)   els.paneBadges.hidden   = (target !== 'badges');
-      }
-
-      function jumpToStageFromDex(stageId){
-        var st = getStageById(stageId);
-        if(!st) return;
-        if(els.dexDialog && els.dexDialog.open) els.dexDialog.close();
-        if(saveData.activeRealm !== st.realmId){
-          switchRealm(st.realmId, false);
-        }
-        walkBunnyAndStart(st.stageKey || st.id);
-      }
-
-      function openDexDialog(initialTab){
-        if(MathApp.sfx) MathApp.sfx('click');
-        var tab = initialTab || ((saveData.activeRealm === 'sunny' || saveData.activeRealm === 'cloud') ? 'skills' : 'gems');
-        if(tab === 'wardrobe' && saveData.hasNewCostume){
-          saveData.hasNewCostume = false;
-          persistSave();
-          updateHubStats();
-        }
-        renderDexDialog();
-        switchDexTab(tab, false);
-        els.dexDialog.showModal();
-      }
 
       if(els.openDexBtn){
         els.openDexBtn.addEventListener('click', function(){ openDexDialog(); });
@@ -2427,10 +2921,39 @@ import { createQuestDialogs } from '../src/quest/dialogs.js';
             });
             return;
           }
+          var filterBtn = e.target.closest('[data-wardrobe-filter]');
+          if(filterBtn){
+            if(MathApp.sfx) MathApp.sfx('click');
+            renderWardrobePane(filterBtn.getAttribute('data-wardrobe-filter'));
+            return;
+          }
+          var gotoShopBtn = e.target.closest('[data-goto-shop]');
+          if(gotoShopBtn){
+            var shopTab = gotoShopBtn.getAttribute('data-goto-shop') || 'wardrobe';
+            if(els.dexDialog && els.dexDialog.open) els.dexDialog.close();
+            openShopDialog(shopTab);
+            return;
+          }
           var gemHuntBtn = e.target.closest('[data-wardrobe-gem-hunt]');
           if(gemHuntBtn){
             if(MathApp.sfx) MathApp.sfx('click');
             startGemHuntBattle();
+            return;
+          }
+          var buyBtn = e.target.closest('[data-buy-wardrobe-item]');
+          if(buyBtn){
+            handleBuyWardrobeItem(buyBtn.getAttribute('data-buy-wardrobe-item'), function(){
+              renderWardrobePane();
+            });
+            return;
+          }
+          var eqSlotBtn = e.target.closest('[data-equip-slot][data-equip-item]');
+          if(eqSlotBtn){
+            handleEquipWardrobePiece(
+              eqSlotBtn.getAttribute('data-equip-slot'),
+              eqSlotBtn.getAttribute('data-equip-item'),
+              function(){ renderWardrobePane(); }
+            );
             return;
           }
           var eqCostumeBtn = e.target.closest('[data-equip-costume]');
@@ -2505,6 +3028,14 @@ import { createQuestDialogs } from '../src/quest/dialogs.js';
 
       if(els.paneSprites){
         els.paneSprites.addEventListener('click', function(e){
+          var goThBtn = e.target.closest('[data-goto-treehouse-sprite]');
+          if(goThBtn){
+            var targetPid = toCanonicalPartnerId(goThBtn.getAttribute('data-goto-treehouse-sprite'));
+            if(MathApp.sfx) MathApp.sfx('click');
+            if(els.dexDialog && els.dexDialog.open) els.dexDialog.close();
+            openTreehouse('sprites', targetPid);
+            return;
+          }
           var gotoBossBtn = e.target.closest('[data-goto-boss]');
           if(gotoBossBtn){
             var sid = gotoBossBtn.getAttribute('data-goto-boss');
@@ -2535,23 +3066,291 @@ import { createQuestDialogs } from '../src/quest/dialogs.js';
         });
       }
 
-      dexTabs.forEach(function(tab, idx){
-        tab.addEventListener('click', function(){
-          if(MathApp.sfx) MathApp.sfx('click');
-          switchDexTab(tab.getAttribute('data-dex'), false);
-        });
-        tab.addEventListener('keydown', function(e){
-          var nextIdx = -1;
-          if(e.key === 'ArrowRight') nextIdx = (idx + 1) % dexTabs.length;
-          else if(e.key === 'ArrowLeft') nextIdx = (idx - 1 + dexTabs.length) % dexTabs.length;
-          else if(e.key === 'Home') nextIdx = 0;
-          else if(e.key === 'End') nextIdx = dexTabs.length - 1;
-          if(nextIdx !== -1){
-            e.preventDefault();
-            if(MathApp.sfx) MathApp.sfx('click');
-            switchDexTab(dexTabs[nextIdx].getAttribute('data-dex'), true);
+      bindTabGroup(dexTabs, 'data-dex', switchDexTab);
+    }
+
+    function bumpTreehouseDailyInteract(){
+      var completed = recordDailyQuestProgress(saveData, { type: 'treehouse_interact' }, getLocalDateKey());
+      persistSave();
+      updateHubStats();
+      if(completed.length > 0 && MathApp.utils && MathApp.utils.showToast){
+        MathApp.utils.showToast('📅 每日委託【' + completed[0].title + '】達成！回地圖點「📅 每日委託」領獎＋蓋印章！');
+      }
+    }
+
+    setupDialogPolyfill(els.dailyDialog);
+    if(els.openDailyBtn && els.dailyDialog){
+      els.openDailyBtn.addEventListener('click', openDailyDialog);
+    }
+    if(els.dailyBody){
+      els.dailyBody.addEventListener('click', function(e){
+        var claimBtn = e.target.closest('[data-claim-daily-task]');
+        if(claimBtn){
+          var taskId = claimBtn.getAttribute('data-claim-daily-task');
+          var res = claimDailyQuestReward(saveData, taskId, getLocalDateKey());
+          if(!res.ok) return;
+          persistSave();
+          updateHubStats();
+          renderDailyDialog();
+
+          var parts = ['🎁 已領取【' + res.task.title + '】+' + res.taskCoins + ' 🪙'];
+          if(res.allClearBonus > 0){
+            parts.push('🌟 全勤加碼 +' + res.allClearBonus + ' 🪙');
           }
-        });
+          if(res.completedRound){
+            parts.push(
+              '💮 印章集滿 7 章贈 +' + res.stampCoins + ' 🪙' +
+              (res.unlockedDecorItem ? ('＋限定擺飾【' + res.unlockedDecorItem.name + '】') : '') +
+              '，開啟新一輪印章本！'
+            );
+            if(MathApp.sfx) MathApp.sfx('fanfare');
+            if(MathApp.utils && MathApp.utils.launchConfetti) MathApp.utils.launchConfetti(true);
+          } else {
+            if(res.stampAwarded){
+              parts.push('💮 冒險印章第 ' + res.stampNumber + '/7 章 (+' + res.stampCoins + ' 🪙)');
+            }
+            if(MathApp.sfx) MathApp.sfx('magic');
+          }
+          if(MathApp.utils && MathApp.utils.showToast){
+            MathApp.utils.showToast(parts.join('・'));
+          }
+          return;
+        }
+        var goThBtn = e.target.closest('[data-daily-goto-treehouse]');
+        if(goThBtn){
+          if(MathApp.sfx) MathApp.sfx('click');
+          if(els.dailyDialog && els.dailyDialog.open) els.dailyDialog.close();
+          openTreehouse('decor');
+          return;
+        }
+        var goRealmBtn = e.target.closest('[data-daily-goto-realm]');
+        if(goRealmBtn){
+          var realmId = goRealmBtn.getAttribute('data-daily-goto-realm');
+          if(realmId && isRealmUnlocked(realmId, saveData)){
+            if(MathApp.sfx) MathApp.sfx('click');
+            if(els.dailyDialog && els.dailyDialog.open) els.dailyDialog.close();
+            if(els.treehouseView && els.treehouseView.style.display !== 'none'){
+              showView('map');
+            }
+            switchRealm(realmId, true);
+          }
+        }
+      });
+    }
+
+    setupDialogPolyfill(els.shopDialog);
+    if(els.openShopBtn && els.shopDialog){
+      els.openShopBtn.addEventListener('click', function(){ openShopDialog('wardrobe'); });
+    }
+    if(els.shopDialog){
+      var shopTabs = els.shopDialog.querySelectorAll('.mqst-dex-tab[data-shop]');
+      bindTabGroup(shopTabs, 'data-shop', switchShopTab);
+
+      els.shopDialog.addEventListener('click', function(e){
+        var buyWardrobeBtn = e.target.closest('[data-shop-buy-wardrobe]');
+        if(buyWardrobeBtn){
+          handleBuyWardrobeItem(buyWardrobeBtn.getAttribute('data-shop-buy-wardrobe'), function(){
+            renderShopDialog();
+          });
+          return;
+        }
+        var eqWardrobeBtn = e.target.closest('[data-shop-equip-wardrobe-slot][data-shop-equip-wardrobe-id]');
+        if(eqWardrobeBtn){
+          handleEquipWardrobePiece(
+            eqWardrobeBtn.getAttribute('data-shop-equip-wardrobe-slot'),
+            eqWardrobeBtn.getAttribute('data-shop-equip-wardrobe-id'),
+            function(){ renderShopDialog(); }
+          );
+          return;
+        }
+        var buyThBtn = e.target.closest('[data-shop-buy-treehouse]');
+        if(buyThBtn){
+          handleBuyTreehouseItem(buyThBtn.getAttribute('data-shop-buy-treehouse'), function(){
+            renderShopDialog();
+            if(els.treehouseView && els.treehouseView.style.display !== 'none') renderCurrentTreehouse();
+          });
+          return;
+        }
+        var eqThBtn = e.target.closest('[data-shop-equip-th-slot][data-shop-equip-th-id]');
+        if(eqThBtn){
+          handleEquipTreehouseDecor(
+            eqThBtn.getAttribute('data-shop-equip-th-slot'),
+            eqThBtn.getAttribute('data-shop-equip-th-id'),
+            function(){
+              renderShopDialog();
+              if(els.treehouseView && els.treehouseView.style.display !== 'none') renderCurrentTreehouse();
+            }
+          );
+          return;
+        }
+        var goThShopBtn = e.target.closest('[data-shop-goto-treehouse]');
+        if(goThShopBtn){
+          if(MathApp.sfx) MathApp.sfx('click');
+          if(els.shopDialog && els.shopDialog.open) els.shopDialog.close();
+          openTreehouse('decor');
+          return;
+        }
+        var pickPartnerBtn = e.target.closest('[data-shop-select-partner]');
+        if(pickPartnerBtn){
+          if(MathApp.sfx) MathApp.sfx('click');
+          dialogs.setShopSelectedPartnerId(pickPartnerBtn.getAttribute('data-shop-select-partner'));
+          renderShopDialog();
+          return;
+        }
+        var feedSnackBtn = e.target.closest('[data-shop-feed-snack]');
+        if(feedSnackBtn){
+          var activeChip = els.shopPaneSnacks ? els.shopPaneSnacks.querySelector('[data-shop-select-partner].is-active') : null;
+          var pid = (activeChip && activeChip.getAttribute('data-shop-select-partner')) || getActivePartnerId(saveData);
+          if(!pid) return;
+          handleFeedPartnerSnack(pid, feedSnackBtn.getAttribute('data-shop-feed-snack'), function(){
+            renderShopDialog();
+            renderMap();
+          });
+        }
+      });
+    }
+
+    if(els.openTreehouseBtn){
+      els.openTreehouseBtn.addEventListener('click', function(){
+        if(MathApp.sfx) MathApp.sfx('click');
+        openTreehouse('decor');
+      });
+    }
+    if(els.thBackMapBtn){
+      els.thBackMapBtn.addEventListener('click', function(){
+        if(MathApp.sfx) MathApp.sfx('click');
+        showView('map');
+      });
+    }
+    if(els.thExitBtn){
+      els.thExitBtn.addEventListener('click', closeArcade);
+    }
+    if(els.thOpenShopBtn){
+      els.thOpenShopBtn.addEventListener('click', function(){ openShopDialog('treehouse'); });
+    }
+    if(els.thOpenWardrobeBtn){
+      els.thOpenWardrobeBtn.addEventListener('click', function(){ openDexDialog('wardrobe'); });
+    }
+    if(els.treehouseView){
+      var thTabs = els.treehouseView.querySelectorAll('.mqst-th-tab[data-th-tab]');
+      bindTabGroup(thTabs, 'data-th-tab', syncTreehouseTabUi);
+    }
+    if(els.thStage){
+      els.thStage.addEventListener('click', function(e){
+        var interactEl = e.target.closest('[data-th-interact]');
+        if(interactEl){
+          var kind = interactEl.getAttribute('data-th-interact');
+          var itemId = interactEl.getAttribute('data-item-id') || '';
+          if(MathApp.audio && MathApp.audio.sfxJump) MathApp.audio.sfxJump();
+          else if(MathApp.sfx) MathApp.sfx('pop');
+          runAnim(function(gsap){
+            gsap.fromTo(interactEl, { y: 0, scale: 1 }, { y: -12, scale: 1.07, duration: 0.16, yoyo: true, repeat: 1, ease: 'power1.out', clearProps: 'transform' });
+          });
+          if(els.thToast){
+            els.thToast.textContent = getTreehouseInteractMessage(kind, itemId);
+          }
+          bumpTreehouseDailyInteract();
+          return;
+        }
+        var playmateBtn = e.target.closest('[data-th-playmate-btn]');
+        if(playmateBtn){
+          var pid = toCanonicalPartnerId(playmateBtn.getAttribute('data-th-playmate-btn'));
+          session.treehouseSelectedPartner = pid;
+          var spIsl = getIslandById(pid);
+          var bond = getPartnerBondInfo(saveData, pid);
+          var specMeta = spIsl ? getSpecialtyMeta(spIsl.specialty) : null;
+          if(MathApp.audio && MathApp.audio.sfxJump) MathApp.audio.sfxJump();
+          else if(MathApp.sfx) MathApp.sfx('pop');
+          if(els.thToast && spIsl){
+            els.thToast.textContent = bond.level >= 3 && spIsl.lv3Cheer
+              ? (spIsl.partnerProjectile + ' ' + spIsl.spriteName + ' (Lv.3)：' + spIsl.lv3Cheer)
+              : (spIsl.partnerProjectile + ' 【' + spIsl.spriteName + '】開心地轉圈圈！（Lv.' + bond.level + ' · ' + (specMeta ? specMeta.name : '') + '）');
+          }
+          bumpTreehouseDailyInteract();
+          renderCurrentTreehouse();
+          return;
+        }
+        var emptySlot = e.target.closest('[data-th-empty-slot]');
+        if(emptySlot){
+          if(MathApp.sfx) MathApp.sfx('click');
+          session.treehouseTab = 'sprites';
+          renderCurrentTreehouse();
+          if(els.thToast){
+            els.thToast.textContent = '👇 在下方點選已收服的守護小精靈，就可以邀請進來遊樂位喔！';
+          }
+        }
+      });
+    }
+    if(els.thDock){
+      els.thDock.addEventListener('click', function(e){
+        var slotBtn = e.target.closest('[data-th-slot-select]');
+        if(slotBtn){
+          if(MathApp.sfx) MathApp.sfx('click');
+          session.treehouseSlot = slotBtn.getAttribute('data-th-slot-select');
+          renderCurrentTreehouse();
+          return;
+        }
+        var eqBtn = e.target.closest('[data-th-equip-slot][data-th-equip-item]');
+        if(eqBtn){
+          handleEquipTreehouseDecor(
+            eqBtn.getAttribute('data-th-equip-slot'),
+            eqBtn.getAttribute('data-th-equip-item'),
+            function(){ renderCurrentTreehouse(); }
+          );
+          return;
+        }
+        var buyBtn = e.target.closest('[data-th-buy-item]');
+        if(buyBtn){
+          handleBuyTreehouseItem(buyBtn.getAttribute('data-th-buy-item'), function(){
+            renderCurrentTreehouse();
+          });
+          return;
+        }
+        var toggleBtn = e.target.closest('[data-th-toggle-playmate]');
+        if(toggleBtn){
+          var pid = toCanonicalPartnerId(toggleBtn.getAttribute('data-th-toggle-playmate'));
+          var res = toggleTreehousePlaymate(saveData, pid);
+          if(!res.ok){
+            if(res.reason === 'max_playmates'){
+              if(MathApp.sfx) MathApp.sfx('wrong');
+              if(els.thToast){
+                els.thToast.textContent = '🐾 樹屋遊樂位最多只能同時邀請 ' + res.max + ' 隻小精靈！請先點一隻讓牠休息再邀請喔！';
+              }
+            }
+            return;
+          }
+          if(res.action === 'added'){
+            session.treehouseSelectedPartner = pid;
+          }
+          persistSave();
+          if(MathApp.sfx) MathApp.sfx(res.action === 'added' ? 'star' : 'click');
+          var islObj = getIslandById(pid);
+          if(els.thToast && islObj){
+            els.thToast.textContent = res.action === 'added'
+              ? ('🏡 已邀請【' + islObj.spriteName + '】來秘密樹屋遊玩！點牠互動或餵點心吧！')
+              : ('👋 已讓【' + islObj.spriteName + '】先回精靈草原休息囉！');
+          }
+          renderCurrentTreehouse();
+          return;
+        }
+        var selectFeedBtn = e.target.closest('[data-th-select-feed]');
+        if(selectFeedBtn){
+          if(MathApp.sfx) MathApp.sfx('click');
+          session.treehouseSelectedPartner = toCanonicalPartnerId(selectFeedBtn.getAttribute('data-th-select-feed'));
+          renderCurrentTreehouse();
+          return;
+        }
+        var feedBtn = e.target.closest('[data-th-feed-snack][data-th-feed-partner]');
+        if(feedBtn){
+          handleFeedPartnerSnack(
+            feedBtn.getAttribute('data-th-feed-partner'),
+            feedBtn.getAttribute('data-th-feed-snack'),
+            function(){
+              renderCurrentTreehouse();
+              renderMap();
+            }
+          );
+        }
       });
     }
 
@@ -2710,10 +3509,13 @@ import { createQuestDialogs } from '../src/quest/dialogs.js';
     if(els.resetAllBtn){
       els.resetAllBtn.addEventListener('click', function(){
         saveData = createDefaultSaveV2();
+        ensureDailyQuests(saveData, getLocalDateKey());
         persistSave();
         updatePreviewToggleBtn();
         refreshParentLock();
         syncAllBunnyVisuals();
+        syncProjectileVisual();
+        updateHubStats();
         renderMap();
         if(els.parentDialog) els.parentDialog.close();
         if(MathApp.sfx) MathApp.sfx('click');
@@ -2755,9 +3557,19 @@ import { createQuestDialogs } from '../src/quest/dialogs.js';
     document.addEventListener('keydown', function(e){
       if(!session.arcadeOpen) return;
       if(e.key === 'Escape'){
-        if((els.dexDialog && els.dexDialog.open) || (els.parentDialog && els.parentDialog.open) || (els.audioDialog && els.audioDialog.open)) return;
-        // 戰鬥中誤按 Esc 僅返回世界地圖，避免直接關閉全螢幕而失去進度
-        if(session.active && els.battleView && els.battleView.style.display !== 'none'){
+        if(
+          (els.dexDialog && els.dexDialog.open) ||
+          (els.dailyDialog && els.dailyDialog.open) ||
+          (els.shopDialog && els.shopDialog.open) ||
+          (els.helperConfirmDialog && els.helperConfirmDialog.open) ||
+          (els.parentDialog && els.parentDialog.open) ||
+          (els.audioDialog && els.audioDialog.open)
+        ) return;
+        // 戰鬥中或秘密樹屋內誤按 Esc 僅返回世界地圖，避免直接關閉全螢幕而失去進度
+        if(
+          (session.active && els.battleView && els.battleView.style.display !== 'none') ||
+          (els.treehouseView && els.treehouseView.style.display !== 'none')
+        ){
           showView('map');
         } else {
           closeArcade();
@@ -2791,6 +3603,7 @@ import { createQuestDialogs } from '../src/quest/dialogs.js';
         if(tab === 'quest'){
           updateHubStats();
           syncAllBunnyVisuals();
+          syncProjectileVisual();
         } else {
           if(session.arcadeOpen) closeArcade();
           if(MathApp.stopSpeak) MathApp.stopSpeak();
@@ -2814,11 +3627,13 @@ import { createQuestDialogs } from '../src/quest/dialogs.js';
     cacheDom();
     if(!els.islandsGrid) return;
 
+    ensureDailyQuests(saveData, getLocalDateKey());
     // 升級舊存檔時自動補齊已達標的小兔造型
     if(checkAndUnlockCostumes(true).length > 0){
       persistSave();
     }
     syncAllBunnyVisuals();
+    syncProjectileVisual();
 
     initGsapMedia();
     bindEvents();
@@ -2834,7 +3649,20 @@ import { createQuestDialogs } from '../src/quest/dialogs.js';
     getStages: function(){ return STAGES.slice(); },
     getBadges: function(){ return BADGES.slice(); },
     getCostumes: function(){ return BUNNY_COSTUMES.slice(); },
+    getWardrobeItems: function(){ return WARDROBE_ITEMS.slice(); },
+    getTreehouseItems: function(){ return TREEHOUSE_ITEMS.slice(); },
+    getPartnerSnacks: function(){ return PARTNER_SNACKS.slice(); },
     getSkillCards: function(){ return SKILL_CARDS.slice(); },
+    getDailyState: function(){
+      ensureDailyQuests(saveData, getLocalDateKey());
+      return {
+        daily: Object.assign({}, saveData.daily, { tasks: (saveData.daily.tasks || []).slice() }),
+        stampBook: Object.assign({}, saveData.stampBook)
+      };
+    },
+    openDailyDialog: openDailyDialog,
+    openShopDialog: openShopDialog,
+    openTreehouse: openTreehouse,
     buildStageQuestions: buildStageQuestions,
     generateChoicesForQuestion: function(q, count){
       if(!q) return [];
@@ -2852,9 +3680,11 @@ import { createQuestDialogs } from '../src/quest/dialogs.js';
       var res = parseAndValidateBackupJson(rawText);
       if(!res.ok) return res;
       saveData = res.save;
+      ensureDailyQuests(saveData, getLocalDateKey());
       persistSave();
       updatePreviewToggleBtn();
       syncAllBunnyVisuals();
+      syncProjectileVisual();
       updateHubStats();
       renderMap();
       return res;
