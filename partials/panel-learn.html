@@ -1,0 +1,222 @@
+  <!-- ================= 單元 1：位值探索 (PLACE VALUE MODULE) ================= -->
+  <div class="tab-panel active" id="panel-learn" role="tabpanel" aria-labelledby="main-tab-learn">
+    <!-- 單元內部子分頁切換列 -->
+    <div class="unit-sub-nav">
+      <div class="unit-sub-tabs" role="tablist" aria-label="位值探索單元子分頁">
+        <button class="unit-sub-tab active" id="subtab-pv-learn" type="button" role="tab" aria-selected="true" aria-controls="subpanel-pv-learn"><i data-lucide="blocks"></i>積木製造機</button>
+        <button class="unit-sub-tab" id="subtab-pv-quiz" type="button" role="tab" aria-selected="false" aria-controls="subpanel-pv-quiz"><i data-lucide="target"></i>位值挑戰測驗</button>
+      </div>
+    </div>
+
+    <!-- 子分頁 1：積木探索與數字製造機 -->
+    <div class="sub-panel active" id="subpanel-pv-learn" role="tabpanel" aria-labelledby="subtab-pv-learn">
+      <div class="legend">
+        <div class="legend-card thousand-only">
+          <div class="shape"><span class="blk blk-th"></span></div>
+          <b>千位</b>
+          <span>1 個大方塊 = 1000</span>
+        </div>
+        <div class="legend-card">
+          <div class="shape"><span class="blk blk-h"></span></div>
+          <b>百位</b>
+          <span>1 塊方板 = 100</span>
+        </div>
+        <div class="legend-card">
+          <div class="shape"><span class="blk blk-t"></span></div>
+          <b>十位</b>
+          <span>1 條長條 = 10</span>
+        </div>
+        <div class="legend-card">
+          <div class="shape"><span class="blk blk-o"></span></div>
+          <b>個位</b>
+          <span>1 個小白積木 = 1</span>
+        </div>
+      </div>
+
+      <div class="bundle-strip">
+        <div class="bundle-row">
+          <span class="blk blk-o"></span><span class="blk blk-o"></span><span class="blk blk-o"></span>
+          <span style="font-size:12px;color:var(--ink-soft)">…共10個</span>
+          <span class="arrow">→</span>
+          <span class="blk blk-t"></span>
+          <span style="font-size:13px;">10 個一，換成 1 條十</span>
+        </div>
+        <div class="bundle-row">
+          <span class="blk blk-t"></span><span class="blk blk-t"></span><span class="blk blk-t"></span>
+          <span style="font-size:12px;color:var(--ink-soft)">…共10條</span>
+          <span class="arrow">→</span>
+          <span class="blk blk-h"></span>
+          <span style="font-size:13px;">10 條十，疊成 1 塊百</span>
+        </div>
+        <div class="bundle-row thousand-only">
+          <span class="blk blk-h"></span><span class="blk blk-h"></span><span class="blk blk-h"></span>
+          <span style="font-size:12px;color:var(--ink-soft)">…共10塊</span>
+          <span class="arrow">→</span>
+          <span class="blk blk-th"></span>
+          <span style="font-size:13px;">10 塊百，組成立方體千</span>
+        </div>
+      </div>
+
+      <!-- ================= NUMBER MACHINE ================= -->
+      <section class="machine" id="machine">
+        <h2>數字製造機</h2>
+        <p class="sub">按下 + / − 疊放積木，看看數字怎麼變化</p>
+
+        <div class="display-row">
+          <div class="display" id="display"></div>
+          <button class="speaker-btn" id="speak-number-btn" type="button" aria-label="播放目前數字的唸法"><i data-lucide="volume-2"></i></button>
+        </div>
+        <div class="expand" id="expand"></div>
+        <div class="toast" id="carry-toast"></div>
+
+        <div class="columns">
+          <div class="col th thousand-only" id="col-th">
+            <div class="label">千</div>
+            <div class="place-name">千位</div>
+            <div class="count" id="count-th">0</div>
+            <div class="blocks-box" id="blocks-th"></div>
+            <div class="ctrl">
+              <button aria-label="減少千位" id="minus-th">−</button>
+              <button aria-label="增加千位" id="plus-th">+</button>
+            </div>
+          </div>
+
+          <div class="col h" id="col-h">
+            <div class="label">百</div>
+            <div class="place-name">百位</div>
+            <div class="count" id="count-h">0</div>
+            <div class="blocks-box" id="blocks-h"></div>
+            <div class="ctrl">
+              <button aria-label="減少百位" id="minus-h">−</button>
+              <button aria-label="增加百位" id="plus-h">+</button>
+            </div>
+          </div>
+
+          <div class="col t" id="col-t">
+            <div class="label">十</div>
+            <div class="place-name">十位</div>
+            <div class="count" id="count-t">0</div>
+            <div class="blocks-box" id="blocks-t"></div>
+            <div class="ctrl">
+              <button aria-label="減少十位" id="minus-t">−</button>
+              <button aria-label="增加十位" id="plus-t">+</button>
+            </div>
+          </div>
+
+          <div class="col o" id="col-o">
+            <div class="label">個</div>
+            <div class="place-name">個位</div>
+            <div class="count" id="count-o">0</div>
+            <div class="blocks-box" id="blocks-o"></div>
+            <div class="ctrl">
+              <button aria-label="減少個位" id="minus-o">−</button>
+              <button aria-label="增加個位" id="plus-o">+</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="machine-foot">
+          <button class="ghost-btn" id="randomize"><i data-lucide="dices"></i> 給我一個隨機數字</button>
+        </div>
+      </section>
+    </div><!-- /#subpanel-pv-learn -->
+
+    <!-- 子分頁 2：位值挑戰測驗 (小小挑戰 ＆ 自我評量) -->
+    <div class="sub-panel" id="subpanel-pv-quiz" role="tabpanel" aria-labelledby="subtab-pv-quiz">
+      <section class="quiz" id="quiz">
+        <h2>位值小小挑戰</h2>
+        <p class="sub">看題目，判斷百位、十位、個位各是多少</p>
+
+        <!-- 模式分頁切換器 -->
+        <div class="mode-tabs" role="tablist" aria-label="挑戰模式切換">
+          <button class="mode-tab active" id="tab-practice" type="button" role="tab" aria-selected="true"><i data-lucide="book-open"></i>自由練習</button>
+          <button class="mode-tab" id="tab-selftest" type="button" role="tab" aria-selected="false"><i data-lucide="file-text"></i>自我測驗</button>
+        </div>
+
+        <!-- 自由練習模式的計分列 -->
+        <div class="score-row" id="practice-score-row">
+          <div class="score-pill">答對 <em id="score-correct">0</em> 題</div>
+          <div class="score-pill">連續答對 <em id="score-streak">0</em> 次</div>
+        </div>
+
+        <!-- 自我測驗模式：設定與開始卡片 -->
+        <div class="selftest-panel" id="selftest-setup-panel" style="display: none;">
+          <div class="selftest-setup-card">
+            <div class="setup-icon">🎯</div>
+            <h3>位值自我評量挑戰</h3>
+            <p>選擇題目數量，完成測驗後會計算成績並頒發星等榮譽榜喔！</p>
+            <div class="selftest-options">
+              <span class="opt-label">測驗題數：</span>
+              <button type="button" class="chip active" data-count="5">5 題速測</button>
+              <button type="button" class="chip" data-count="10">10 題完整測驗</button>
+            </div>
+            <button class="primary-btn pulse-glow" id="start-selftest-btn" type="button"><i data-lucide="play"></i> 開始自我測驗</button>
+          </div>
+        </div>
+
+        <!-- 自我測驗進行中的進度列 -->
+        <div class="selftest-progress-row" id="selftest-progress-row" style="display: none;">
+          <div class="progress-meta">
+            <span class="badge-tag">📝 自我測驗中</span>
+            <span class="progress-q" id="selftest-progress-text">第 1 / 5 題</span>
+            <span class="timer-tag" id="selftest-timer">⏱️ 00:00</span>
+          </div>
+          <div class="progress-track" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100">
+            <div class="progress-fill" id="selftest-progress-fill" style="width: 0%;"></div>
+          </div>
+        </div>
+
+        <!-- 測驗卡片本體 (自由練習與自我測驗共用) -->
+        <div class="quiz-card" id="quiz-card">
+          <div class="quiz-prompt">
+            <div class="kicker" id="quiz-kicker">看數字，填出每個位置的個數</div>
+            <div id="quiz-stage"></div>
+            <button class="ghost-btn small" id="speak-quiz-btn" type="button"><i data-lucide="volume-2"></i> 再聽一次</button>
+          </div>
+
+          <div id="quiz-answer"></div>
+
+          <!-- 專屬虛擬數字鍵盤 (適合平板與手機觸控，由 JS createNumpad 工廠函式動態填入) -->
+          <div id="virtual-keypad"></div>
+
+          <div class="quiz-actions">
+            <button class="primary-btn" id="check-btn"><i data-lucide="check-circle-2"></i> 確認答案</button>
+            <button class="ghost-btn" id="next-btn" style="display:none;"><i data-lucide="arrow-right"></i> 下一題</button>
+          </div>
+
+          <div class="feedback" id="feedback"></div>
+        </div>
+
+        <!-- 自我測驗成果結算卡片 -->
+        <div class="selftest-result-card" id="selftest-result-card" style="display: none;">
+          <div class="result-header">
+            <div class="result-stars" id="result-stars">⭐⭐⭐</div>
+            <h3 id="result-title">測驗完成！太厲害了！</h3>
+            <p id="result-subtitle">你對個位、十位與百位的掌握非常棒！</p>
+          </div>
+
+          <div class="result-stats">
+            <div class="stat-box">
+              <div class="stat-num num-font" id="result-score">100</div>
+              <div class="stat-lbl">測驗總分</div>
+            </div>
+            <div class="stat-box">
+              <div class="stat-num num-font" id="result-accuracy">5 / 5</div>
+              <div class="stat-lbl">答對題數</div>
+            </div>
+            <div class="stat-box">
+              <div class="stat-num num-font" id="result-time">00:42</div>
+              <div class="stat-lbl">總作答時間</div>
+            </div>
+          </div>
+
+          <div class="result-review" id="result-review"></div>
+
+          <div class="result-actions">
+            <button class="primary-btn" id="restart-selftest-btn" type="button"><i data-lucide="rotate-ccw"></i> 再測驗一次</button>
+            <button class="ghost-btn" id="back-practice-btn" type="button"><i data-lucide="book-open"></i> 回到自由練習</button>
+          </div>
+        </div>
+      </section>
+    </div><!-- /#subpanel-pv-quiz -->
+  </div><!-- /#panel-learn -->

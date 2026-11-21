@@ -1,0 +1,156 @@
+  <!-- ================= 原生對話框：9×9 寶石圖鑑、小精靈與成就徽章 ================= -->
+  <dialog class="mqst-dialog mqst-dex-dialog" id="mqst-dex-dialog" closedby="any" aria-labelledby="mqst-dex-title">
+    <div class="mqst-dialog-head">
+      <div class="mqst-dialog-title-wrap">
+        <span class="mqst-dialog-ico" aria-hidden="true">✨</span>
+        <h3 id="mqst-dex-title">我的乘法榮譽圖鑑</h3>
+      </div>
+      <form method="dialog">
+        <button type="submit" class="close-modal-btn" value="close" aria-label="關閉榮譽圖鑑" autofocus>✕</button>
+      </form>
+    </div>
+
+    <div class="mqst-dex-tabs" role="tablist" aria-label="圖鑑切換">
+      <button type="button" class="mqst-dex-tab active" id="mqst-tab-gems" data-dex="gems" role="tab" aria-selected="true" tabindex="0">💎 9×9 寶石牆</button>
+      <button type="button" class="mqst-dex-tab" id="mqst-tab-wardrobe" data-dex="wardrobe" role="tab" aria-selected="false" tabindex="-1">🎀 小兔換裝</button>
+      <button type="button" class="mqst-dex-tab" id="mqst-tab-sprites" data-dex="sprites" role="tab" aria-selected="false" tabindex="-1">🐣 守護小精靈</button>
+      <button type="button" class="mqst-dex-tab" id="mqst-tab-badges" data-dex="badges" role="tab" aria-selected="false" tabindex="-1">🏅 成就徽章</button>
+    </div>
+
+    <div class="mqst-dialog-body" id="mqst-dex-body">
+      <div class="mqst-dex-pane active" id="mqst-pane-gems" role="tabpanel" aria-labelledby="mqst-tab-gems"></div>
+      <div class="mqst-dex-pane" id="mqst-pane-wardrobe" role="tabpanel" aria-labelledby="mqst-tab-wardrobe" style="display:none;"></div>
+      <div class="mqst-dex-pane" id="mqst-pane-sprites" role="tabpanel" aria-labelledby="mqst-tab-sprites" style="display:none;"></div>
+      <div class="mqst-dex-pane" id="mqst-pane-badges" role="tabpanel" aria-labelledby="mqst-tab-badges" style="display:none;"></div>
+    </div>
+  </dialog>
+
+  <!-- ================= 原生對話框：防誤觸家長工具與預習開關 ================= -->
+  <dialog class="mqst-dialog mqst-parent-dialog" id="mqst-parent-dialog" closedby="any" aria-labelledby="mqst-parent-title">
+    <div class="mqst-dialog-head">
+      <div class="mqst-dialog-title-wrap">
+        <span class="mqst-dialog-ico" aria-hidden="true">🛠️</span>
+        <h3 id="mqst-parent-title">預習模式 ＆ 家長進度工具</h3>
+      </div>
+      <form method="dialog">
+        <button type="submit" class="close-modal-btn" value="cancel" aria-label="關閉家長設定視窗" autofocus>✕</button>
+      </form>
+    </div>
+
+    <div class="mqst-dialog-body">
+      <div class="mqst-parent-card">
+        <div class="mqst-parent-row">
+          <div>
+            <h4>🔓 自由挑選／預習模式</h4>
+            <p>開啟後可隨時點擊地圖上任何關卡練習（例如學校剛教到 7 的乘法時直接跳關），且不會遺失已取得的星星！</p>
+            <p class="mqst-parent-status" id="mqst-preview-status-msg" aria-live="polite"></p>
+          </div>
+          <button type="button" class="mqst-switch-btn" id="mqst-preview-toggle-btn" aria-pressed="false">未開啟</button>
+        </div>
+      </div>
+
+      <div class="mqst-parent-card mqst-danger-card">
+        <h4>🧹 重置所有冒險紀錄</h4>
+        <p>為了避免小朋友誤觸把辛苦點亮的 81 格寶石牆與星星清空，請先回答下方小題目解鎖重置按鈕：</p>
+        <div class="mqst-lock-box" id="mqst-parent-lock-box">
+          <span class="mqst-lock-q" id="mqst-parent-lock-q">請計算：14 × 3 ＝</span>
+          <input type="number" inputmode="numeric" autocomplete="off" class="mqst-lock-input" id="mqst-parent-lock-input" aria-label="家長驗證答案" placeholder="?">
+          <button type="button" class="ghost-btn small" id="mqst-parent-unlock-btn">解鎖</button>
+        </div>
+        <p class="mqst-parent-feedback" id="mqst-parent-feedback" role="status" aria-live="polite"></p>
+        <div class="mqst-reset-confirm-row" id="mqst-reset-confirm-row" style="display:none;">
+          <button type="button" class="mqst-danger-btn" id="mqst-reset-all-btn">確定清空全部星星與圖鑑紀錄</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="mqst-dialog-foot">
+      <form method="dialog">
+        <button type="submit" class="primary-btn" value="done">完成</button>
+      </form>
+    </div>
+  </dialog>
+
+  <!-- ================= 原生對話框：聲音與語音設定 ================= -->
+  <dialog class="mqst-dialog mqst-audio-dialog" id="mqst-audio-dialog" closedby="any" aria-labelledby="mqst-audio-title">
+    <div class="mqst-dialog-head">
+      <div class="mqst-dialog-title-wrap">
+        <span class="mqst-dialog-ico" aria-hidden="true">🔊</span>
+        <h3 id="mqst-audio-title">聲音與語音設定</h3>
+      </div>
+      <form method="dialog">
+        <button type="submit" class="close-modal-btn" value="cancel" aria-label="關閉聲音設定視窗" autofocus>✕</button>
+      </form>
+    </div>
+
+    <div class="mqst-dialog-body">
+      <div class="mqst-parent-card">
+        <div class="mqst-parent-row">
+          <div>
+            <h4>🎵 背景音樂</h4>
+            <p>冒險地圖與對戰時的輕快童話配樂。</p>
+          </div>
+          <button type="button" class="mqst-switch-btn" id="mqst-dlg-bgm-btn" aria-pressed="true">已開啟</button>
+        </div>
+      </div>
+
+      <div class="mqst-parent-card">
+        <div class="mqst-parent-row">
+          <div>
+            <h4>🔊 遊戲音效</h4>
+            <p>點擊按鈕、施放魔法與答對題目時的可愛音效。</p>
+          </div>
+          <button type="button" class="mqst-switch-btn" id="mqst-dlg-sound-btn" aria-pressed="true">已開啟</button>
+        </div>
+      </div>
+
+      <div class="mqst-parent-card">
+        <div class="mqst-parent-row">
+          <div>
+            <h4>🗣️ 語音朗讀</h4>
+            <p>自動唸出題目與九九乘法口訣提示。</p>
+          </div>
+          <button type="button" class="mqst-switch-btn" id="mqst-dlg-voice-btn" aria-pressed="true">已開啟</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="mqst-dialog-foot">
+      <form method="dialog">
+        <button type="submit" class="primary-btn" value="done">完成</button>
+      </form>
+    </div>
+  </dialog>
+
+  <!-- ================= 原生對話框：積木小幫手二次確認 ================= -->
+  <dialog class="mqst-dialog mqst-confirm-dialog" id="mqst-helper-confirm-dialog" closedby="any" aria-labelledby="mqst-helper-confirm-title">
+    <div class="mqst-dialog-head">
+      <div class="mqst-dialog-title-wrap">
+        <span class="mqst-dialog-ico" aria-hidden="true">🧱</span>
+        <h3 id="mqst-helper-confirm-title">要打開積木小幫手嗎？</h3>
+      </div>
+      <form method="dialog">
+        <button type="submit" class="close-modal-btn" value="cancel" aria-label="取消並關閉確認視窗">✕</button>
+      </form>
+    </div>
+
+    <div class="mqst-dialog-body">
+      <div class="mqst-confirm-notice">
+        <p class="mqst-confirm-lead">使用「小幫手」偷看積木提示會有以下影響喔：</p>
+        <ul class="mqst-confirm-list">
+          <li>⭐ <strong>無法獲得 3 顆星</strong>：本關結算最多只能拿 2 顆星</li>
+          <li>💎 <strong>本題沒有寶石</strong>：這一題答對後不會收集到乘法寶石</li>
+        </ul>
+      </div>
+      <div class="mqst-confirm-partner-tip" id="mqst-helper-confirm-partner-tip" style="display:none;">
+        💡 小提醒：你的守護小精靈還沒施展魔法！也可以改按舞台上的 <strong>「✨ 精靈魔法」</strong>，每關可免費幫忙 1 次且<strong>不扣星、照拿寶石</strong>喔！
+      </div>
+    </div>
+
+    <div class="mqst-dialog-foot mqst-confirm-actions">
+      <form method="dialog" class="mqst-confirm-form">
+        <button type="submit" class="ghost-btn" value="cancel" autofocus>先不要，我再想想</button>
+        <button type="submit" class="primary-btn" value="confirm">確定打開小幫手</button>
+      </form>
+    </div>
+  </dialog>

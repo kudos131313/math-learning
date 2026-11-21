@@ -8,7 +8,7 @@ if (-not (Test-Path $edgePath)) {
 
 $htmlPath = (Resolve-Path "e:\math\tools\icon-canvas.html").Path
 $fileUrl = "file:///" + $htmlPath.Replace("\", "/")
-$out512 = "e:\math\icon-512.png"
+$out512 = "e:\math\public\icon-512.png"
 
 Write-Output "Rendering 512x512 with Edge headless..."
 & $edgePath --headless --screenshot="$out512" --window-size=512,512 --default-background-color=00000000 "$fileUrl"
@@ -43,9 +43,9 @@ function Resize-Image($srcPath, $destPath, $targetWidth, $targetHeight) {
     Write-Output "Generated $destPath ($($targetWidth)x$($targetHeight))"
 }
 
-Resize-Image $out512 "e:\math\apple-touch-icon.png" 180 180
-Resize-Image $out512 "e:\math\icon-192.png" 192 192
-Resize-Image $out512 "e:\math\favicon-32x32.png" 32 32
-Resize-Image $out512 "e:\math\favicon-16x16.png" 16 16
+Resize-Image $out512 "e:\math\public\apple-touch-icon.png" 180 180
+Resize-Image $out512 "e:\math\public\icon-192.png" 192 192
+Resize-Image $out512 "e:\math\public\favicon-32x32.png" 32 32
+Resize-Image $out512 "e:\math\public\favicon-16x16.png" 16 16
 
 Write-Output "All icons generated successfully!"

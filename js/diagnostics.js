@@ -321,7 +321,7 @@
     },
     {
       id: 'external_libs',
-      name: '外部函式庫載入與動態環境檢驗 (Anime.js / Interact.js / Two.js / Lucide / Confetti)',
+      name: '外部函式庫載入與動態環境檢驗 (Anime.js / GSAP / Lucide / Confetti)',
       run: function(){
         var reports = [];
         if(typeof window.anime !== 'undefined'){
@@ -330,16 +330,10 @@
           reports.push('Anime.js 未載入（已啟用 CSS 降級相容模式）');
         }
 
-        if(typeof window.interact !== 'undefined'){
-          reports.push('Interact.js 手勢庫就緒');
+        if(typeof window.gsap !== 'undefined'){
+          reports.push('GSAP 動畫引擎就緒 (v' + (window.gsap.version || '3.x') + ')');
         } else {
-          reports.push('Interact.js 未載入（已啟用點擊操作相容模式）');
-        }
-
-        if(typeof window.Two !== 'undefined'){
-          reports.push('Two.js 向量畫布引擎就緒');
-        } else {
-          reports.push('Two.js 離線環境（SVG 原生引擎運作中）');
+          reports.push('GSAP 動畫引擎未載入（已啟用降級模式）');
         }
 
         if(typeof window.lucide !== 'undefined'){

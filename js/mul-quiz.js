@@ -4,6 +4,15 @@
  * 支援分階關卡 (1·2·5 / 3·4·6 / 7·8·9)、單段自選、逆向填空與倍數概念題
  * ==========================================================================
  */
+import {
+  ONE_FACTOR_WEIGHT,
+  pickWeightedItem,
+  pickFactorB,
+  getPoolByLevel,
+  buildMulQuestion,
+  generateMulChoices
+} from '../src/domain/multiplication.js';
+
 (function(){
   "use strict";
 
@@ -37,52 +46,8 @@
 
   var mqEls = {};
 
-  var storyTemplates = [
-    { icon: '🍎', unit: '盤', item: '顆蘋果' },
-    { icon: '✏️', unit: '盒', item: '枝鉛筆' },
-    { icon: '🍪', unit: '袋', item: '片餅乾' },
-    { icon: '🌸', unit: '朵花，每朵有', item: '片花瓣', flowerMode: true },
-    { icon: '🚗', unit: '輛玩具車，每輛有', item: '個輪子', flowerMode: true }
-  ];
-
-  /* 降低 1 乘法在隨機抽題中的權重（單段專練 1 段時不影響） */
-  var ONE_FACTOR_WEIGHT = 0.15;
-
-  /* 依權重從陣列中隨機抽出一個元素 */
-  function pickWeightedItem(items, weightFn){
-    var total = 0;
-    var weights = [];
-    for(var i = 0; i < items.length; i++){
-      var w = Math.max(0.001, weightFn(items[i]));
-      weights.push(w);
-      total += w;
-    }
-    var r = Math.random() * total;
-    for(var j = 0; j < items.length; j++){
-      r -= weights[j];
-      if(r <= 0) return items[j];
-    }
-    return items[items.length - 1];
-  }
-
-  /* 取得乘數候選值 (1~9)，大幅降低 1 出現機率 */
-  function pickFactorB(){
-    return pickWeightedItem([1, 2, 3, 4, 5, 6, 7, 8, 9], function(n){
-      return n === 1 ? ONE_FACTOR_WEIGHT : 1;
-    });
-  }
-
-  /* 取得指定關卡對應的被乘數候選池 */
-  function getPoolByLevel(level, tableFilter){
-    if(tableFilter !== 'all'){
-      var n = Number(tableFilter);
-      if(n >= 1 && n <= 9) return [n];
-    }
-    if(level === 'basic') return [1, 2, 5];
-    if(level === 'mid')   return [3, 4, 6];
-    if(level === 'hard')  return [7, 8, 9];
-    return [1, 2, 3, 4, 5, 6, 7, 8, 9];
-  }
+  var buildQuestion = buildMulQuestion;
+  var generateChoices = generateMulChoices;
 
   /* 題庫生成演算法 */
   function generateQuestion(level, tableFilter){
@@ -135,167 +100,6 @@
 
     lastSignature = sig;
     return buildQuestion(a, b, qType);
-  }
-
-  /* 依指定 (a, b, qType) 建立標準化題目物件（供測驗與冒險闖關共用） */
-  function buildQuestion(a, b, qType){
-    qType = qType || 'standard';
-    if(qType === 'commutative' && a === b){
-      qType = 'standard';
-    }
-
-    var product = a * b;
-    var mantra = (MathApp.mul && MathApp.mul.getMantra)
-      ? MathApp.mul.getMantra(a, b)
-      : (a + '×' + b + '=' + product);
-
-    var badge = '九九乘法練習';
-    var hint = '想一想 ' + a + ' 的乘法口訣，算出正確答案！';
-    var storyHtml = '';
-    var spokenPrompt = '';
-    var slots = [];
-
-    if(qType === 'standard'){
-      badge = a + ' 的乘法口訣';
-      hint = '每組 ' + a + ' 個，共有 ' + b + ' 組（' + b + ' 個 ' + a + ' 相加）是多少呢？';
-      spokenPrompt = a + ' 乘以 ' + b + ' 等於多少？';
-      slots = [
-        { id: 'ans', expected: product, maxLen: 2, label: '乘積答案' }
-      ];
-    } else if(qType === 'commutative'){
-      badge = '交換律魔法配對';
-      storyHtml = '✨ 交換律魔法：把兩個數字左右交換，積木總數還是一樣多喔！';
-      hint = '想一想：' + b + ' × ' + a + ' 等於 ' + a + ' 乘以多少呢？';
-      spokenPrompt = b + ' 乘以 ' + a + ' 等於 ' + a + ' 乘以多少？';
-      slots = [
-        { id: 'ans', expected: b, maxLen: 1, label: '交換後的乘數' }
-      ];
-    } else if(qType === 'missing_b'){
-      badge = '逆向填空挑戰';
-      hint = '背背看 ' + a + ' 的口訣：' + a + ' 乘以多少會等於 ' + product + ' 呢？';
-      spokenPrompt = a + ' 乘以多少等於 ' + product + '？';
-      slots = [
-        { id: 'ans', expected: b, maxLen: 1, label: '未知乘數' }
-      ];
-    } else if(qType === 'missing_a'){
-      badge = '逆向被乘數挑戰';
-      hint = '想一想：哪一個數字乘以 ' + b + ' 會等於 ' + product + ' 呢？';
-      spokenPrompt = '多少乘以 ' + b + ' 等於 ' + product + '？';
-      slots = [
-        { id: 'ans', expected: a, maxLen: 1, label: '未知被乘數' }
-      ];
-    } else {
-      // concept: 幾個幾倍數概念與連加轉換
-      badge = '幾個幾 · 倍數概念';
-      var tpl = storyTemplates[MathApp.utils.randInt(0, storyTemplates.length - 1)];
-      var addStr = [];
-      for(var i = 0; i < b; i++) addStr.push(a);
-      var repeatedStr = addStr.join(' ＋ ');
-
-      if(tpl.flowerMode){
-        storyHtml = tpl.icon + ' 有 <b>' + b + '</b> ' + tpl.unit + ' <b>' + a + '</b> ' + tpl.item +
-          '<br><span style="font-size:13.5px;color:var(--ink-soft);">（連加算式：' + repeatedStr + ' ＝ <b>' + b + ' 個 ' + a + '</b>，也就是 <b>' + a + ' 的 ' + b + ' 倍</b>）</span>';
-      } else {
-        storyHtml = tpl.icon + ' 每' + tpl.unit + '有 <b>' + a + '</b> ' + tpl.item + '，共有 <b>' + b + '</b> ' + tpl.unit +
-          '<br><span style="font-size:13.5px;color:var(--ink-soft);">（連加算式：' + repeatedStr + ' ＝ <b>' + b + ' 個 ' + a + '</b>，也就是 <b>' + a + ' 的 ' + b + ' 倍</b>）</span>';
-      }
-      hint = '請填入乘數（共有幾組）與最後的總數！';
-      spokenPrompt = '每組有 ' + a + ' 個，共有 ' + b + ' 組，也就是 ' + b + ' 個 ' + a + ' 相加，寫成乘法算式是 ' + a + ' 乘以多少，等於多少？';
-      slots = [
-        { id: 'slot_b', expected: b, maxLen: 1, label: '乘數（幾組）' },
-        { id: 'slot_p', expected: product, maxLen: 2, label: '總數乘積' }
-      ];
-    }
-
-    return {
-      a: a,
-      b: b,
-      product: product,
-      qType: qType,
-      mantra: mantra,
-      badge: badge,
-      hint: hint,
-      storyHtml: storyHtml,
-      spokenPrompt: spokenPrompt,
-      slots: slots
-    };
-  }
-
-  /* 產生 4 顆選擇題氣泡選項（含相鄰口訣與加減混淆誘答，絕不重複） */
-  function generateChoices(q, count){
-    count = count || 4;
-    if(!q || !q.slots || q.slots.length !== 1) return [];
-    var target = q.slots[0].expected;
-    var candidates = [];
-
-    function pushCand(val){
-      if(typeof val !== 'number' || isNaN(val)) return;
-      if(val <= 0 || val > 81) return;
-      if(val === target) return;
-      if(candidates.indexOf(val) === -1) candidates.push(val);
-    }
-
-    if(q.qType === 'commutative'){
-      // 交換律對等填空：優先納入被交換的數 a、誤填乘積 a*b 及鄰近數
-      pushCand(q.a);
-      pushCand(q.product);
-      pushCand(target - 1);
-      pushCand(target + 1);
-      pushCand(target + 2);
-      for(var cn = 1; cn <= 9; cn++){
-        if(candidates.length >= 6) break;
-        pushCand(cn);
-      }
-    } else if(q.qType === 'missing_a' || q.qType === 'missing_b'){
-      // 未知乘數或被乘數 (1~9)
-      pushCand(target - 1);
-      pushCand(target + 1);
-      pushCand(target - 2);
-      pushCand(target + 2);
-      for(var n = 1; n <= 9; n++){
-        if(candidates.length >= 6) break;
-        pushCand(n);
-      }
-    } else {
-      // 乘積答案：優先納入相鄰口訣、加減混淆與十位/個位易錯數
-      pushCand(q.a * (q.b + 1));
-      pushCand(q.a * (q.b - 1));
-      pushCand((q.a + 1) * q.b);
-      pushCand((q.a - 1) * q.b);
-      pushCand(q.a + q.b);
-      pushCand(target + 10);
-      pushCand(target - 10);
-      pushCand(target + 2);
-      pushCand(target - 2);
-      pushCand(target + 1);
-      pushCand(target - 1);
-    }
-
-    // 洗牌誘答池，取前 count - 1 個
-    for(var i = candidates.length - 1; i > 0; i--){
-      var j = MathApp.utils.randInt(0, i);
-      var tmp = candidates[i];
-      candidates[i] = candidates[j];
-      candidates[j] = tmp;
-    }
-
-    var options = [target];
-    for(var k = 0; k < candidates.length && options.length < count; k++){
-      options.push(candidates[k]);
-    }
-    while(options.length < count){
-      var fallback = MathApp.utils.randInt(1, 81);
-      if(options.indexOf(fallback) === -1) options.push(fallback);
-    }
-
-    // 最後再次洗牌所有選項
-    for(var m = options.length - 1; m > 0; m--){
-      var r = MathApp.utils.randInt(0, m);
-      var swap = options[m];
-      options[m] = options[r];
-      options[r] = swap;
-    }
-    return options;
   }
 
   /* 驗證題目答案（供自檢與答題判定共用） */

@@ -1,0 +1,24 @@
+{
+  "name": "math-learning",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "數字積木屋｜國小數學概念探索與運算思維教室",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "test": "vitest run",
+    "test:watch": "vitest"
+  },
+  "dependencies": {
+    "animejs": "^3.2.2",
+    "canvas-confetti": "^1.9.4",
+    "gsap": "^3.15.1",
+    "lucide": "^1.77.0"
+  },
+  "devDependencies": {
+    "vite": "^8.3.8",
+    "vitest": "^3.2.7"
+  }
+}

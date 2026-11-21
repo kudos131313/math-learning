@@ -4,12 +4,13 @@
  * 結合 9x9 互動百寶矩陣、方陣面積框選、「幾個幾」分組連加與十進位積木合成
  * ==========================================================================
  */
+import { CN_DIGITS, getMantra, getSpokenExplanation } from '../src/domain/multiplication.js';
+
 (function(){
   "use strict";
 
   var MathApp = window.MathApp = window.MathApp || {};
-
-  var cnDigits = ['零','一','二','三','四','五','六','七','八','九'];
+  var cnDigits = CN_DIGITS;
 
   /* 探索台核心數學與互動狀態 */
   var state = {
@@ -22,30 +23,6 @@
   };
 
   var els = {};
-
-  /* 取得臺灣國小九九乘法口訣（依序：被乘數 a、乘數 b、積 a*b） */
-  function getMantra(a, b){
-    var p = a * b;
-    var prefix = (cnDigits[a] || a) + (cnDigits[b] || b);
-    if(p < 10){
-      return prefix + '得' + cnDigits[p];
-    }
-    if(p === 10){
-      return prefix + '得十';
-    }
-    return prefix + MathApp.utils.numberToChinese(p);
-  }
-
-  /* 產生口語朗讀字串 */
-  function getSpokenExplanation(a, b, shortOnly){
-    var p = a * b;
-    var mantra = getMantra(a, b);
-    if(shortOnly){
-      return mantra + '，' + a + ' 乘以 ' + b + ' 等於 ' + p;
-    }
-    return mantra + '。' + a + ' 乘以 ' + b + ' 等於 ' + p +
-      '，代表每組 ' + a + ' 個，共有 ' + b + ' 組，也就是 ' + b + ' 個 ' + a + ' 相加等於 ' + p + '。';
-  }
 
   /* 綁定 DOM 參考 */
   function cacheDom(){

@@ -1,0 +1,202 @@
+  <!-- ================= 單元 2：數的規律與跳數 (SEQUENCE & SKIP COUNTING) ================= -->
+  <div class="tab-panel" id="panel-seq" role="tabpanel" aria-labelledby="main-tab-seq">
+    <!-- 單元內部子分頁切換列 -->
+    <div class="unit-sub-nav">
+      <div class="unit-sub-tabs" role="tablist" aria-label="數的規律單元子分頁">
+        <button class="unit-sub-tab active" id="subtab-seq-learn" type="button" role="tab" aria-selected="true" aria-controls="subpanel-seq-learn"><i data-lucide="sparkles"></i>規律探索列車</button>
+        <button class="unit-sub-tab" id="subtab-seq-quiz" type="button" role="tab" aria-selected="false" aria-controls="subpanel-seq-quiz"><i data-lucide="award"></i>規律神探挑戰賽</button>
+      </div>
+    </div>
+
+    <!-- 子分頁 1：規律探索列車（動手玩概念） -->
+    <div class="sub-panel active" id="subpanel-seq-learn" role="tabpanel" aria-labelledby="subtab-seq-learn">
+      <section class="seq-card">
+        <div class="seq-header">
+          <h2><i data-lucide="train-front"></i> 數的規律與跳數列車</h2>
+          <p class="sub">看懂數字跳躍的節奏！觀察十位、百位在進退位時的奧秘，跨百跨十再也不卡關！</p>
+        </div>
+
+        <!-- 步長與模式控制台 -->
+        <div class="seq-control-deck">
+          <div class="seq-control-row">
+            <div class="seq-control-label"><i data-lucide="settings-2"></i> 選擇跳數規則（步長）：</div>
+            <div class="seq-step-pills">
+              <button class="step-pill active" type="button" data-step="10"><i data-lucide="plus"></i> 10 個 10 個數</button>
+              <button class="step-pill" type="button" data-step="-10"><i data-lucide="minus"></i> 10 個 10 個倒數</button>
+              <button class="step-pill" type="button" data-step="1"><i data-lucide="plus"></i> 1 個 1 個數</button>
+              <button class="step-pill" type="button" data-step="-1"><i data-lucide="minus"></i> 1 個 1 個倒數</button>
+              <div class="seq-custom-step-item" id="seq-custom-step-group">
+                <label for="seq-custom-step-input" class="seq-custom-label"><i data-lucide="sliders"></i> 自訂間隔：</label>
+                <input type="number" id="seq-custom-step-input" class="seq-custom-step-input" value="5" min="-999" max="999" placeholder="步長">
+                <button class="step-pill-custom-apply" id="seq-custom-step-btn" type="button"><i data-lucide="check"></i> 套用</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="seq-control-row">
+            <div class="seq-control-label"><i data-lucide="map-pin"></i> 設定起點數字：</div>
+            <div class="seq-start-input-group">
+              <label for="seq-start-input">從哪個數開始：</label>
+              <input type="number" id="seq-start-input" class="seq-number-input" value="189" min="0" max="999">
+              <button class="ghost-btn small" id="seq-apply-start-btn" type="button"><i data-lucide="check"></i> 設定起點</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- 動態列車車廂軌道 -->
+        <div class="seq-train-stage">
+          <div class="seq-train-track" id="seq-train-track">
+            <!-- 由 JavaScript 動態注入 7 節車廂與跳數連接符 -->
+          </div>
+        </div>
+
+        <!-- 列車導航按鈕 -->
+        <div class="seq-nav-controls">
+          <button class="seq-nav-btn secondary" id="seq-prev-btn" type="button"><i data-lucide="chevron-left"></i> 倒退一步</button>
+          <button class="seq-nav-btn primary" id="seq-play-btn" type="button"><i data-lucide="play"></i> 自動播放</button>
+          <button class="seq-nav-btn secondary" id="seq-next-btn-step" type="button">前進一步 <i data-lucide="chevron-right"></i></button>
+        </div>
+
+        <!-- 規律透視與積木同步展示卡 -->
+        <div class="seq-inspect-card">
+          <div class="seq-tip-banner" id="seq-tip-banner">
+            <div class="seq-tip-icon" id="seq-tip-icon">💡</div>
+            <div class="seq-tip-content">
+              <div class="seq-tip-title" id="seq-tip-title">規律透視分析中...</div>
+              <div class="seq-tip-body" id="seq-tip-body">觀察前後數字的變化，找出哪一個位數在跳步！</div>
+            </div>
+          </div>
+
+          <!-- 積木實況連動區 -->
+          <div class="seq-blocks-view">
+            <div class="seq-block-col col-h">
+              <div class="seq-block-col-head"><i data-lucide="square"></i> 百位 (100)</div>
+              <div class="seq-block-container" id="seq-blocks-h"></div>
+              <div class="count-tag" id="seq-count-h">0 片百格板</div>
+            </div>
+            <div class="seq-block-col col-t">
+              <div class="seq-block-col-head"><i data-lucide="columns-2"></i> 十位 (10)</div>
+              <div class="seq-block-container" id="seq-blocks-t"></div>
+              <div class="count-tag" id="seq-count-t">0 根十格條</div>
+            </div>
+            <div class="seq-block-col col-o">
+              <div class="seq-block-col-head"><i data-lucide="circle"></i> 個位 (1)</div>
+              <div class="seq-block-container" id="seq-blocks-o"></div>
+              <div class="count-tag" id="seq-count-o">0 顆小積木</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- P3: 百數表二維空間地圖聯動模組 -->
+        <div class="hundred-chart-section" id="hundred-chart-section">
+          <div class="chart-header-row">
+            <div class="chart-title-group">
+              <i data-lucide="grid"></i>
+              <span>百數表空間地圖（二維座標透視）</span>
+            </div>
+            <div class="chart-range-pills" id="chart-range-pills">
+              <button class="chart-range-btn" type="button" data-range="1">1 ~ 100</button>
+              <button class="chart-range-btn active" type="button" data-range="101">101 ~ 200</button>
+              <button class="chart-range-btn" type="button" data-range="201">201 ~ 300</button>
+              <button class="chart-range-btn" type="button" data-range="901">901 ~ 1000</button>
+            </div>
+            <button class="chart-toggle-btn" id="chart-toggle-btn" type="button">
+              <i data-lucide="chevron-up"></i><span id="chart-toggle-text">收合地圖</span>
+            </button>
+          </div>
+
+          <!-- 十字指針口訣指南 -->
+          <div class="chart-compass-bar">
+            <span class="compass-chip">➡️ <b>向右＋1</b>（個位增 1）</span>
+            <span class="compass-chip">⬅️ <b>向左－1</b>（個位減 1）</span>
+            <span class="compass-chip">⬇️ <b>向下＋10</b>（十位增 1，個位完全相同！）</span>
+            <span class="compass-chip">⬆️ <b>向上－10</b>（十位減 1，個位完全相同！）</span>
+          </div>
+
+          <!-- 10x10 網格容器 -->
+          <div class="hundred-chart-grid-wrap" id="hundred-chart-wrap">
+            <div class="hundred-chart-grid" id="hundred-chart-grid"></div>
+          </div>
+        </div>
+      </section>
+    </div><!-- /#subpanel-seq-learn -->
+
+    <!-- 子分頁 2：規律神探挑戰賽（考卷題型實戰） -->
+    <div class="sub-panel" id="subpanel-seq-quiz" role="tabpanel" aria-labelledby="subtab-seq-quiz">
+      <section class="seq-quiz-card">
+        <!-- 關卡選擇器 -->
+        <div class="seq-level-selector">
+          <button class="level-pill active" type="button" data-mode="count1"><i data-lucide="target"></i> 1個1個數（跨十跨百）</button>
+          <button class="level-pill" type="button" data-mode="count10"><i data-lucide="zap"></i> 10個10個數（跨百進退位）</button>
+          <button class="level-pill" type="button" data-mode="count5"><i data-lucide="clock"></i> 5個5個數（時鐘與錢幣）</button>
+          <button class="level-pill" type="button" data-mode="count2"><i data-lucide="footprints"></i> 2個2個數（雙數跳步）</button>
+          <button class="level-pill" type="button" data-mode="mystery"><i data-lucide="help-circle"></i> 盲猜步長神探題</button>
+          <button class="level-pill" type="button" data-mode="mix"><i data-lucide="dices"></i> 百數神探大挑戰</button>
+        </div>
+
+        <!-- 考卷題卡板面 -->
+        <div class="paper-quiz-board">
+          <div class="paper-meta-row">
+            <div class="paper-title" id="paper-title-text"><i data-lucide="award"></i> 規律神探挑戰</div>
+            <div class="paper-stats" id="paper-score-stats">累積答對：0 題 / 總作答：0 次</div>
+          </div>
+
+          <!-- 盲猜步長互動區 (P4) -->
+          <div class="mystery-card" id="seq-mystery-card" style="display: none;">
+            <div class="mystery-title" id="seq-mystery-title">🕵️ 步驟 1：請觀察已知數字前後變化，猜猜看每次是跳多少？</div>
+            <div class="mystery-options" id="seq-mystery-options"></div>
+          </div>
+
+          <!-- 考卷方格排版 -->
+          <div class="paper-slots-row" id="paper-slots-row">
+            <!-- 由 JavaScript 注入題目卡片與空白輸入框 -->
+          </div>
+
+          <!-- 救生圈小幫手列 -->
+          <div class="paper-rescue-toolbar">
+            <div style="display:flex; gap:8px; flex-wrap:wrap;">
+              <button class="rescue-btn detect-btn" id="seq-rescue-hint-btn" type="button"><i data-lucide="search"></i> 偵探找規律提示</button>
+              <button class="rescue-btn" id="seq-rescue-helper-btn" type="button"><i data-lucide="blocks"></i> 呼叫積木小幫手</button>
+            </div>
+            <button class="rescue-btn" id="seq-rescue-reveal-btn" type="button"><i data-lucide="help-circle"></i> 看解答</button>
+          </div>
+
+          <!-- 偵探提示動態視窗 -->
+          <div class="detective-analysis-card" id="detective-analysis-card" style="display: none;">
+            <div class="detective-avatar">🕵️</div>
+            <div class="detective-msg-wrap">
+              <div class="detective-msg-title" id="detective-msg-title">神探分析中...</div>
+              <div class="detective-msg-body" id="detective-msg-body"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 螢幕大按鍵虛擬鍵盤（由 JS createNumpad 工廠函式動態填入） -->
+        <div class="seq-numpad-wrap">
+          <div id="seq-virtual-keypad"></div>
+
+          <!-- 底部答題操作列 -->
+          <div class="seq-action-bar">
+            <button class="seq-check-btn" id="seq-quiz-check-btn" type="button"><i data-lucide="check-circle-2"></i> 檢查答案</button>
+            <button class="seq-next-btn" id="seq-quiz-next-btn" type="button">下一題 <i data-lucide="arrow-right"></i></button>
+          </div>
+        </div>
+      </section>
+    </div><!-- /#subpanel-seq-quiz -->
+
+    <!-- 積木小幫手彈窗 -->
+    <div class="modal-backdrop" id="seq-helper-modal" style="display: none;" role="dialog" aria-modal="true" aria-labelledby="seq-helper-title">
+      <div class="modal-dialog">
+        <div class="modal-head">
+          <div class="modal-title-group">
+            <span class="diag-icon" style="background:#ccfbf1; color:#0f766e;"><i data-lucide="blocks"></i></span>
+            <h3 id="seq-helper-title">積木小幫手</h3>
+          </div>
+          <button class="close-modal-btn" id="close-seq-helper-btn" type="button" aria-label="關閉小幫手">✕</button>
+        </div>
+        <div class="modal-body" id="seq-helper-body">
+          <!-- 動態載入積木 -->
+        </div>
+      </div>
+    </div>
+  </div><!-- /#panel-seq -->
