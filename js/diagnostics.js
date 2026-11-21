@@ -226,8 +226,8 @@
           'display', 'count-th', 'count-h', 'count-t', 'count-o',
           'blocks-th', 'blocks-h', 'blocks-t', 'blocks-o',
           'minus-th', 'plus-th', 'minus-h', 'plus-h', 'minus-t', 'plus-t', 'minus-o', 'plus-o',
-          'main-tab-learn', 'main-tab-seq', 'main-tab-calc',
-          'panel-learn', 'panel-seq', 'panel-calc',
+          'main-tab-learn', 'main-tab-seq', 'main-tab-calc', 'main-tab-mul', 'main-tab-quest',
+          'panel-learn', 'panel-seq', 'panel-calc', 'panel-mul', 'panel-quest',
           'subtab-pv-learn', 'subtab-pv-quiz', 'subpanel-pv-learn', 'subpanel-pv-quiz',
           'subtab-seq-learn', 'subtab-seq-quiz', 'subpanel-seq-learn', 'subpanel-seq-quiz',
           'seq-train-track', 'paper-slots-row', 'seq-quiz-check-btn',
@@ -246,7 +246,7 @@
         if(missing.length > 0){
           throw new Error('缺少必要 DOM 元素: ' + missing.join(', '));
         }
-        return '53 個關鍵頁面元件、三大單元導覽列、規律跳數舞台、考卷題卡與自測節點全數就緒';
+        return '55 個關鍵頁面元件、五大單元導覽列、規律跳數舞台、考卷題卡與自測節點全數就緒';
       }
     },
     {
@@ -523,17 +523,18 @@
     },
     {
       id: 'mul_quest_engine',
-      name: '九九乘法冒險闖關與選擇題誘答引擎 (Multiplication Quest)',
+      name: '數學冒險島海域架構與選擇題誘答引擎 (Adventure Quest Engine)',
       run: function(){
         if(!MathApp.mulQuest || !MathApp.mulQuiz.generateChoices){
           throw new Error('未找到 MathApp.mulQuest 或 MathApp.mulQuiz.generateChoices 函式');
         }
+        var realms = MathApp.mulQuest.getRealms ? MathApp.mulQuest.getRealms() : [];
         var islands = MathApp.mulQuest.getIslands();
         var stages = MathApp.mulQuest.getStages();
         var badges = MathApp.mulQuest.getBadges();
         var costumes = MathApp.mulQuest.getCostumes ? MathApp.mulQuest.getCostumes() : [];
-        if(islands.length !== 5 || stages.length !== 15 || badges.length !== 10 || costumes.length !== 8){
-          throw new Error('關卡或圖鑑設定數量異常：島嶼=' + islands.length + ' 關卡=' + stages.length + ' 徽章=' + badges.length + ' 造型=' + costumes.length);
+        if(realms.length !== 3 || islands.length !== 5 || stages.length !== 15 || badges.length !== 10 || costumes.length !== 8){
+          throw new Error('海域或關卡設定數量異常：海域=' + realms.length + ' 島嶼=' + islands.length + ' 關卡=' + stages.length + ' 徽章=' + badges.length + ' 造型=' + costumes.length);
         }
 
         // 驗證每一關題庫產生與選擇題誘答選項不重複且包含正解

@@ -3,7 +3,7 @@
     <div class="mqst-dialog-head">
       <div class="mqst-dialog-title-wrap">
         <span class="mqst-dialog-ico" aria-hidden="true">✨</span>
-        <h3 id="mqst-dex-title">我的乘法榮譽圖鑑</h3>
+        <h3 id="mqst-dex-title">我的數學冒險圖鑑</h3>
       </div>
       <form method="dialog">
         <button type="submit" class="close-modal-btn" value="close" aria-label="關閉榮譽圖鑑" autofocus>✕</button>
@@ -47,6 +47,21 @@
           </div>
           <button type="button" class="mqst-switch-btn" id="mqst-preview-toggle-btn" aria-pressed="false">未開啟</button>
         </div>
+      </div>
+
+      <div class="mqst-parent-card">
+        <h4>📦 冒險進度備份（匯出／匯入）</h4>
+        <p>可把目前所有的星星、星星幣、81 格寶石牆與守護精靈存成檔案備份，換平版或清除瀏覽器資料後也能一鍵還原。</p>
+        <div class="mqst-backup-actions">
+          <button type="button" class="mqst-tool-btn mqst-backup-btn" id="mqst-export-save-btn">
+            <span aria-hidden="true">⬇️</span><span>匯出進度檔（JSON）</span>
+          </button>
+          <input type="file" id="mqst-import-save-input" name="backupFile" accept="application/json,.json" class="visually-hidden">
+          <label for="mqst-import-save-input" class="mqst-tool-btn mqst-backup-btn mqst-backup-upload-label" tabindex="0">
+            <span aria-hidden="true">⬆️</span><span>匯入進度檔（JSON）</span>
+          </label>
+        </div>
+        <p class="mqst-parent-status mqst-backup-status" id="mqst-backup-feedback" role="status" aria-live="polite"></p>
       </div>
 
       <div class="mqst-parent-card mqst-danger-card">

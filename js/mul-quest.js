@@ -1,28 +1,41 @@
 /**
  * ==========================================================================
- * 單元 4 子分頁 3：九九乘法冒險闖關模組（全螢幕繪本小遊戲版）
- * 支援全螢幕遊戲機台、16:9 五島世界大地圖、粉紅小兔主角跳躍尋路、
- * 繪本戰鬥劇場、彩色玩具按鍵盤、懸浮積木泡泡、81 格寶石牆與守護小精靈
+ * 單元 5：數學冒險島模組（全螢幕多海域繪本遊戲版）
+ * 支援獨立主分頁啟動、三層世界架構（海域→島嶼→關卡）、v1→v2 無縫存檔遷移、
+ * 跨題型結構化救援案件、單一星星幣帳本與家長 JSON 進度備份
  * ==========================================================================
  */
 import {
   STORAGE_KEY,
+  STORAGE_KEY_V2,
+  REALMS,
   ISLANDS,
   STAGES,
   BADGES,
   BUNNY_COSTUMES,
   FINISHER_DEFS,
   FINISHER_KEYS,
+  getRealmById,
   getIslandById,
   getStageById,
+  getStagesByRealm,
   getCostumeById,
+  toCanonicalPartnerId,
+  LEGACY_COSTUME_MIGRATION_MAP,
   findRecommendedStageForTable
 } from '../src/domain/quest-data.js';
 import {
-  createDefaultSave,
-  normalizeSaveData,
+  createDefaultSaveV2,
+  normalizeSaveDataV2,
+  migrateV1ToV2,
+  getLocalDateKey,
+  getStageStars,
+  setStageStars,
+  isRealmUnlocked,
+  getRealmUnlockProgress,
   isStageUnlocked as checkStageUnlocked,
   getNextPlayableStageId as findNextPlayableStageId,
+  getActivePartnerId,
   countTotalStars as countQuestTotalStars,
   countLitGems as countQuestLitGems,
   countUnlockedSprites as countQuestUnlockedSprites,
@@ -30,6 +43,12 @@ import {
   countUnlockedCostumes as countQuestUnlockedCostumes,
   evaluateUnlockedBadges,
   evaluateUnlockedCostumes,
+  createRescueCaseFromQuestion,
+  enqueueRescueCase,
+  removeRescueCase,
+  calculateStageCoinReward,
+  serializeBackupPayload,
+  parseAndValidateBackupJson,
   buildStageQuestions as buildQuestStageQuestions,
   buildRescueQuestions as buildQuestRescueQuestions,
   getCollectableUnlitGems as findCollectableUnlitGems,
@@ -52,20 +71,33 @@ import { createQuestDialogs } from '../src/quest/dialogs.js';
     return renderPinkBunnySvg(mood, costumeId || getActiveCostumeId());
   }
 
-  /* ---------------- 存檔管理 ---------------- */
+  /* ---------------- 存檔管理（v2 讀取 ＋ v1 自動無縫遷移） ---------------- */
+  var migratedWelcomeCoins = 0;
+
   function loadSave(){
     try {
-      var raw = localStorage.getItem(STORAGE_KEY);
-      if(!raw) return createDefaultSave();
-      return normalizeSaveData(JSON.parse(raw));
+      var rawV2 = localStorage.getItem(STORAGE_KEY_V2);
+      if(rawV2){
+        return normalizeSaveDataV2(JSON.parse(rawV2));
+      }
+      var rawV1 = localStorage.getItem(STORAGE_KEY);
+      if(rawV1){
+        var migrated = migrateV1ToV2(JSON.parse(rawV1));
+        localStorage.setItem(STORAGE_KEY_V2, JSON.stringify(migrated));
+        if(migrated.starCoins > 0){
+          migratedWelcomeCoins = migrated.starCoins;
+        }
+        return migrated;
+      }
+      return createDefaultSaveV2();
     } catch(e){
-      return createDefaultSave();
+      return createDefaultSaveV2();
     }
   }
 
   function persistSave(){
     try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(saveData));
+      localStorage.setItem(STORAGE_KEY_V2, JSON.stringify(saveData));
     } catch(e){}
   }
 
@@ -88,6 +120,8 @@ import { createQuestDialogs } from '../src/quest/dialogs.js';
     usedHelperOnCurrent: false,
     usedHelperInStage: false,
     newGemsThisRun: [],
+    earnedCoinsThisRun: 0,
+    rescuedThisRun: 0,
     locked: false,
     enemyHp: 0,
     enemyMaxHp: 0,
@@ -143,14 +177,9 @@ import { createQuestDialogs } from '../src/quest/dialogs.js';
   }
 
   function getActivePartnerIsland(){
-    if(!saveData.activePartner) return null;
-    for(var i = 0; i < ISLANDS.length; i++){
-      var isl = ISLANDS[i];
-      if(isl.id === saveData.activePartner && Number(saveData.stageStars[isl.bossStageId] || 0) >= 1){
-        return isl;
-      }
-    }
-    return null;
+    var activeId = getActivePartnerId(saveData);
+    if(!activeId) return null;
+    return getIslandById(activeId);
   }
 
   function clearSpeakTimer(){
@@ -196,10 +225,10 @@ import { createQuestDialogs } from '../src/quest/dialogs.js';
 
   /* ---------------- 查詢輔助 ---------------- */
   function isStageUnlocked(stageId){ return checkStageUnlocked(stageId, saveData); }
-  function getNextPlayableStageId(){ return findNextPlayableStageId(saveData); }
-  function countTotalStars(){ return countQuestTotalStars(saveData); }
+  function getNextPlayableStageId(realmId){ return findNextPlayableStageId(saveData, realmId || saveData.activeRealm || 'mul'); }
+  function countTotalStars(realmId){ return countQuestTotalStars(saveData, realmId); }
   function countLitGems(){ return countQuestLitGems(saveData); }
-  function countUnlockedSprites(){ return countQuestUnlockedSprites(saveData); }
+  function countUnlockedSprites(realmId){ return countQuestUnlockedSprites(saveData, realmId); }
   function getActiveCostumeId(){ return resolveActiveCostumeId(saveData); }
   function countUnlockedCostumes(){ return countQuestUnlockedCostumes(saveData); }
 
@@ -216,6 +245,15 @@ import { createQuestDialogs } from '../src/quest/dialogs.js';
     var newlyUnlocked = evaluateUnlockedCostumes(saveData);
     newlyUnlocked.forEach(function(c){
       saveData.unlockedCostumes[c.id] = true;
+      var mapped = LEGACY_COSTUME_MIGRATION_MAP[c.id];
+      if(mapped && saveData.wardrobe && saveData.wardrobe.unlocked){
+        if(mapped.hat && saveData.wardrobe.unlocked.hat.indexOf(mapped.hat) === -1){
+          saveData.wardrobe.unlocked.hat.push(mapped.hat);
+        }
+        if(mapped.outfit && saveData.wardrobe.unlocked.outfit.indexOf(mapped.outfit) === -1){
+          saveData.wardrobe.unlocked.outfit.push(mapped.outfit);
+        }
+      }
     });
     if(newlyUnlocked.length > 0 && !silent){
       saveData.hasNewCostume = true;
@@ -244,7 +282,7 @@ import { createQuestDialogs } from '../src/quest/dialogs.js';
   }
 
   function buildRescueQuestions(){
-    return buildQuestRescueQuestions(saveData.rescueQueue);
+    return buildQuestRescueQuestions(saveData.rescueCases);
   }
 
   function getCollectableUnlitGems(){
@@ -273,9 +311,13 @@ import { createQuestDialogs } from '../src/quest/dialogs.js';
   function cacheDom(){
     els.launcherBunny  = document.getElementById('mqst-launcher-bunny');
     els.launchStars    = document.getElementById('mqst-launch-stars');
+    els.launchStarsMax = document.getElementById('mqst-launch-stars-max');
+    els.launchCoins    = document.getElementById('mqst-launch-coins');
     els.launchGems     = document.getElementById('mqst-launch-gems');
     els.launchSprites  = document.getElementById('mqst-launch-sprites');
+    els.launchSpritesMax = document.getElementById('mqst-launch-sprites-max');
     els.launchCostumes = document.getElementById('mqst-launch-costumes');
+    els.launcherRealms = document.getElementById('mqst-launcher-realms');
     els.enterArcadeBtn = document.getElementById('mqst-enter-arcade-btn');
     els.arcadeOverlay  = document.getElementById('mqst-arcade-overlay');
     els.exitArcadeBtn  = document.getElementById('mqst-exit-arcade-btn');
@@ -283,8 +325,11 @@ import { createQuestDialogs } from '../src/quest/dialogs.js';
 
     els.hudAvatar      = document.getElementById('mqst-hud-avatar');
     els.totalStars     = document.getElementById('mqst-total-stars');
+    els.totalStarsMax  = document.getElementById('mqst-total-stars-max');
+    els.coinCount      = document.getElementById('mqst-coin-count');
     els.gemCount       = document.getElementById('mqst-gem-count');
     els.spriteCount    = document.getElementById('mqst-sprite-count');
+    els.spriteCountMax = document.getElementById('mqst-sprite-count-max');
     els.rescueBtn      = document.getElementById('mqst-rescue-btn');
     els.rescueCount    = document.getElementById('mqst-rescue-count');
     els.openWardrobeBtn= document.getElementById('mqst-open-wardrobe-btn');
@@ -298,9 +343,12 @@ import { createQuestDialogs } from '../src/quest/dialogs.js';
     els.dlgVoiceBtn    = document.getElementById('mqst-dlg-voice-btn');
 
     els.mapView        = document.getElementById('mqst-map-view');
+    els.realmTabs      = document.getElementById('mqst-realm-tabs');
     els.previewBadge   = document.getElementById('mqst-preview-badge');
     els.worldViewport  = document.getElementById('mqst-world-viewport');
     els.worldCanvas    = document.getElementById('mqst-world-canvas');
+    els.worldBg        = document.getElementById('mqst-world-bg');
+    els.realmPreviewStage = document.getElementById('mqst-realm-preview-stage');
     els.pathSvg        = document.getElementById('mqst-path-svg');
     els.islandSigns    = document.getElementById('mqst-island-signs');
     els.islandsGrid    = document.getElementById('mqst-islands-grid');
@@ -384,6 +432,7 @@ import { createQuestDialogs } from '../src/quest/dialogs.js';
     els.resultSub      = document.getElementById('mqst-result-sub');
     els.unlockShowcase = document.getElementById('mqst-unlock-showcase');
     els.resFirstAcc    = document.getElementById('mqst-res-first-acc');
+    els.resCoins       = document.getElementById('mqst-res-coins');
     els.resNewGems     = document.getElementById('mqst-res-new-gems');
     els.resMaxCombo    = document.getElementById('mqst-res-max-combo');
     els.resNextBtn     = document.getElementById('mqst-res-next-btn');
@@ -399,6 +448,9 @@ import { createQuestDialogs } from '../src/quest/dialogs.js';
     els.parentDialog   = document.getElementById('mqst-parent-dialog');
     els.previewToggle  = document.getElementById('mqst-preview-toggle-btn');
     els.previewStatusMsg = document.getElementById('mqst-preview-status-msg');
+    els.exportSaveBtn  = document.getElementById('mqst-export-save-btn');
+    els.importSaveInput= document.getElementById('mqst-import-save-input');
+    els.backupFeedback = document.getElementById('mqst-backup-feedback');
     els.parentLockBox  = document.getElementById('mqst-parent-lock-box');
     els.parentLockQ    = document.getElementById('mqst-parent-lock-q');
     els.parentLockIn   = document.getElementById('mqst-parent-lock-input');
@@ -437,15 +489,26 @@ import { createQuestDialogs } from '../src/quest/dialogs.js';
 
   function openArcade(){
     if(!els.arcadeOverlay) return;
+    var hostPanel = document.getElementById('panel-quest');
+    if(hostPanel) hostPanel.classList.add('quest-arcade-active');
     session.arcadeOpen = true;
     els.arcadeOverlay.classList.add('is-open');
     els.arcadeOverlay.setAttribute('aria-hidden', 'false');
     syncAudioButtons();
     showView('map');
+    if(migratedWelcomeCoins > 0){
+      var welcomeMsg = '🎉 歡迎回到數學冒險島！已保留你的全部乘法進度，並贈送 ' + migratedWelcomeCoins + ' 枚歡迎星星幣！';
+      migratedWelcomeCoins = 0;
+      if(MathApp.utils && MathApp.utils.showToast){
+        MathApp.utils.showToast(welcomeMsg);
+      }
+    }
   }
 
   function closeArcade(){
     if(!els.arcadeOverlay) return;
+    var hostPanel = document.getElementById('panel-quest');
+    if(hostPanel) hostPanel.classList.remove('quest-arcade-active');
     clearSpeakTimer();
     stopBattleIdleAnims();
     if(bunnyIdleTween){ bunnyIdleTween.kill(); bunnyIdleTween = null; }
@@ -459,25 +522,57 @@ import { createQuestDialogs } from '../src/quest/dialogs.js';
     updateHubStats();
   }
 
+  function renderLauncherRealms(){
+    if(!els.launcherRealms) return;
+    var activeRealmId = saveData.activeRealm || 'mul';
+    var html = '';
+    REALMS.forEach(function(realm){
+      var isAct = (realm.id === activeRealmId);
+      var isSoon = (realm.status !== 'active');
+      var unlocked = isRealmUnlocked(realm.id, saveData);
+      var tagText = isSoon
+        ? (realm.releaseNote || '即將啟航')
+        : (unlocked ? '可挑戰' : '待解鎖');
+      html += '<button type="button" class="mqst-launch-realm-btn' +
+        (isAct ? ' is-active' : '') +
+        (isSoon ? ' is-soon' : '') +
+        '" data-launch-realm="' + realm.id + '">' +
+        '<span aria-hidden="true">' + realm.icon + '</span>' +
+        '<span>' + realm.shortTitle + '</span>' +
+        '<span class="mqst-launch-realm-tag">' + tagText + '</span>' +
+        '</button>';
+    });
+    els.launcherRealms.innerHTML = html;
+  }
+
   function updateHubStats(){
+    var maxStars = STAGES.length * 3;
+    var maxSprites = ISLANDS.length;
     var stars = countTotalStars();
+    var coins = Number(saveData.starCoins || 0);
     var gems = countLitGems();
     var sprites = countUnlockedSprites();
     var costumes = countUnlockedCostumes();
 
-    if(els.totalStars)     els.totalStars.textContent     = String(stars);
-    if(els.gemCount)       els.gemCount.textContent       = String(gems);
-    if(els.spriteCount)    els.spriteCount.textContent    = String(sprites);
-    if(els.launchStars)    els.launchStars.textContent    = String(stars);
-    if(els.launchGems)     els.launchGems.textContent     = String(gems);
-    if(els.launchSprites)  els.launchSprites.textContent  = String(sprites);
-    if(els.launchCostumes) els.launchCostumes.textContent = String(costumes);
+    if(els.totalStars)       els.totalStars.textContent       = String(stars);
+    if(els.totalStarsMax)    els.totalStarsMax.textContent    = String(maxStars);
+    if(els.coinCount)        els.coinCount.textContent        = String(coins);
+    if(els.gemCount)         els.gemCount.textContent         = String(gems);
+    if(els.spriteCount)      els.spriteCount.textContent      = String(sprites);
+    if(els.spriteCountMax)   els.spriteCountMax.textContent   = String(maxSprites);
+    if(els.launchStars)      els.launchStars.textContent      = String(stars);
+    if(els.launchStarsMax)   els.launchStarsMax.textContent   = String(maxStars);
+    if(els.launchCoins)      els.launchCoins.textContent      = String(coins);
+    if(els.launchGems)       els.launchGems.textContent       = String(gems);
+    if(els.launchSprites)    els.launchSprites.textContent    = String(sprites);
+    if(els.launchSpritesMax) els.launchSpritesMax.textContent = String(maxSprites);
+    if(els.launchCostumes)   els.launchCostumes.textContent   = String(costumes);
 
     if(els.openWardrobeBtn){
       els.openWardrobeBtn.classList.toggle('has-new', Boolean(saveData.hasNewCostume));
     }
 
-    var rLen = saveData.rescueQueue.length;
+    var rLen = (saveData.rescueCases || []).length;
     if(els.rescueCount) els.rescueCount.textContent = String(rLen);
     if(els.rescueBtn){
       els.rescueBtn.classList.toggle('has-rescue', rLen > 0);
@@ -486,6 +581,7 @@ import { createQuestDialogs } from '../src/quest/dialogs.js';
     if(els.previewBadge){
       els.previewBadge.style.display = saveData.previewAll ? 'inline-flex' : 'none';
     }
+    renderLauncherRealms();
   }
 
   function formatStarsStr(n){
@@ -494,24 +590,128 @@ import { createQuestDialogs } from '../src/quest/dialogs.js';
     return s;
   }
 
+  function ensureSelectedRealmVisible(){
+    if(!els.realmTabs) return;
+    var selectedTab = els.realmTabs.querySelector('.mqst-realm-tab[aria-selected="true"]');
+    if(!selectedTab) return;
+    var maxScroll = els.realmTabs.scrollWidth - els.realmTabs.clientWidth;
+    if(maxScroll <= 0) return;
+    var targetLeft = selectedTab.offsetLeft - (els.realmTabs.clientWidth - selectedTab.offsetWidth) / 2;
+    els.realmTabs.scrollLeft = Math.max(0, Math.min(maxScroll, targetLeft));
+  }
+
+  /* ---------------- 多海域導覽列與預告舞台 ---------------- */
+  function renderRealmTabs(){
+    if(!els.realmTabs) return;
+    var activeRealmId = saveData.activeRealm || 'mul';
+    var html = '';
+    REALMS.forEach(function(realm){
+      var isSelected = (realm.id === activeRealmId);
+      var unlocked = isRealmUnlocked(realm.id, saveData);
+      var badgeHtml = '';
+      if(realm.status !== 'active'){
+        badgeHtml = '<span class="mqst-realm-badge soon">' + (realm.releaseNote || '敬請期待') + '</span>';
+      } else if(!unlocked){
+        badgeHtml = '<span class="mqst-realm-badge locked">🔒 未解鎖</span>';
+      }
+      html += '<button type="button" class="mqst-realm-tab' +
+        (unlocked ? '' : ' is-locked') +
+        '" role="tab" data-realm-id="' + realm.id + '"' +
+        ' aria-selected="' + String(isSelected) + '"' +
+        ' tabindex="' + (isSelected ? '0' : '-1') + '">' +
+        '<span aria-hidden="true">' + realm.icon + '</span>' +
+        '<span>' + realm.title + '</span>' +
+        badgeHtml +
+        '</button>';
+    });
+    els.realmTabs.innerHTML = html;
+    if(session.arcadeOpen){
+      ensureSelectedRealmVisible();
+      requestAnimationFrame(ensureSelectedRealmVisible);
+    }
+  }
+
+  function switchRealm(realmId, focusTab){
+    var targetRealm = getRealmById(realmId);
+    if(!targetRealm) return;
+    saveData.activeRealm = targetRealm.id;
+    persistSave();
+    renderRealmTabs();
+    renderMap();
+    if(els.realmTabs){
+      ensureSelectedRealmVisible();
+      var activeBtn = els.realmTabs.querySelector('.mqst-realm-tab[data-realm-id="' + targetRealm.id + '"]');
+      if(activeBtn && focusTab){
+        activeBtn.focus();
+      }
+    }
+  }
+
+  function renderRealmPreview(realm){
+    if(!els.realmPreviewStage || !realm) return;
+    var prog = getRealmUnlockProgress(realm.id, saveData);
+    var islandsListHtml = (realm.plannedIslands || []).map(function(name){
+      return '<li>🏝️ ' + name + '</li>';
+    }).join('');
+    var unlockNoteHtml = '';
+    if(realm.unlockMode === 'conditional'){
+      unlockNoteHtml = prog.unlocked
+        ? '<div class="mqst-realm-unlock-box is-ready">✅ 恭喜！你的跨海域探險資歷已達雲端門檻（⭐ ' + prog.stars + ' 星 / 🐣 ' + prog.bosses + ' 隻精靈），待 Phase 2b 航道竣工即可直接登島！</div>'
+        : '<div class="mqst-realm-unlock-box">🔓 正式啟航解鎖條件：全海域累積 <b>' + prog.minStars + ' 顆星</b>（目前 ' + prog.stars + ' 星）或擊敗任 <b>' + prog.minBosses + ' 位島嶼魔王</b>（目前 ' + prog.bosses + ' 位），預習模式也可全開！</div>';
+    } else {
+      unlockNoteHtml = '<div class="mqst-realm-unlock-box is-ready">☀️ 雙起點平行開放海域：未來一上線即可直接從第 1 關出發！</div>';
+    }
+
+    els.realmPreviewStage.innerHTML =
+      '<div class="mqst-realm-preview-head">' +
+        '<span class="mqst-realm-preview-pill">🚢 ' + (realm.releaseNote || '即將啟航') + '</span>' +
+        '<h3 class="mqst-realm-preview-title">' + realm.icon + ' ' + realm.title + '</h3>' +
+        '<p class="mqst-realm-preview-sub">' + realm.subtitle + '</p>' +
+      '</div>' +
+      '<ul class="mqst-realm-preview-list">' + islandsListHtml + '</ul>' +
+      unlockNoteHtml +
+      '<button type="button" class="mqst-play-big-btn" data-preview-goto-realm="mul">' +
+        '<span aria-hidden="true">🌲</span><span>先前往九九乘法奇幻群島冒險</span>' +
+      '</button>';
+  }
+
   /* ---------------- 全景世界大地圖與粉紅小兔渲染 ---------------- */
   function renderMap(){
     updateHubStats();
+    renderRealmTabs();
     if(!els.islandsGrid) return;
 
-    var nextPlayableId = getNextPlayableStageId();
+    var activeRealm = getRealmById(saveData.activeRealm || 'mul');
+    if(activeRealm.status !== 'active'){
+      if(els.worldCanvas) els.worldCanvas.style.display = 'none';
+      if(els.realmPreviewStage){
+        els.realmPreviewStage.style.display = 'flex';
+        renderRealmPreview(activeRealm);
+      }
+      if(els.mapTip){
+        els.mapTip.textContent = '🚢 【' + activeRealm.title + '】將於 ' + (activeRealm.releaseNote || '後續階段') + ' 正式開放航行，先去九九乘法奇幻群島收集星星與星星幣吧！';
+      }
+      return;
+    }
+
+    if(els.worldCanvas) els.worldCanvas.style.display = 'block';
+    if(els.realmPreviewStage) els.realmPreviewStage.style.display = 'none';
+    if(els.worldBg && activeRealm.mapImg) els.worldBg.src = activeRealm.mapImg;
+
+    var realmStages = getStagesByRealm(activeRealm.id);
+    var nextPlayableId = getNextPlayableStageId(activeRealm.id);
 
     // 1. SVG 冒險虛線小徑 (viewBox 1000 x 562.5)
     if(els.pathSvg){
       var pathHtml = '';
-      for(var p = 0; p < STAGES.length - 1; p++){
-        var s1 = STAGES[p];
-        var s2 = STAGES[p + 1];
+      for(var p = 0; p < realmStages.length - 1; p++){
+        var s1 = realmStages[p];
+        var s2 = realmStages[p + 1];
         var x1 = (s1.mapPos.x / 100) * 1000;
         var y1 = (s1.mapPos.y / 100) * 562.5;
         var x2 = (s2.mapPos.x / 100) * 1000;
         var y2 = (s2.mapPos.y / 100) * 562.5;
-        var cleared = Number(saveData.stageStars[s1.id] || 0) >= 1;
+        var cleared = getStageStars(saveData, s1.stageKey || s1.id) >= 1;
         pathHtml += '<line x1="' + x1 + '" y1="' + y1 + '" x2="' + x2 + '" y2="' + y2 + '" ' +
           'stroke="' + (cleared ? '#f59e0b' : 'rgba(255,255,255,0.88)') + '" ' +
           'stroke-width="6" stroke-linecap="round" ' +
@@ -524,7 +724,8 @@ import { createQuestDialogs } from '../src/quest/dialogs.js';
     if(els.islandSigns){
       var signHtml = '';
       ISLANDS.forEach(function(isl){
-        var got = Number(saveData.stageStars[isl.bossStageId] || 0) >= 1;
+        if(isl.realmId !== activeRealm.id) return;
+        var got = getStageStars(saveData, isl.bossStageId) >= 1;
         signHtml += '<div class="mqst-island-sign" style="left:' + isl.signPos.x + '%;top:' + isl.signPos.y + '%;">' +
           isl.title + ' · ' + isl.rangeText + (got ? ' 🐣' : '') +
           '</div>';
@@ -532,12 +733,12 @@ import { createQuestDialogs } from '../src/quest/dialogs.js';
       els.islandSigns.innerHTML = signHtml;
     }
 
-    // 3. 15 個關卡石頭／糖果節點
+    // 3. 關卡石頭／糖果節點
     var nodeHtml = '';
-    var focusStage = STAGES[0];
-    STAGES.forEach(function(st){
-      var unlocked = isStageUnlocked(st.id);
-      var stars = Number(saveData.stageStars[st.id] || 0);
+    var focusStage = realmStages[0] || STAGES[0];
+    realmStages.forEach(function(st){
+      var unlocked = isStageUnlocked(st.stageKey || st.id);
+      var stars = getStageStars(saveData, st.stageKey || st.id);
       var isCurrent = unlocked && (st.id === nextPlayableId);
       if(isCurrent) focusStage = st;
 
@@ -594,7 +795,7 @@ import { createQuestDialogs } from '../src/quest/dialogs.js';
     // 5. 動態更新地圖底部探索與收服小精靈提示
     if(els.mapTip){
       var focusIsland = getIslandById(focusStage.islandId);
-      var focusStars = Number(saveData.stageStars[focusStage.id] || 0);
+      var focusStars = getStageStars(saveData, focusStage.stageKey || focusStage.id);
       if(focusStage.isBoss && focusStars === 0 && focusIsland){
         els.mapTip.textContent = '👑 【' + focusStage.label + '】就在前方！打敗牠就能收服【' + focusIsland.spriteName + '】加入隊伍喔！';
       } else if(partner){
@@ -698,7 +899,7 @@ import { createQuestDialogs } from '../src/quest/dialogs.js';
   /* ---------------- 開始關卡或特訓戰鬥 ---------------- */
   function startStage(stageId){
     var st = getStageById(stageId);
-    if(!st || !isStageUnlocked(stageId)) return;
+    if(!st || !isStageUnlocked(st.stageKey || st.id)) return;
 
     session.active = true;
     session.isRescueMode = false;
@@ -711,6 +912,8 @@ import { createQuestDialogs } from '../src/quest/dialogs.js';
     session.firstTryCorrect = 0;
     session.usedHelperInStage = false;
     session.newGemsThisRun = [];
+    session.earnedCoinsThisRun = 0;
+    session.rescuedThisRun = 0;
     session.enemyMaxHp = session.questions.length;
     session.enemyHp = session.enemyMaxHp;
     session.bossShieldMax = st.isBoss ? ((st.islandId === 'forest' || st.islandId === 'workshop') ? 1 : 2) : 0;
@@ -722,7 +925,7 @@ import { createQuestDialogs } from '../src/quest/dialogs.js';
   }
 
   function startRescueBattle(){
-    if(saveData.rescueQueue.length === 0) return;
+    if(!saveData.rescueCases || saveData.rescueCases.length === 0) return;
     session.active = true;
     session.isRescueMode = true;
     session.isGemHuntMode = false;
@@ -734,6 +937,8 @@ import { createQuestDialogs } from '../src/quest/dialogs.js';
     session.firstTryCorrect = 0;
     session.usedHelperInStage = false;
     session.newGemsThisRun = [];
+    session.earnedCoinsThisRun = 0;
+    session.rescuedThisRun = 0;
     session.enemyMaxHp = session.questions.length;
     session.enemyHp = session.enemyMaxHp;
     session.bossShieldMax = 0;
@@ -759,6 +964,8 @@ import { createQuestDialogs } from '../src/quest/dialogs.js';
     session.firstTryCorrect = 0;
     session.usedHelperInStage = false;
     session.newGemsThisRun = [];
+    session.earnedCoinsThisRun = 0;
+    session.rescuedThisRun = 0;
     session.enemyMaxHp = session.questions.length;
     session.enemyHp = session.enemyMaxHp;
     session.bossShieldMax = 0;
@@ -870,7 +1077,7 @@ import { createQuestDialogs } from '../src/quest/dialogs.js';
     startBattleIdleAnims();
 
     // 若挑戰尚未通關的島嶼魔王，提示孩子打敗即可收服該島守護小精靈
-    if(bossObj && session.stage && Number(saveData.stageStars[session.stage.id] || 0) === 0 && els.feedback){
+    if(bossObj && session.stage && getStageStars(saveData, session.stage.stageKey || session.stage.id) === 0 && els.feedback){
       var bossIsl = getIslandById(session.stage.islandId);
       if(bossIsl){
         els.feedback.textContent = '🥚 打敗 ' + bossObj.name + '，即可收服守護小精靈【' + bossIsl.spriteName + '】！';
@@ -1106,9 +1313,13 @@ import { createQuestDialogs } from '../src/quest/dialogs.js';
       session.newGemsThisRun.push(gemKey);
     }
 
-    if(session.isRescueMode && q.rescueKey){
-      saveData.rescueQueue = saveData.rescueQueue.filter(function(k){ return k !== q.rescueKey; });
+    if(session.isRescueMode){
+      saveData.rescueCases = removeRescueCase(saveData.rescueCases, {
+        id: q.rescueCaseId,
+        dedupeKey: q.rescueDedupeKey || (q.rescueKey ? ('mul:' + q.rescueKey) : '')
+      });
       saveData.stats.rescuedCount++;
+      session.rescuedThisRun++;
     }
 
     var shieldEvent = '';
@@ -1227,11 +1438,16 @@ import { createQuestDialogs } from '../src/quest/dialogs.js';
     session.combo = 0;
     updateComboUI();
 
-    var key = q.a + 'x' + q.b;
-    if(!session.isRescueMode && saveData.rescueQueue.indexOf(key) === -1){
-      saveData.rescueQueue.push(key);
-      persistSave();
-      updateHubStats();
+    if(!session.isRescueMode){
+      var newRescueCase = createRescueCaseFromQuestion(q);
+      if(newRescueCase){
+        var prevLen = (saveData.rescueCases || []).length;
+        saveData.rescueCases = enqueueRescueCase(saveData.rescueCases, newRescueCase);
+        if(saveData.rescueCases.length !== prevLen || prevLen > 0){
+          persistSave();
+          updateHubStats();
+        }
+      }
     }
 
     if(MathApp.sfx) MathApp.sfx('wrong');
@@ -1391,20 +1607,54 @@ import { createQuestDialogs } from '../src/quest/dialogs.js';
       stars = 2;
     }
 
+    var todayKey = getLocalDateKey();
+    if(!saveData.daily || saveData.daily.date !== todayKey){
+      saveData.daily = {
+        date: todayKey,
+        tasks: [],
+        replayRewardCount: 0,
+        classroomCoinEarned: 0,
+        stampedToday: false
+      };
+    }
+
+    var prevStars = 0;
     var unlockedSprite = null;
-    if(!session.isRescueMode && session.stage){
-      var prevStars = Number(saveData.stageStars[session.stage.id] || 0);
-      if(stars > prevStars) saveData.stageStars[session.stage.id] = stars;
-      if(session.stage.isBoss && prevStars === 0){
-        for(var i = 0; i < ISLANDS.length; i++){
-          if(ISLANDS[i].bossStageId === session.stage.id){
-            unlockedSprite = ISLANDS[i];
+    if(!session.isRescueMode && !session.isGemHuntMode && session.stage){
+      prevStars = getStageStars(saveData, session.stage.stageKey || session.stage.id);
+      if(stars > prevStars){
+        setStageStars(saveData, session.stage.stageKey || session.stage.id, stars);
+      }
+      if(session.stage.isBoss){
+        var bossIsl = getIslandById(session.stage.islandId);
+        if(bossIsl){
+          if(!saveData.bossesDefeated) saveData.bossesDefeated = {};
+          saveData.bossesDefeated[bossIsl.fullId] = (saveData.bossesDefeated[bossIsl.fullId] || 0) + 1;
+          if(prevStars === 0){
+            unlockedSprite = bossIsl;
+            if(!saveData.partners) saveData.partners = { activeId: '', bonds: {} };
+            if(!saveData.partners.bonds) saveData.partners.bonds = {};
+            saveData.partners.bonds[bossIsl.fullId] = saveData.partners.bonds[bossIsl.fullId] || { xp: 0, level: 1 };
             // 收服新精靈時自動派牠成為冒險夥伴
-            saveData.activePartner = unlockedSprite.id;
-            break;
+            saveData.partners.activeId = unlockedSprite.fullId;
           }
         }
       }
+    }
+
+    var coinOutcome = calculateStageCoinReward({
+      stage: session.stage,
+      prevStars: prevStars,
+      newStars: stars,
+      isRescueMode: session.isRescueMode,
+      rescuedCount: session.rescuedThisRun,
+      isGemHuntMode: session.isGemHuntMode,
+      dailyReplayCount: saveData.daily.replayRewardCount || 0
+    });
+    session.earnedCoinsThisRun = coinOutcome.coins;
+    saveData.starCoins = Number(saveData.starCoins || 0) + coinOutcome.coins;
+    if(coinOutcome.consumesDailyReplay){
+      saveData.daily.replayRewardCount = (saveData.daily.replayRewardCount || 0) + 1;
     }
 
     var newBadges = checkAndUnlockBadges();
@@ -1425,14 +1675,15 @@ import { createQuestDialogs } from '../src/quest/dialogs.js';
     }
 
     if(els.resFirstAcc) els.resFirstAcc.textContent = session.firstTryCorrect + ' / ' + total;
+    if(els.resCoins)    els.resCoins.textContent    = '+' + session.earnedCoinsThisRun + ' 🪙';
     if(els.resNewGems)  els.resNewGems.textContent  = '+' + session.newGemsThisRun.length + ' 💎';
     if(els.resMaxCombo) els.resMaxCombo.textContent = session.maxCombo + ' 🔥';
 
     if(session.isRescueMode){
-      var remainingRescue = saveData.rescueQueue.length;
+      var remainingRescue = (saveData.rescueCases || []).length;
       if(remainingRescue === 0){
         els.resultTitle.textContent = '🆘 求救小精靈全數救出！';
-        els.resultSub.textContent = '粉紅小兔把你卡住的乘法通通變成強項囉！';
+        els.resultSub.textContent = '粉紅小兔把你卡住的題目通通變成強項囉！';
       } else {
         els.resultTitle.textContent = '🆘 本批小精靈救出成功！';
         els.resultSub.textContent = '還有 ' + remainingRescue + ' 隻迷路小精靈在等你，回地圖再救援一次吧！';
@@ -1449,8 +1700,9 @@ import { createQuestDialogs } from '../src/quest/dialogs.js';
     } else {
       els.resultTitle.textContent = stars === 3 ? '滿分三星！閃耀大勝利！' : (stars === 2 ? '表現超棒！冒險成功！' : '完成冒險！繼續加油！');
       els.resultSub.textContent = stars === 3 ? '粉紅小兔為你拍拍手，全靠自己破關太強了！' : '再挑戰一次就能收集三顆閃亮大星星！';
-      var curIdx = STAGES.indexOf(session.stage);
-      els.resNextBtn.style.display = (curIdx >= 0 && curIdx + 1 < STAGES.length) ? 'inline-flex' : 'none';
+      var realmStages = getStagesByRealm((session.stage && session.stage.realmId) || 'mul');
+      var curIdx = realmStages.indexOf(session.stage);
+      els.resNextBtn.style.display = (curIdx >= 0 && curIdx + 1 < realmStages.length) ? 'inline-flex' : 'none';
       els.resRetryBtn.style.display = 'inline-flex';
     }
 
@@ -1500,8 +1752,9 @@ import { createQuestDialogs } from '../src/quest/dialogs.js';
     var costumeVoiceNote = newCostumes.length > 0
       ? ('，還解鎖了小兔新造型 ' + newCostumes[0].name + ' 喔！')
       : '';
+    var remainingAfterRescue = (saveData.rescueCases || []).length;
     var victoryMsg = session.isRescueMode
-      ? (saveData.rescueQueue.length === 0 ? '太棒了，求救小精靈全部救出來了！' : ('太棒了！還有 ' + saveData.rescueQueue.length + ' 隻小精靈等你去救喔！'))
+      ? (remainingAfterRescue === 0 ? '太棒了，求救小精靈全部救出來了！' : ('太棒了！還有 ' + remainingAfterRescue + ' 隻小精靈等你去救喔！'))
       : (session.isGemHuntMode
           ? ('太厲害了，寶石補完特訓完成' + costumeVoiceNote)
           : (unlockedSprite
@@ -1572,9 +1825,56 @@ import { createQuestDialogs } from '../src/quest/dialogs.js';
 
     if(els.rescueBtn){
       els.rescueBtn.addEventListener('click', function(){
-        if(saveData.rescueQueue.length === 0) return;
+        if(!saveData.rescueCases || saveData.rescueCases.length === 0) return;
         if(MathApp.sfx) MathApp.sfx('click');
         startRescueBattle();
+      });
+    }
+
+    if(els.launcherRealms){
+      els.launcherRealms.addEventListener('click', function(e){
+        var btn = e.target.closest('[data-launch-realm]');
+        if(!btn) return;
+        var rid = btn.getAttribute('data-launch-realm');
+        if(MathApp.sfx) MathApp.sfx('click');
+        saveData.activeRealm = getRealmById(rid).id;
+        persistSave();
+        openArcade();
+      });
+    }
+
+    if(els.realmTabs){
+      els.realmTabs.addEventListener('click', function(e){
+        var tab = e.target.closest('.mqst-realm-tab[data-realm-id]');
+        if(!tab) return;
+        if(MathApp.sfx) MathApp.sfx('click');
+        switchRealm(tab.getAttribute('data-realm-id'), false);
+      });
+      els.realmTabs.addEventListener('keydown', function(e){
+        var tabs = Array.prototype.slice.call(els.realmTabs.querySelectorAll('.mqst-realm-tab[data-realm-id]'));
+        if(tabs.length === 0) return;
+        var current = document.activeElement;
+        var idx = tabs.indexOf(current);
+        if(idx === -1) return;
+        var nextIdx = -1;
+        if(e.key === 'ArrowRight') nextIdx = (idx + 1) % tabs.length;
+        else if(e.key === 'ArrowLeft') nextIdx = (idx - 1 + tabs.length) % tabs.length;
+        else if(e.key === 'Home') nextIdx = 0;
+        else if(e.key === 'End') nextIdx = tabs.length - 1;
+        if(nextIdx !== -1){
+          e.preventDefault();
+          if(MathApp.sfx) MathApp.sfx('click');
+          switchRealm(tabs[nextIdx].getAttribute('data-realm-id'), true);
+        }
+      });
+    }
+
+    if(els.realmPreviewStage){
+      els.realmPreviewStage.addEventListener('click', function(e){
+        var btn = e.target.closest('[data-preview-goto-realm]');
+        if(!btn) return;
+        if(MathApp.sfx) MathApp.sfx('click');
+        switchRealm(btn.getAttribute('data-preview-goto-realm'), false);
       });
     }
 
@@ -1685,9 +1985,10 @@ import { createQuestDialogs } from '../src/quest/dialogs.js';
     if(els.resNextBtn){
       els.resNextBtn.addEventListener('click', function(){
         if(MathApp.sfx) MathApp.sfx('click');
-        var curIdx = STAGES.indexOf(session.stage);
-        if(curIdx >= 0 && curIdx + 1 < STAGES.length){
-          startStage(STAGES[curIdx + 1].id);
+        var realmStages = getStagesByRealm((session.stage && session.stage.realmId) || 'mul');
+        var curIdx = realmStages.indexOf(session.stage);
+        if(curIdx >= 0 && curIdx + 1 < realmStages.length){
+          startStage(realmStages[curIdx + 1].id);
         } else {
           showView('map');
         }
@@ -1710,6 +2011,11 @@ import { createQuestDialogs } from '../src/quest/dialogs.js';
       if(!saveData.unlockedCostumes || !saveData.unlockedCostumes[cId]) return false;
       saveData.activeCostume = cId;
       saveData.hasNewCostume = false;
+      if(saveData.wardrobe && saveData.wardrobe.active && LEGACY_COSTUME_MIGRATION_MAP[cId]){
+        var m = LEGACY_COSTUME_MIGRATION_MAP[cId];
+        if(m.hat) saveData.wardrobe.active.hat = m.hat;
+        if(m.outfit) saveData.wardrobe.active.outfit = m.outfit;
+      }
       persistSave();
       syncAllBunnyVisuals();
       updateHubStats();
@@ -1877,9 +2183,11 @@ import { createQuestDialogs } from '../src/quest/dialogs.js';
           }
           var eqBtn = e.target.closest('[data-equip-sprite]');
           if(!eqBtn) return;
-          var spId = eqBtn.getAttribute('data-equip-sprite');
-          var wasSame = (saveData.activePartner === spId);
-          saveData.activePartner = wasSame ? '' : spId;
+          var spId = toCanonicalPartnerId(eqBtn.getAttribute('data-equip-sprite'));
+          var currentPartner = getActivePartnerId(saveData);
+          var wasSame = (currentPartner === spId);
+          if(!saveData.partners) saveData.partners = { activeId: '', bonds: {} };
+          saveData.partners.activeId = wasSame ? '' : spId;
           persistSave();
           if(MathApp.audio && MathApp.audio.sfxJump) MathApp.audio.sfxJump();
           else if(MathApp.sfx) MathApp.sfx('pop');
@@ -1922,7 +2230,99 @@ import { createQuestDialogs } from '../src/quest/dialogs.js';
         if(MathApp.sfx) MathApp.sfx('click');
         updatePreviewToggleBtn();
         refreshParentLock();
+        if(els.backupFeedback){
+          els.backupFeedback.textContent = '';
+          els.backupFeedback.className = 'mqst-parent-status mqst-backup-status';
+        }
         els.parentDialog.showModal();
+      });
+    }
+    if(els.exportSaveBtn){
+      els.exportSaveBtn.addEventListener('click', function(){
+        if(MathApp.sfx) MathApp.sfx('click');
+        var payload = serializeBackupPayload(saveData);
+        var fileName = 'math-adventure-backup-' + getLocalDateKey() + '.json';
+        try {
+          var blob = new Blob([payload], { type: 'application/json;charset=utf-8' });
+          var url = URL.createObjectURL(blob);
+          var link = document.createElement('a');
+          link.href = url;
+          link.download = fileName;
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+          setTimeout(function(){ URL.revokeObjectURL(url); }, 1000);
+          if(els.backupFeedback){
+            els.backupFeedback.textContent = '✅ 已匯出備份檔案：' + fileName;
+            els.backupFeedback.className = 'mqst-parent-status mqst-backup-status is-ok';
+          }
+        } catch(err){
+          if(els.backupFeedback){
+            els.backupFeedback.textContent = '⚠️ 無法啟動檔案下載，請再試一次。';
+            els.backupFeedback.className = 'mqst-parent-status mqst-backup-status is-error';
+          }
+        }
+      });
+    }
+    if(els.importSaveInput){
+      var importLabel = document.querySelector('label[for="mqst-import-save-input"]');
+      if(importLabel){
+        importLabel.addEventListener('keydown', function(e){
+          if(e.key === 'Enter' || e.key === ' '){
+            e.preventDefault();
+            els.importSaveInput.click();
+          }
+        });
+      }
+      els.importSaveInput.addEventListener('change', function(){
+        var file = els.importSaveInput.files && els.importSaveInput.files[0];
+        if(!file) return;
+        var handleRawText = function(rawText){
+          var res = parseAndValidateBackupJson(rawText);
+          els.importSaveInput.value = '';
+          if(!res.ok){
+            if(MathApp.sfx) MathApp.sfx('wrong');
+            if(els.backupFeedback){
+              els.backupFeedback.textContent = '❌ ' + res.error;
+              els.backupFeedback.className = 'mqst-parent-status mqst-backup-status is-error';
+            }
+            return;
+          }
+          saveData = res.save;
+          persistSave();
+          updatePreviewToggleBtn();
+          syncAllBunnyVisuals();
+          updateHubStats();
+          renderMap();
+          if(MathApp.sfx) MathApp.sfx('correct');
+          if(els.backupFeedback){
+            els.backupFeedback.textContent = '✅ 已還原冒險進度（⭐ ' + res.summary.stars + ' 星、🪙 ' + res.summary.starCoins + ' 星星幣、💎 ' + res.summary.gems + ' 寶石）！';
+            els.backupFeedback.className = 'mqst-parent-status mqst-backup-status is-ok';
+          }
+          if(MathApp.utils && MathApp.utils.showToast){
+            MathApp.utils.showToast('📦 已成功匯入冒險進度備份！');
+          }
+        };
+        if(typeof file.text === 'function'){
+          file.text().then(handleRawText).catch(function(){
+            els.importSaveInput.value = '';
+            if(els.backupFeedback){
+              els.backupFeedback.textContent = '❌ 讀取備份檔案失敗，請重試。';
+              els.backupFeedback.className = 'mqst-parent-status mqst-backup-status is-error';
+            }
+          });
+        } else {
+          var reader = new FileReader();
+          reader.onload = function(){ handleRawText(String(reader.result || '')); };
+          reader.onerror = function(){
+            els.importSaveInput.value = '';
+            if(els.backupFeedback){
+              els.backupFeedback.textContent = '❌ 讀取備份檔案失敗，請重試。';
+              els.backupFeedback.className = 'mqst-parent-status mqst-backup-status is-error';
+            }
+          };
+          reader.readAsText(file);
+        }
       });
     }
     if(els.previewToggle){
@@ -1964,7 +2364,7 @@ import { createQuestDialogs } from '../src/quest/dialogs.js';
       els.parentUnlockBtn.addEventListener('click', verifyParentUnlock);
       if(els.parentLockIn){
         els.parentLockIn.addEventListener('keydown', function(e){
-          if(e.key === 'Enter'){
+          if(e.key === 'Enter' && !e.isComposing){
             e.preventDefault();
             verifyParentUnlock();
           }
@@ -1978,7 +2378,7 @@ import { createQuestDialogs } from '../src/quest/dialogs.js';
     }
     if(els.resetAllBtn){
       els.resetAllBtn.addEventListener('click', function(){
-        saveData = createDefaultSave();
+        saveData = createDefaultSaveV2();
         persistSave();
         updatePreviewToggleBtn();
         refreshParentLock();
@@ -1986,7 +2386,7 @@ import { createQuestDialogs } from '../src/quest/dialogs.js';
         renderMap();
         if(els.parentDialog) els.parentDialog.close();
         if(MathApp.sfx) MathApp.sfx('click');
-        if(MathApp.utils && MathApp.utils.showToast) MathApp.utils.showToast('已重置所有九九乘法冒險紀錄！');
+        if(MathApp.utils && MathApp.utils.showToast) MathApp.utils.showToast('已重置所有數學冒險島紀錄！');
       });
     }
 
@@ -2056,18 +2456,24 @@ import { createQuestDialogs } from '../src/quest/dialogs.js';
           persistSave();
         }
       });
-      MathApp.on('subTabChange', function(info){
-        if(info && info.unit === 'mul' && info.subTab === 'quest'){
-          openArcade();
+      MathApp.on('tabChange', function(tab){
+        if(tab === 'quest'){
+          updateHubStats();
+          syncAllBunnyVisuals();
         } else {
           if(session.arcadeOpen) closeArcade();
           if(MathApp.stopSpeak) MathApp.stopSpeak();
         }
       });
-      MathApp.on('tabChange', function(tab){
-        if(tab !== 'mul'){
-          if(session.arcadeOpen) closeArcade();
-          if(MathApp.stopSpeak) MathApp.stopSpeak();
+      MathApp.on('questOpenRealm', function(info){
+        if(info && info.realmId){
+          saveData.activeRealm = getRealmById(info.realmId).id;
+          persistSave();
+        }
+        if(info && info.openArcade){
+          openArcade();
+        } else {
+          renderMap();
         }
       });
     }
@@ -2090,8 +2496,9 @@ import { createQuestDialogs } from '../src/quest/dialogs.js';
     renderMap();
   }
 
-  MathApp.mulQuest = {
+  MathApp.quest = MathApp.mulQuest = {
     init: init,
+    getRealms: function(){ return REALMS.slice(); },
     getIslands: function(){ return ISLANDS.slice(); },
     getStages: function(){ return STAGES.slice(); },
     getBadges: function(){ return BADGES.slice(); },
@@ -2101,13 +2508,27 @@ import { createQuestDialogs } from '../src/quest/dialogs.js';
     getStageChestSvg: getStageChestSvg,
     getCharacterSvg: getCharacterSvg,
     getActivePartnerIsland: getActivePartnerIsland,
+    getSaveV2: function(){ return normalizeSaveDataV2(saveData); },
+    exportBackupJson: function(){ return serializeBackupPayload(saveData); },
+    importBackupJson: function(rawText){
+      var res = parseAndValidateBackupJson(rawText);
+      if(!res.ok) return res;
+      saveData = res.save;
+      persistSave();
+      updatePreviewToggleBtn();
+      syncAllBunnyVisuals();
+      updateHubStats();
+      renderMap();
+      return res;
+    },
     getSaveSummary: function(){
       return {
         stars: countTotalStars(),
+        starCoins: Number(saveData.starCoins || 0),
         gems: countLitGems(),
         sprites: countUnlockedSprites(),
         costumes: countUnlockedCostumes(),
-        rescueCount: saveData.rescueQueue.length
+        rescueCount: (saveData.rescueCases || []).length
       };
     }
   };

@@ -5,7 +5,6 @@
       <div class="unit-sub-tabs" role="tablist" aria-label="九九乘法表單元子分頁">
         <button class="unit-sub-tab active" id="subtab-mul-learn" type="button" role="tab" aria-selected="true" aria-controls="subpanel-mul-learn"><span data-lucide="layout-grid" aria-hidden="true"></span><span>九九乘法探索台</span></button>
         <button class="unit-sub-tab" id="subtab-mul-quiz" type="button" role="tab" aria-selected="false" aria-controls="subpanel-mul-quiz"><span data-lucide="trophy" aria-hidden="true"></span><span>乘法挑戰測驗</span></button>
-        <button class="unit-sub-tab" id="subtab-mul-quest" type="button" role="tab" aria-selected="false" aria-controls="subpanel-mul-quest"><span data-lucide="map" aria-hidden="true"></span><span>乘法冒險闖關</span></button>
       </div>
     </div>
 
@@ -45,6 +44,9 @@
             </button>
             <button type="button" class="mul-tool-btn" id="mul-mask-reset-btn" style="display: none;">
               <span data-lucide="rotate-ccw" aria-hidden="true"></span><span>重新遮蓋全部</span>
+            </button>
+            <button type="button" class="mul-tool-btn mul-goto-quest-btn" data-goto-quest-realm="mul">
+              <span data-lucide="compass" aria-hidden="true"></span><span>前往數學冒險島實戰 →</span>
             </button>
           </div>
         </div>
@@ -156,8 +158,15 @@
     <!-- 子分頁 2：乘法挑戰測驗 -->
     <div class="sub-panel" id="subpanel-mul-quiz" role="tabpanel" aria-labelledby="subtab-mul-quiz">
       <section class="quiz mul-quiz-section" id="mul-quiz">
-        <h2>九九乘法挑戰測驗</h2>
-        <p class="sub">結合標準乘法、逆向填空與「幾個幾」倍數概念題，練習乘法口訣應用</p>
+        <div class="mul-quiz-head-row">
+          <div>
+            <h2>九九乘法挑戰測驗</h2>
+            <p class="sub">結合標準乘法、逆向填空與「幾個幾」倍數概念題，練習乘法口訣應用</p>
+          </div>
+          <button type="button" class="mul-tool-btn mul-goto-quest-btn" data-goto-quest-realm="mul">
+            <span data-lucide="compass" aria-hidden="true"></span><span>前往數學冒險島實戰 →</span>
+          </button>
+        </div>
 
         <!-- 模式切換器 (自由練習 vs 自我測驗) -->
         <div class="mode-tabs" role="tablist" aria-label="乘法挑戰模式切換">
@@ -299,6 +308,4 @@
         </div>
       </section>
     </div><!-- /#subpanel-mul-quiz -->
-
-<!-- @include partials/subpanel-mul-quest.html -->
   </div><!-- /#panel-mul -->

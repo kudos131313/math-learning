@@ -1,9 +1,11 @@
 /**
- * 九九乘法冒險：圖鑑面板、換裝衣櫥、家長鎖定對話框與預習切換模組
+ * 數學冒險島：圖鑑面板、換裝衣櫥、家長鎖定對話框與預習切換模組
  */
-import { ISLANDS, BADGES, BUNNY_COSTUMES, getStageById, getCostumeById } from '../domain/quest-data.js';
+import { ISLANDS, STAGES, BADGES, BUNNY_COSTUMES, getStageById, getCostumeById } from '../domain/quest-data.js';
 import {
   isStageUnlocked,
+  getStageStars,
+  getActivePartnerId,
   countTotalStars,
   countLitGems,
   countUnlockedSprites,
@@ -91,7 +93,9 @@ export function createQuestDialogs({
       '<div class="mqst-wardrobe-meters">' +
       '<span class="mqst-wardrobe-meter-pill">⭐ 星星收集：<b>' +
       stars +
-      ' / 45</b></span>' +
+      ' / ' +
+      STAGES.length * 3 +
+      '</b></span>' +
       '<span class="mqst-wardrobe-meter-pill">💎 寶石圖鑑：<b>' +
       gems +
       ' / 81</b></span>' +
@@ -227,9 +231,10 @@ export function createQuestDialogs({
       '</b> 隻</span>' +
       '<span style="font-size:13px;color:var(--ink-soft);">打敗每座島嶼的 👑 魔王關即可收服！每關可免費施展 1 次精靈魔法（選擇題消錯／鍵盤題開積木），不扣星、照拿寶石！</span>' +
       '</div><div class="mqst-collection-grid">';
+    const activePartnerFullId = getActivePartnerId(saveData);
     ISLANDS.forEach(function (isl) {
-      const got = Number(saveData.stageStars[isl.bossStageId] || 0) >= 1;
-      const equipped = got && saveData.activePartner === isl.id;
+      const got = getStageStars(saveData, isl.bossStageId) >= 1;
+      const equipped = got && activePartnerFullId === isl.fullId;
       const bossSt = getStageById(isl.bossStageId);
       const bossUnlocked = isStageUnlocked(isl.bossStageId, saveData);
       spHtml +=
@@ -256,7 +261,7 @@ export function createQuestDialogs({
             '<button type="button" class="mqst-sprite-equip-btn' +
             (equipped ? ' active' : '') +
             '" data-equip-sprite="' +
-            isl.id +
+            isl.fullId +
             '">' +
             (equipped ? '✅ 目前同行中（點此休息）' : '🤝 帶牠去冒險') +
             '</button>'

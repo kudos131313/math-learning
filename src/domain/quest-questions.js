@@ -1,10 +1,59 @@
 /**
- * 九九乘法冒險存檔正規化、進度計算與關卡題庫生成（純函式領域模組）
+ * 數學冒險島存檔正規化、v1→v2 無縫遷移、跨海域進度、結構化救援案件與星星幣帳本（純函式領域模組）
  */
-import { ISLANDS, STAGES, BADGES, BUNNY_COSTUMES } from './quest-data.js';
+import {
+  REALMS,
+  ISLANDS,
+  STAGES,
+  BADGES,
+  BUNNY_COSTUMES,
+  MAX_RESCUE_CASES,
+  LEGACY_COSTUME_MIGRATION_MAP,
+  toCanonicalStageId,
+  toLegacyStageId,
+  toCanonicalPartnerId,
+  toLegacyPartnerId,
+  getRealmById,
+  getIslandById,
+  getStageById,
+  getStagesByRealm
+} from './quest-data.js';
 import { buildMulQuestion } from './multiplication.js';
 import { randInt } from './number-text.js';
 
+function isPlainObject(val) {
+  return Boolean(val) && typeof val === 'object' && !Array.isArray(val);
+}
+
+function clampInt(val, min, max) {
+  const n = Math.floor(Number(val));
+  if (!Number.isFinite(n)) return min;
+  return Math.max(min, Math.min(max, n));
+}
+
+function uniqueStrings(arr) {
+  const seen = new Set();
+  const out = [];
+  if (!Array.isArray(arr)) return out;
+  for (let i = 0; i < arr.length; i++) {
+    const item = arr[i];
+    if (typeof item === 'string' && item && !seen.has(item)) {
+      seen.add(item);
+      out.push(item);
+    }
+  }
+  return out;
+}
+
+export function getLocalDateKey(date = new Date()) {
+  const d = date instanceof Date && !Number.isNaN(date.getTime()) ? date : new Date();
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return y + '-' + m + '-' + day;
+}
+
+/* ---------------- 舊版 v1 存檔預設與相容正規化 ---------------- */
 export function createDefaultSave() {
   return {
     version: 1,
@@ -64,31 +113,504 @@ export function normalizeSaveData(parsed) {
   };
 }
 
-export function isStageUnlocked(stageId, saveData) {
-  if (saveData && saveData.previewAll) return true;
-  for (let i = 0; i < STAGES.length; i++) {
-    if (STAGES[i].id === stageId) {
-      if (i === 0) return true;
-      return Number((saveData && saveData.stageStars && saveData.stageStars[STAGES[i - 1].id]) || 0) >= 1;
-    }
-  }
-  return false;
+/* ---------------- 結構化救援案件（RescueCase）操作 ---------------- */
+export function createMulRescueCase(a, b, now = Date.now()) {
+  const safeA = clampInt(a, 1, 9);
+  const safeB = clampInt(b, 1, 9);
+  const dedupeKey = 'mul:' + safeA + 'x' + safeB;
+  return {
+    id: 'rc_' + now + '_' + safeA + 'x' + safeB,
+    realm: 'mul',
+    kind: 'mul',
+    skillTag: 'mul_basic',
+    dedupeKey,
+    snapshot: { a: safeA, b: safeB, qType: 'standard' },
+    createdAt: Number(now) || Date.now()
+  };
 }
 
-export function getNextPlayableStageId(saveData) {
-  for (let i = 0; i < STAGES.length; i++) {
-    if (!saveData || !saveData.stageStars || !saveData.stageStars[STAGES[i].id]) {
-      return STAGES[i].id;
-    }
+export function createRescueCaseFromQuestion(q, now = Date.now()) {
+  if (!q) return null;
+  const realm = q.realm || 'mul';
+  const kind = q.kind || 'mul';
+  if (q.rescueSnapshot && q.rescueDedupeKey) {
+    return {
+      id: 'rc_' + now + '_' + Math.random().toString(36).slice(2, 6),
+      realm,
+      kind,
+      skillTag: q.skillTag || 'general',
+      dedupeKey: String(q.rescueDedupeKey),
+      snapshot: Object.assign({}, q.rescueSnapshot),
+      createdAt: Number(now) || Date.now()
+    };
   }
-  return STAGES[STAGES.length - 1].id;
+  const a = clampInt(q.a || 3, 1, 9);
+  const b = clampInt(q.b || 4, 1, 9);
+  return createMulRescueCase(a, b, now);
 }
 
-export function countTotalStars(saveData) {
-  let total = 0;
+function normalizeRescueCaseItem(item, idx, fallbackTime) {
+  if (typeof item === 'string') {
+    const m = /^(\d+)x(\d+)$/.exec(item.trim());
+    if (!m) return null;
+    return createMulRescueCase(Number(m[1]), Number(m[2]), fallbackTime + idx);
+  }
+  if (!isPlainObject(item) || !isPlainObject(item.snapshot)) return null;
+  const kind = typeof item.kind === 'string' && item.kind ? item.kind : 'mul';
+  const realm = typeof item.realm === 'string' && item.realm ? item.realm : 'mul';
+  let dedupeKey = typeof item.dedupeKey === 'string' && item.dedupeKey ? item.dedupeKey : '';
+  if (!dedupeKey && kind === 'mul' && item.snapshot.a && item.snapshot.b) {
+    dedupeKey = 'mul:' + item.snapshot.a + 'x' + item.snapshot.b;
+  }
+  if (!dedupeKey) return null;
+  return {
+    id: typeof item.id === 'string' && item.id ? item.id : 'rc_' + (fallbackTime + idx) + '_' + dedupeKey,
+    realm,
+    kind,
+    skillTag: typeof item.skillTag === 'string' && item.skillTag ? item.skillTag : 'mul_basic',
+    dedupeKey,
+    snapshot: Object.assign({}, item.snapshot),
+    createdAt: clampInt(item.createdAt || fallbackTime + idx, 0, Number.MAX_SAFE_INTEGER)
+  };
+}
+
+export function enqueueRescueCase(rescueCases, newCase, maxLen = MAX_RESCUE_CASES) {
+  const list = Array.isArray(rescueCases) ? rescueCases.slice() : [];
+  if (!newCase || !newCase.dedupeKey) return list;
+  for (let i = 0; i < list.length; i++) {
+    if (list[i] && list[i].dedupeKey === newCase.dedupeKey) {
+      return list;
+    }
+  }
+  list.push(newCase);
+  if (list.length > maxLen) {
+    return list.slice(list.length - maxLen);
+  }
+  return list;
+}
+
+export function removeRescueCase(rescueCases, matcher) {
+  const list = Array.isArray(rescueCases) ? rescueCases : [];
+  if (!matcher) return list.slice();
+  return list.filter((item) => {
+    if (!item) return false;
+    if (typeof matcher === 'string') {
+      return item.id !== matcher && item.dedupeKey !== matcher;
+    }
+    if (matcher.id && item.id === matcher.id) return false;
+    if (matcher.dedupeKey && item.dedupeKey === matcher.dedupeKey) return false;
+    return true;
+  });
+}
+
+/* ---------------- 新版 v2 存檔預設、遷移與正規化 ---------------- */
+function mapUnlockedCostumesToWardrobe(unlockedCostumes, activeCostume) {
+  const hats = ['star_clip'];
+  const outfits = ['none'];
+  const wands = ['none'];
+
+  Object.keys(unlockedCostumes || {}).forEach((cid) => {
+    if (!unlockedCostumes[cid]) return;
+    const mapped = LEGACY_COSTUME_MIGRATION_MAP[cid];
+    if (!mapped) return;
+    if (mapped.hat && hats.indexOf(mapped.hat) === -1) hats.push(mapped.hat);
+    if (mapped.outfit && outfits.indexOf(mapped.outfit) === -1) outfits.push(mapped.outfit);
+    if (mapped.wand && wands.indexOf(mapped.wand) === -1) wands.push(mapped.wand);
+  });
+
+  const activeMapped = LEGACY_COSTUME_MIGRATION_MAP[activeCostume] || LEGACY_COSTUME_MIGRATION_MAP.default;
+  const active = {
+    hat: activeMapped.hat && hats.indexOf(activeMapped.hat) !== -1 ? activeMapped.hat : 'star_clip',
+    outfit: activeMapped.outfit && outfits.indexOf(activeMapped.outfit) !== -1 ? activeMapped.outfit : 'none',
+    wand: activeMapped.wand && wands.indexOf(activeMapped.wand) !== -1 ? activeMapped.wand : 'none'
+  };
+
+  return {
+    active,
+    unlocked: {
+      hat: hats,
+      outfit: outfits,
+      wand: wands
+    }
+  };
+}
+
+export function createDefaultSaveV2(now = new Date()) {
+  const dateKey = getLocalDateKey(now);
+  return {
+    version: 2,
+    previewAll: false,
+    starCoins: 0,
+    activeRealm: 'mul',
+    activeCostume: 'default',
+    unlockedCostumes: { default: true },
+    hasNewCostume: false,
+    stageStars: {},
+    gems: {},
+    skillCodex: {},
+    bossesDefeated: {},
+    unlockedStories: {},
+    rescueCases: [],
+    badges: {},
+    partners: {
+      activeId: '',
+      bonds: {}
+    },
+    wardrobe: {
+      active: { hat: 'star_clip', outfit: 'none', wand: 'none' },
+      unlocked: {
+        hat: ['star_clip'],
+        outfit: ['none'],
+        wand: ['none']
+      }
+    },
+    treehouse: {
+      slots: {
+        wallpaper: 'wood_cozy',
+        rug: 'carrot_round',
+        window: 'forest_morning',
+        furniture: 'block_shelf',
+        decor: 'sprout_pot'
+      },
+      unlockedItems: ['wood_cozy', 'carrot_round', 'forest_morning', 'block_shelf', 'sprout_pot'],
+      playmates: []
+    },
+    daily: {
+      date: dateKey,
+      tasks: [],
+      replayRewardCount: 0,
+      classroomCoinEarned: 0,
+      stampedToday: false
+    },
+    stampBook: {
+      count: 0,
+      round: 1
+    },
+    tower: {
+      bestFloors: { all: 0, sunny: 0, mul: 0, word: 0 }
+    },
+    stats: {
+      totalCorrect: 0,
+      selfHealed: 0,
+      maxCombo: 0,
+      rescuedCount: 0,
+      exploredInLab: false
+    },
+    migratedFromV1: false
+  };
+}
+
+export function migrateV1ToV2(v1Data, now = new Date()) {
+  const base = createDefaultSaveV2(now);
+  if (!isPlainObject(v1Data)) return base;
+
+  const v1Norm = normalizeSaveData(v1Data);
+  const stageStars = {};
+  Object.keys(v1Norm.stageStars || {}).forEach((k) => {
+    const val = clampInt(v1Norm.stageStars[k], 0, 3);
+    if (val > 0) {
+      stageStars[toCanonicalStageId(k)] = val;
+    }
+  });
+
+  const gems = {};
+  Object.keys(v1Norm.gems || {}).forEach((k) => {
+    if (v1Norm.gems[k]) gems[k] = true;
+  });
+
+  const badges = {};
+  Object.keys(v1Norm.badges || {}).forEach((k) => {
+    if (v1Norm.badges[k]) badges[k] = true;
+  });
+
+  const bonds = {};
+  const bossesDefeated = {};
+  ISLANDS.forEach((isl) => {
+    const bossKey = toCanonicalStageId(isl.bossStageId);
+    if ((stageStars[bossKey] || 0) >= 1) {
+      bonds[isl.fullId] = { xp: 0, level: 1 };
+      bossesDefeated[isl.fullId] = 1;
+    }
+  });
+
+  let activePartnerId = '';
+  if (v1Norm.activePartner) {
+    const canonical = toCanonicalPartnerId(v1Norm.activePartner);
+    if (bonds[canonical]) {
+      activePartnerId = canonical;
+    }
+  }
+
+  let rescueCases = [];
+  const nowMs = now instanceof Date ? now.getTime() : Date.now();
+  (v1Norm.rescueQueue || []).forEach((item, idx) => {
+    const rc = normalizeRescueCaseItem(item, idx, nowMs);
+    if (rc) rescueCases = enqueueRescueCase(rescueCases, rc, MAX_RESCUE_CASES);
+  });
+
+  const totalStars = Object.keys(stageStars).reduce((acc, k) => acc + stageStars[k], 0);
+  const litGems = Object.keys(gems).length;
+  const hasProgress = totalStars > 0 || litGems > 0 || (v1Norm.stats && v1Norm.stats.totalCorrect > 0);
+  const welcomeCoins = hasProgress ? totalStars * 5 + 30 : 0;
+
+  return Object.assign(base, {
+    previewAll: Boolean(v1Norm.previewAll),
+    starCoins: welcomeCoins,
+    activeRealm: 'mul',
+    activeCostume: v1Norm.activeCostume,
+    unlockedCostumes: Object.assign({ default: true }, v1Norm.unlockedCostumes),
+    hasNewCostume: Boolean(v1Norm.hasNewCostume),
+    stageStars,
+    gems,
+    bossesDefeated,
+    rescueCases,
+    badges,
+    partners: {
+      activeId: activePartnerId,
+      bonds
+    },
+    wardrobe: mapUnlockedCostumesToWardrobe(v1Norm.unlockedCostumes, v1Norm.activeCostume),
+    treehouse: Object.assign({}, base.treehouse, {
+      playmates: Object.keys(bonds).slice(0, 3)
+    }),
+    stats: Object.assign({}, base.stats, v1Norm.stats),
+    migratedFromV1: true
+  });
+}
+
+export function normalizeSaveDataV2(parsed, now = new Date()) {
+  if (!isPlainObject(parsed)) {
+    return createDefaultSaveV2(now);
+  }
+  if (parsed.version !== 2 && !isPlainObject(parsed.partners) && !isPlainObject(parsed.wardrobe)) {
+    return migrateV1ToV2(parsed, now);
+  }
+
+  const def = createDefaultSaveV2(now);
+  const todayKey = getLocalDateKey(now);
+
+  const stageStars = {};
+  if (isPlainObject(parsed.stageStars)) {
+    Object.keys(parsed.stageStars).forEach((k) => {
+      const val = clampInt(parsed.stageStars[k], 0, 3);
+      if (val > 0) {
+        stageStars[toCanonicalStageId(k)] = val;
+      }
+    });
+  }
+
+  const gems = {};
+  if (isPlainObject(parsed.gems)) {
+    Object.keys(parsed.gems).forEach((k) => {
+      if (parsed.gems[k]) gems[k] = true;
+    });
+  }
+
+  const badges = {};
+  if (isPlainObject(parsed.badges)) {
+    Object.keys(parsed.badges).forEach((k) => {
+      if (parsed.badges[k]) badges[k] = true;
+    });
+  }
+
+  const skillCodex = {};
+  if (isPlainObject(parsed.skillCodex)) {
+    Object.keys(parsed.skillCodex).forEach((k) => {
+      if (isPlainObject(parsed.skillCodex[k])) {
+        skillCodex[k] = { count: clampInt(parsed.skillCodex[k].count, 0, 999999) };
+      }
+    });
+  }
+
+  const bossesDefeated = {};
+  if (isPlainObject(parsed.bossesDefeated)) {
+    Object.keys(parsed.bossesDefeated).forEach((k) => {
+      const c = clampInt(parsed.bossesDefeated[k], 0, 99999);
+      if (c > 0) bossesDefeated[toCanonicalPartnerId(k)] = c;
+    });
+  }
+
+  const unlockedStories = {};
+  if (isPlainObject(parsed.unlockedStories)) {
+    Object.keys(parsed.unlockedStories).forEach((k) => {
+      if (parsed.unlockedStories[k]) unlockedStories[k] = true;
+    });
+  }
+
+  let rescueCases = [];
+  const rawRescue = Array.isArray(parsed.rescueCases)
+    ? parsed.rescueCases
+    : Array.isArray(parsed.rescueQueue)
+      ? parsed.rescueQueue
+      : [];
+  const fallbackMs = now instanceof Date ? now.getTime() : Date.now();
+  rawRescue.forEach((item, idx) => {
+    const rc = normalizeRescueCaseItem(item, idx, fallbackMs);
+    if (rc) rescueCases = enqueueRescueCase(rescueCases, rc, MAX_RESCUE_CASES);
+  });
+
+  const unlockedCostumes = Object.assign(
+    { default: true },
+    isPlainObject(parsed.unlockedCostumes) ? parsed.unlockedCostumes : {}
+  );
+  const activeCostume =
+    typeof parsed.activeCostume === 'string' && unlockedCostumes[parsed.activeCostume]
+      ? parsed.activeCostume
+      : 'default';
+
+  const mappedWardrobe = mapUnlockedCostumesToWardrobe(unlockedCostumes, activeCostume);
+  const rawWardrobe = isPlainObject(parsed.wardrobe) ? parsed.wardrobe : {};
+  const rawUnlockedW = isPlainObject(rawWardrobe.unlocked) ? rawWardrobe.unlocked : {};
+  const unlockedHats = uniqueStrings(['star_clip', ...mappedWardrobe.unlocked.hat, ...(rawUnlockedW.hat || [])]);
+  const unlockedOutfits = uniqueStrings(['none', ...mappedWardrobe.unlocked.outfit, ...(rawUnlockedW.outfit || [])]);
+  const unlockedWands = uniqueStrings(['none', ...mappedWardrobe.unlocked.wand, ...(rawUnlockedW.wand || [])]);
+
+  const rawActiveW = isPlainObject(rawWardrobe.active) ? rawWardrobe.active : {};
+  const activeHat =
+    typeof rawActiveW.hat === 'string' && unlockedHats.indexOf(rawActiveW.hat) !== -1
+      ? rawActiveW.hat
+      : mappedWardrobe.active.hat;
+  const activeOutfit =
+    typeof rawActiveW.outfit === 'string' && unlockedOutfits.indexOf(rawActiveW.outfit) !== -1
+      ? rawActiveW.outfit
+      : mappedWardrobe.active.outfit;
+  const activeWand =
+    typeof rawActiveW.wand === 'string' && unlockedWands.indexOf(rawActiveW.wand) !== -1
+      ? rawActiveW.wand
+      : mappedWardrobe.active.wand;
+
+  const rawPartners = isPlainObject(parsed.partners) ? parsed.partners : {};
+  const bonds = {};
+  if (isPlainObject(rawPartners.bonds)) {
+    Object.keys(rawPartners.bonds).forEach((k) => {
+      const pid = toCanonicalPartnerId(k);
+      const b = rawPartners.bonds[k];
+      if (isPlainObject(b)) {
+        bonds[pid] = {
+          xp: clampInt(b.xp, 0, 999999),
+          level: clampInt(b.level || 1, 1, 3)
+        };
+      }
+    });
+  }
+  ISLANDS.forEach((isl) => {
+    if ((stageStars[toCanonicalStageId(isl.bossStageId)] || 0) >= 1 && !bonds[isl.fullId]) {
+      bonds[isl.fullId] = { xp: 0, level: 1 };
+    }
+  });
+  let activePartnerId = typeof rawPartners.activeId === 'string' ? toCanonicalPartnerId(rawPartners.activeId) : '';
+  if (activePartnerId) {
+    const isl = getIslandById(activePartnerId);
+    if (!isl || (stageStars[toCanonicalStageId(isl.bossStageId)] || 0) < 1) {
+      activePartnerId = '';
+    }
+  }
+
+  const rawTreehouse = isPlainObject(parsed.treehouse) ? parsed.treehouse : {};
+  const treehouseSlots = Object.assign({}, def.treehouse.slots, isPlainObject(rawTreehouse.slots) ? rawTreehouse.slots : {});
+  const treehouseUnlocked = uniqueStrings([...def.treehouse.unlockedItems, ...(rawTreehouse.unlockedItems || [])]);
+  const treehousePlaymates = uniqueStrings(rawTreehouse.playmates || []).slice(0, 3);
+
+  const rawDaily = isPlainObject(parsed.daily) ? parsed.daily : {};
+  const sameDay = rawDaily.date === todayKey;
+  const daily = {
+    date: todayKey,
+    tasks: sameDay && Array.isArray(rawDaily.tasks) ? rawDaily.tasks : [],
+    replayRewardCount: sameDay ? clampInt(rawDaily.replayRewardCount, 0, 999) : 0,
+    classroomCoinEarned: sameDay ? clampInt(rawDaily.classroomCoinEarned, 0, 999) : 0,
+    stampedToday: sameDay ? Boolean(rawDaily.stampedToday) : false
+  };
+
+  const rawStamp = isPlainObject(parsed.stampBook) ? parsed.stampBook : {};
+  const stampBook = {
+    count: clampInt(rawStamp.count, 0, 7),
+    round: clampInt(rawStamp.round || 1, 1, 99999)
+  };
+
+  const rawTower = isPlainObject(parsed.tower) ? parsed.tower : {};
+  const rawBest = isPlainObject(rawTower.bestFloors) ? rawTower.bestFloors : {};
+  const tower = {
+    bestFloors: {
+      all: clampInt(rawBest.all, 0, 9999),
+      sunny: clampInt(rawBest.sunny, 0, 9999),
+      mul: clampInt(rawBest.mul, 0, 9999),
+      word: clampInt(rawBest.word, 0, 9999)
+    }
+  };
+
+  const rawStats = isPlainObject(parsed.stats) ? parsed.stats : {};
+  const stats = {
+    totalCorrect: clampInt(rawStats.totalCorrect, 0, 9999999),
+    selfHealed: clampInt(rawStats.selfHealed, 0, 9999999),
+    maxCombo: clampInt(rawStats.maxCombo, 0, 9999999),
+    rescuedCount: clampInt(rawStats.rescuedCount, 0, 9999999),
+    exploredInLab: Boolean(rawStats.exploredInLab)
+  };
+
+  const realmValid = REALMS.some((r) => r.id === parsed.activeRealm);
+
+  return {
+    version: 2,
+    previewAll: Boolean(parsed.previewAll),
+    starCoins: clampInt(parsed.starCoins, 0, 9999999),
+    activeRealm: realmValid ? parsed.activeRealm : 'mul',
+    activeCostume,
+    unlockedCostumes,
+    hasNewCostume: Boolean(parsed.hasNewCostume),
+    stageStars,
+    gems,
+    skillCodex,
+    bossesDefeated,
+    unlockedStories,
+    rescueCases,
+    badges,
+    partners: {
+      activeId: activePartnerId,
+      bonds
+    },
+    wardrobe: {
+      active: { hat: activeHat, outfit: activeOutfit, wand: activeWand },
+      unlocked: {
+        hat: unlockedHats,
+        outfit: unlockedOutfits,
+        wand: unlockedWands
+      }
+    },
+    treehouse: {
+      slots: treehouseSlots,
+      unlockedItems: treehouseUnlocked,
+      playmates: treehousePlaymates
+    },
+    daily,
+    stampBook,
+    tower,
+    stats,
+    migratedFromV1: Boolean(parsed.migratedFromV1)
+  };
+}
+
+/* ---------------- 跨海域星數讀寫、解鎖判定與進度查詢（相容 v1 與 v2） ---------------- */
+export function getStageStars(saveData, stageId) {
   const stars = (saveData && saveData.stageStars) || {};
-  STAGES.forEach((s) => {
-    total += Number(stars[s.id] || 0);
+  const canonical = toCanonicalStageId(stageId);
+  const legacy = toLegacyStageId(stageId);
+  return Math.max(Number(stars[canonical] || 0), Number(stars[legacy] || 0));
+}
+
+export function setStageStars(saveData, stageId, stars) {
+  if (!saveData) return 0;
+  if (!saveData.stageStars) saveData.stageStars = {};
+  const clamped = clampInt(stars, 0, 3);
+  const key = saveData.version === 2 ? toCanonicalStageId(stageId) : stageId;
+  saveData.stageStars[key] = clamped;
+  return clamped;
+}
+
+export function countTotalStars(saveData, realmId) {
+  let total = 0;
+  const list = realmId ? getStagesByRealm(realmId) : STAGES;
+  list.forEach((s) => {
+    total += getStageStars(saveData, s.stageKey || s.id);
   });
   return total;
 }
@@ -98,13 +620,81 @@ export function countLitGems(saveData) {
   return Object.keys(gems).filter((k) => gems[k]).length;
 }
 
-export function countUnlockedSprites(saveData) {
+export function countUnlockedSprites(saveData, realmId) {
   let cnt = 0;
-  const stars = (saveData && saveData.stageStars) || {};
   ISLANDS.forEach((isl) => {
-    if (Number(stars[isl.bossStageId] || 0) >= 1) cnt++;
+    if (realmId && isl.realmId !== realmId) return;
+    if (getStageStars(saveData, isl.bossStageId) >= 1) cnt++;
   });
   return cnt;
+}
+
+export function isRealmUnlocked(realmId, saveData) {
+  if (saveData && saveData.previewAll) return true;
+  const realm = getRealmById(realmId);
+  if (!realm || realm.unlockMode === 'initial') return true;
+  const rule = realm.unlockRule || {};
+  const minStars = Number(rule.minStars || 15);
+  const minBosses = Number(rule.minBosses || 2);
+  return countTotalStars(saveData) >= minStars || countUnlockedSprites(saveData) >= minBosses;
+}
+
+export function getRealmUnlockProgress(realmId, saveData) {
+  const realm = getRealmById(realmId);
+  const rule = (realm && realm.unlockRule) || { minStars: 15, minBosses: 2 };
+  const stars = countTotalStars(saveData);
+  const bosses = countUnlockedSprites(saveData);
+  const minStars = Number(rule.minStars || 15);
+  const minBosses = Number(rule.minBosses || 2);
+  return {
+    unlocked: isRealmUnlocked(realmId, saveData),
+    stars,
+    minStars,
+    bosses,
+    minBosses
+  };
+}
+
+export function isStageUnlocked(stageId, saveData) {
+  const st = getStageById(stageId);
+  if (!st) return false;
+  if (saveData && saveData.previewAll) return true;
+  if (!isRealmUnlocked(st.realmId, saveData)) return false;
+
+  const realmStages = getStagesByRealm(st.realmId);
+  for (let i = 0; i < realmStages.length; i++) {
+    if (realmStages[i].id === st.id || realmStages[i].stageKey === st.stageKey) {
+      if (i === 0) return true;
+      return getStageStars(saveData, realmStages[i - 1].stageKey || realmStages[i - 1].id) >= 1;
+    }
+  }
+  return false;
+}
+
+export function getNextPlayableStageId(saveData, realmId = 'mul') {
+  const list = getStagesByRealm(realmId);
+  if (list.length === 0) return STAGES[0].id;
+  for (let i = 0; i < list.length; i++) {
+    if (getStageStars(saveData, list[i].stageKey || list[i].id) === 0) {
+      return list[i].id;
+    }
+  }
+  return list[list.length - 1].id;
+}
+
+export function getActivePartnerId(saveData) {
+  if (!saveData) return '';
+  let raw = '';
+  if (saveData.partners && typeof saveData.partners.activeId === 'string') {
+    raw = saveData.partners.activeId;
+  } else if (typeof saveData.activePartner === 'string') {
+    raw = saveData.activePartner;
+  }
+  if (!raw) return '';
+  const canonical = toCanonicalPartnerId(raw);
+  const isl = getIslandById(canonical);
+  if (!isl || isl.fullId !== canonical) return '';
+  return getStageStars(saveData, isl.bossStageId) >= 1 ? canonical : '';
 }
 
 export function getActiveCostumeId(saveData) {
@@ -138,7 +728,6 @@ export function getCostumeProgress(costume, saveData) {
 export function evaluateUnlockedBadges(saveData) {
   const newlyUnlocked = [];
   const badges = (saveData && saveData.badges) || {};
-  const stageStars = (saveData && saveData.stageStars) || {};
   const stats = (saveData && saveData.stats) || {};
 
   function check(id, cond) {
@@ -150,14 +739,14 @@ export function evaluateUnlockedBadges(saveData) {
   }
 
   check('first_clear', countTotalStars(saveData) >= 1);
-  check('three_stars', STAGES.some((s) => Number(stageStars[s.id] || 0) === 3));
+  check('three_stars', STAGES.some((s) => getStageStars(saveData, s.stageKey || s.id) === 3));
   check('combo_5', (stats.maxCombo || 0) >= 5);
   check('never_give_up', (stats.selfHealed || 0) >= 5);
   check('rescue_hero', (stats.rescuedCount || 0) >= 1);
   check('lab_explorer', Boolean(stats.exploredInLab));
-  check('island_3_boss', Number(stageStars['3-3'] || 0) >= 1);
-  check('island_4_boss', Number(stageStars['4-3'] || 0) >= 1);
-  check('master_castle', Number(stageStars['5-3'] || 0) >= 1);
+  check('island_3_boss', getStageStars(saveData, '3-3') >= 1);
+  check('island_4_boss', getStageStars(saveData, '4-3') >= 1);
+  check('master_castle', getStageStars(saveData, '5-3') >= 1);
   check('gems_81', countLitGems(saveData) >= 81);
 
   return newlyUnlocked;
@@ -182,6 +771,123 @@ export function evaluateUnlockedCostumes(saveData) {
   return newlyUnlocked;
 }
 
+/* ---------------- 星星幣（StarCoin）獎勵結算純函式 ---------------- */
+export function calculateStageCoinReward({
+  stage,
+  prevStars = 0,
+  newStars = 0,
+  isRescueMode = false,
+  rescuedCount = 0,
+  isGemHuntMode = false,
+  dailyReplayCount = 0
+}) {
+  if (isRescueMode) {
+    const count = Math.max(0, Math.floor(Number(rescuedCount) || 0));
+    return {
+      coins: count * 8,
+      reason: 'rescue',
+      consumesDailyReplay: false
+    };
+  }
+  if (isGemHuntMode) {
+    const withinCap = dailyReplayCount < 3;
+    return {
+      coins: withinCap ? 15 : 3,
+      reason: 'gem_hunt',
+      consumesDailyReplay: withinCap
+    };
+  }
+
+  const table = stage && stage.isBoss ? { 0: 0, 1: 45, 2: 65, 3: 90 } : { 0: 0, 1: 25, 2: 35, 3: 50 };
+  const safePrev = clampInt(prevStars, 0, 3);
+  const safeNew = clampInt(newStars, 0, 3);
+
+  if (safeNew > safePrev) {
+    return {
+      coins: Math.max(0, table[safeNew] - table[safePrev]),
+      reason: safePrev === 0 ? 'first_clear' : 'star_upgrade',
+      consumesDailyReplay: false
+    };
+  }
+
+  const withinCap = dailyReplayCount < 3;
+  return {
+    coins: withinCap ? 15 : 3,
+    reason: withinCap ? 'daily_replay' : 'practice_bonus',
+    consumesDailyReplay: withinCap
+  };
+}
+
+/* ---------------- 備份 JSON 序列化與匯入檢核 ---------------- */
+export function serializeBackupPayload(saveData, now = new Date()) {
+  const safeNow = now instanceof Date && !Number.isNaN(now.getTime()) ? now : new Date();
+  const normalized = normalizeSaveDataV2(saveData, safeNow);
+  return JSON.stringify(
+    {
+      app: 'math-adventure-island',
+      schemaVersion: 2,
+      exportedAt: safeNow.toISOString(),
+      save: normalized
+    },
+    null,
+    2
+  );
+}
+
+export function parseAndValidateBackupJson(rawText, now = new Date()) {
+  if (typeof rawText !== 'string' || !rawText.trim()) {
+    return { ok: false, error: '備份檔案內容是空的，請重新選擇有效的備份 JSON 檔案。' };
+  }
+  let parsed;
+  try {
+    parsed = JSON.parse(rawText);
+  } catch (err) {
+    return { ok: false, error: '檔案不是合法的 JSON 格式，請確認選擇正確的冒險備份檔。' };
+  }
+
+  if (!isPlainObject(parsed)) {
+    return { ok: false, error: '備份檔案結構不正確，無法識別冒險進度。' };
+  }
+
+  let candidate = parsed;
+  if ('app' in parsed || 'schemaVersion' in parsed) {
+    if (parsed.app !== 'math-adventure-island' || !isPlainObject(parsed.save)) {
+      return { ok: false, error: '這份檔案不是數學冒險島的進度備份檔，未修改目前紀錄。' };
+    }
+    candidate = parsed.save;
+  }
+
+  const hasKnownShape =
+    isPlainObject(candidate.stageStars) ||
+    isPlainObject(candidate.gems) ||
+    typeof candidate.starCoins === 'number' ||
+    candidate.version === 1 ||
+    candidate.version === 2;
+
+  if (!hasKnownShape) {
+    return { ok: false, error: '檔案缺少冒險進度欄位，無法匯入。' };
+  }
+  if ('stageStars' in candidate && !isPlainObject(candidate.stageStars)) {
+    return { ok: false, error: '備份檔的關卡星星格式異常，匯入已取消。' };
+  }
+  if ('gems' in candidate && !isPlainObject(candidate.gems)) {
+    return { ok: false, error: '備份檔的寶石格式異常，匯入已取消。' };
+  }
+
+  const normalized = normalizeSaveDataV2(candidate, now);
+  return {
+    ok: true,
+    save: normalized,
+    summary: {
+      stars: countTotalStars(normalized),
+      gems: countLitGems(normalized),
+      starCoins: normalized.starCoins,
+      sprites: countUnlockedSprites(normalized)
+    }
+  };
+}
+
+/* ---------------- 題庫生成與加權抽題 ---------------- */
 export function weightedSortPairs(pairs, weightFn, randomFn = Math.random) {
   return pairs
     .map((p) => {
@@ -212,7 +918,7 @@ export function buildStageQuestions(stage, gemsMap = {}, options = {}) {
   const randIntFn = options.randIntFn || randInt;
   const randomFn = options.randomFn || Math.random;
   const candidatePairs = [];
-  stage.tables.forEach((a) => {
+  (stage.tables || []).forEach((a) => {
     for (let b = 1; b <= 9; b++) {
       const isLit = Boolean(gemsMap[a + 'x' + b]);
       candidatePairs.push({ a, b, isLit });
@@ -265,29 +971,55 @@ export function buildStageQuestions(stage, gemsMap = {}, options = {}) {
         units[idx] +
         '，合起來有幾個？';
     }
+    q.realm = stage.realmId || 'mul';
+    q.kind = 'mul';
     q.uiMode = mode;
+    q.rescueDedupeKey = 'mul:' + q.a + 'x' + q.b;
+    q.rescueSnapshot = { a: q.a, b: q.b, qType: 'standard' };
     selected.push(q);
   }
   return selected;
 }
 
-export function buildRescueQuestions(rescueQueue, options = {}) {
+export function buildRescueQuestions(rescueList, options = {}) {
   const randIntFn = options.randIntFn || randInt;
-  return (rescueQueue || []).slice(0, 6).map((k) => {
-    const parts = k.split('x');
-    const q = buildMulQuestion(Number(parts[0]) || 3, Number(parts[1]) || 4, 'standard', randIntFn);
-    q.uiMode = 'keypad';
-    q.badge = '🆘 求救小精靈特訓';
-    q.rescueKey = k;
-    return q;
-  });
+  return (rescueList || [])
+    .slice(0, 6)
+    .map((entry) => {
+      if (typeof entry === 'string') {
+        const parts = entry.split('x');
+        const a = Number(parts[0]) || 3;
+        const b = Number(parts[1]) || 4;
+        const q = buildMulQuestion(a, b, 'standard', randIntFn);
+        q.realm = 'mul';
+        q.kind = 'mul';
+        q.uiMode = 'keypad';
+        q.badge = '🆘 求救小精靈特訓';
+        q.rescueKey = entry;
+        q.rescueDedupeKey = 'mul:' + a + 'x' + b;
+        return q;
+      }
+      if (!isPlainObject(entry) || !isPlainObject(entry.snapshot)) return null;
+      const a = Number(entry.snapshot.a) || 3;
+      const b = Number(entry.snapshot.b) || 4;
+      const q = buildMulQuestion(a, b, entry.snapshot.qType || 'standard', randIntFn);
+      q.realm = entry.realm || 'mul';
+      q.kind = entry.kind || 'mul';
+      q.uiMode = 'keypad';
+      q.badge = '🆘 求救小精靈特訓';
+      q.rescueCaseId = entry.id;
+      q.rescueDedupeKey = entry.dedupeKey;
+      q.rescueKey = a + 'x' + b;
+      return q;
+    })
+    .filter(Boolean);
 }
 
 export function getCollectableUnlitGems(saveData) {
   const allowedTables = {};
   STAGES.forEach((st) => {
-    if (isStageUnlocked(st.id, saveData)) {
-      st.tables.forEach((t) => {
+    if (isStageUnlocked(st.stageKey || st.id, saveData)) {
+      (st.tables || []).forEach((t) => {
         allowedTables[t] = true;
       });
     }
@@ -319,8 +1051,14 @@ export function buildGemHuntQuestions(pairs, options = {}) {
   );
   return sorted.slice(0, 6).map((p) => {
     const q = buildMulQuestion(p.a, p.b, 'standard', randIntFn);
+    q.realm = 'mul';
+    q.kind = 'mul';
     q.uiMode = 'keypad';
     q.badge = '💎 未點亮寶石特訓';
+    q.rescueDedupeKey = 'mul:' + q.a + 'x' + q.b;
+    q.rescueSnapshot = { a: q.a, b: q.b, qType: 'standard' };
     return q;
   });
 }
+
+export { toLegacyPartnerId };

@@ -73,15 +73,17 @@
     setMode: setThousandMode
   };
 
-  /* ---------------- 主分頁切換 (MAIN UNIT TABS: LEARN vs SEQ vs CALC vs MUL) ---------------- */
+  /* ---------------- 主分頁切換 (MAIN UNIT TABS: LEARN / SEQ / CALC / MUL / QUEST) ---------------- */
   var mainTabLearn = document.getElementById('main-tab-learn');
   var mainTabSeq   = document.getElementById('main-tab-seq');
   var mainTabCalc  = document.getElementById('main-tab-calc');
   var mainTabMul   = document.getElementById('main-tab-mul');
+  var mainTabQuest = document.getElementById('main-tab-quest');
   var panelLearn   = document.getElementById('panel-learn');
   var panelSeq     = document.getElementById('panel-seq');
   var panelCalc    = document.getElementById('panel-calc');
   var panelMul     = document.getElementById('panel-mul');
+  var panelQuest   = document.getElementById('panel-quest');
 
   function switchMainTab(tab){
     // 向前相容：若傳入 'quiz'，自動導流至位值探索的測驗子分頁
@@ -95,7 +97,8 @@
       { id: 'learn', btn: mainTabLearn, panel: panelLearn },
       { id: 'seq',   btn: mainTabSeq,   panel: panelSeq },
       { id: 'calc',  btn: mainTabCalc,  panel: panelCalc },
-      { id: 'mul',   btn: mainTabMul,   panel: panelMul }
+      { id: 'mul',   btn: mainTabMul,   panel: panelMul },
+      { id: 'quest', btn: mainTabQuest, panel: panelQuest }
     ];
 
     tabs.forEach(function(item){
@@ -116,9 +119,17 @@
   if(mainTabSeq)   mainTabSeq.addEventListener('click',   function(){ switchMainTab('seq'); });
   if(mainTabCalc)  mainTabCalc.addEventListener('click',  function(){ switchMainTab('calc'); });
   if(mainTabMul)   mainTabMul.addEventListener('click',   function(){ switchMainTab('mul'); });
+  if(mainTabQuest) mainTabQuest.addEventListener('click', function(){ switchMainTab('quest'); });
 
   /* ---------------- 單元內部子分頁切換 (UNIT SUB TABS) ---------------- */
   function switchSubTab(unit, subTab){
+    // 向前相容：舊的乘法冒險子分頁已升格為獨立主單元「數學冒險島」
+    if(unit === 'mul' && subTab === 'quest'){
+      switchMainTab('quest');
+      MathApp.emit('questOpenRealm', { realmId: 'mul', openArcade: true });
+      return;
+    }
+
     var subTabs = document.querySelectorAll('[id^="subtab-' + unit + '-"]');
     var subPanels = document.querySelectorAll('[id^="subpanel-' + unit + '-"]');
 
@@ -157,6 +168,15 @@
       switchSubTab('calc', 'learn');
     });
   }
+
+  // 各教學教室「前往數學冒險島實戰」快速傳送按鈕
+  document.addEventListener('click', function(e){
+    var gotoQuestBtn = e.target.closest('[data-goto-quest-realm]');
+    if(!gotoQuestBtn) return;
+    var targetRealm = gotoQuestBtn.getAttribute('data-goto-quest-realm') || 'mul';
+    switchMainTab('quest');
+    MathApp.emit('questOpenRealm', { realmId: targetRealm, openArcade: true });
+  });
 
   MathApp.tabs = {
     switchMainTab: switchMainTab,
