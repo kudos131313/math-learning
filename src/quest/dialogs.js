@@ -102,6 +102,34 @@ export function createQuestDialogs({
   let albumSectionFilter = 'all';
   let shopSelectedPartnerId = '';
 
+  function updateDexSidebarStats(saveData) {
+    const setText = (id, text) => {
+      const el = document.getElementById(id);
+      if (el) el.textContent = text;
+    };
+    const totalWardrobe = WARDROBE_ITEMS.filter((it) => it.id !== 'none').length;
+    const unlockedBadges = BADGES.filter(
+      (b) => Boolean(saveData.badges && saveData.badges[b.id]) || Boolean(saveData.devMode)
+    ).length;
+    const albumUnlocked = countDefeatedBosses(saveData) + countUnlockedStories(saveData);
+    const albumTotal = BOSS_ALBUM_ENTRIES.length + STORY_ALBUM_ENTRIES.length;
+    const coins = Math.max(0, Math.floor(Number(saveData.starCoins || 0)));
+
+    setText('mqst-dex-cnt-gems', countLitGems(saveData) + ' / 81');
+    setText('mqst-dex-cnt-skills', countUnlockedSkillCards(saveData) + ' / ' + SKILL_CARDS.length);
+    setText('mqst-dex-cnt-wardrobe', countUnlockedWardrobeItems(saveData) + ' / ' + totalWardrobe);
+    setText('mqst-dex-cnt-sprites', countUnlockedSprites(saveData) + ' / ' + ISLANDS.length);
+    setText('mqst-dex-cnt-album', albumUnlocked + ' / ' + albumTotal);
+    setText('mqst-dex-cnt-badges', unlockedBadges + ' / ' + BADGES.length);
+    setText('mqst-dex-total-stars', countTotalStars(saveData) + ' / ' + STAGES.length * 3);
+    setText('mqst-dex-total-coins', String(coins));
+
+    const wardrobeTab = document.getElementById('mqst-tab-wardrobe');
+    if (wardrobeTab) {
+      wardrobeTab.classList.toggle('has-new', Boolean(saveData.hasNewCostume));
+    }
+  }
+
   function buildTreehouseProgressStats(saveData) {
     return {
       totalStars: countTotalStars(saveData),
@@ -301,6 +329,7 @@ export function createQuestDialogs({
     });
     wbHtml += '</div>';
     els.paneWardrobe.innerHTML = wbHtml;
+    updateDexSidebarStats(saveData);
   }
 
   function renderSkillCodexPane() {
@@ -649,6 +678,7 @@ export function createQuestDialogs({
     renderSkillCodexPane();
     renderWardrobePane();
     renderAlbumPane();
+    updateDexSidebarStats(saveData);
   }
 
   /* ---------------- Phase 4：魔王與故事收集冊渲染（15 位魔王 ＋ 12 張生活貼紙牆） ---------------- */

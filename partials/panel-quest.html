@@ -37,45 +37,58 @@
         <!-- 頂部懸浮遊戲 HUD -->
         <header class="mqst-hud-bar">
           <div class="mqst-hud-profile">
-            <button type="button" class="mqst-hud-avatar" id="mqst-hud-avatar" aria-label="開啟粉紅小兔換裝衣櫥" title="點我幫小兔換頭飾與新造型！"></button>
-            <div class="mqst-hud-counters">
-              <span class="mqst-hud-pill star">⭐ <strong id="mqst-total-stars">0</strong>/<span id="mqst-total-stars-max">135</span></span>
-              <span class="mqst-hud-pill coin" title="完成關卡與特訓獲得的星星幣">🪙 <strong id="mqst-coin-count">0</strong></span>
-              <span class="mqst-hud-pill gem">💎 <strong id="mqst-gem-count">0</strong>/81</span>
-              <span class="mqst-hud-pill sprite">🐣 <strong id="mqst-sprite-count">0</strong>/<span id="mqst-sprite-count-max">15</span></span>
+            <button type="button" class="mqst-hud-avatar" id="mqst-hud-avatar" aria-label="開啟粉紅小兔換裝衣櫥" title="點我幫小兔換頭飾、服裝與魔法杖！">
+              <span class="mqst-hud-avatar-art" id="mqst-hud-avatar-art" aria-hidden="true"></span>
+              <span class="mqst-hud-avatar-label" aria-hidden="true">🎀 換裝</span>
+            </button>
+            <div class="mqst-hud-counters mqst-hud-status-tray" role="group" aria-label="冒險進度與資源">
+              <button type="button" class="mqst-hud-stat star" data-hud-jump="badges" title="已收集總星星數（點此查看成就徽章）">
+                <span aria-hidden="true">⭐</span><strong id="mqst-total-stars">0</strong>/<span id="mqst-total-stars-max">135</span>
+              </button>
+              <button type="button" class="mqst-hud-stat coin" data-hud-jump="shop" title="星星幣餘額（點此前往冒險商店）">
+                <span aria-hidden="true">🪙</span><strong id="mqst-coin-count">0</strong>
+              </button>
+              <button type="button" class="mqst-hud-stat gem is-secondary" data-hud-jump="gems" title="九九乘法寶石牆進度（點此查看）">
+                <span aria-hidden="true">💎</span><strong id="mqst-gem-count">0</strong>/81
+              </button>
+              <button type="button" class="mqst-hud-stat sprite is-secondary" data-hud-jump="sprites" title="守護小精靈收集進度（點此查看）">
+                <span aria-hidden="true">🐣</span><strong id="mqst-sprite-count">0</strong>/<span id="mqst-sprite-count-max">15</span>
+              </button>
             </div>
           </div>
 
           <div class="mqst-hud-actions">
             <button type="button" class="mqst-dev-badge" id="mqst-dev-badge" style="display:none;" title="開發者全解鎖檢視模式已開啟（點此管理）">🧪 開發者模式</button>
             <span class="mqst-preview-badge" id="mqst-preview-badge" style="display:none;">🔓 自由預習模式</span>
-            <button type="button" class="mqst-hud-btn audio-mini" id="mqst-map-audio-btn" aria-label="開啟聲音設定" title="聲音設定（音樂／音效／語音）">
-              <i data-lucide="volume-2" aria-hidden="true"></i><span>聲音</span>
-            </button>
-            <button type="button" class="mqst-hud-btn daily" id="mqst-open-daily-btn" title="每日冒險委託與七日印章本">
-              <span aria-hidden="true">📅</span><span>委託</span><span class="mqst-hud-badge" id="mqst-daily-badge" style="display:none;">0</span>
-            </button>
-            <button type="button" class="mqst-hud-btn treehouse" id="mqst-open-treehouse-btn" title="進入粉紅小兔的秘密樹屋">
-              <span aria-hidden="true">🏡</span><span>樹屋</span>
-            </button>
-            <button type="button" class="mqst-hud-btn shop" id="mqst-open-shop-btn" title="用星星幣購買裝扮、家具與點心">
-              <span aria-hidden="true">🛍️</span><span>商店</span>
-            </button>
-            <button type="button" class="mqst-hud-btn wardrobe" id="mqst-open-wardrobe-btn">
-              <span aria-hidden="true">🎀</span><span>換裝</span>
-            </button>
-            <button type="button" class="mqst-hud-btn dex" id="mqst-open-dex-btn">
-              <span aria-hidden="true">💎</span><span>圖鑑</span>
-            </button>
-            <button type="button" class="mqst-hud-btn rescue" id="mqst-rescue-btn">
-              <span class="mqst-rescue-dot" aria-hidden="true">🆘</span><span>求救 (<strong id="mqst-rescue-count">0</strong>)</span>
-            </button>
-            <button type="button" class="mqst-hud-btn settings" id="mqst-open-parent-btn" aria-label="預習與家長設定">
-              <span aria-hidden="true">⚙️</span><span>設定</span>
-            </button>
-            <button type="button" class="mqst-hud-btn exit" id="mqst-exit-arcade-btn">
-              <span aria-hidden="true">🏠</span><span>回教室</span>
-            </button>
+            <div class="mqst-hud-group is-primary" role="group" aria-label="冒險功能">
+              <button type="button" class="mqst-hud-btn daily" id="mqst-open-daily-btn" title="每日冒險委託與七日印章本">
+                <span aria-hidden="true">📅</span><span>委託</span><span class="mqst-hud-badge" id="mqst-daily-badge" style="display:none;">0</span>
+              </button>
+              <button type="button" class="mqst-hud-btn treehouse" id="mqst-open-treehouse-btn" title="進入粉紅小兔的秘密樹屋">
+                <span aria-hidden="true">🏡</span><span>樹屋</span>
+              </button>
+              <button type="button" class="mqst-hud-btn shop" id="mqst-open-shop-btn" title="用星星幣購買裝扮、家具與點心">
+                <span aria-hidden="true">🛍️</span><span>商店</span>
+              </button>
+              <button type="button" class="mqst-hud-btn dex" id="mqst-open-dex-btn" title="開啟我的數學冒險圖鑑">
+                <span aria-hidden="true">📚</span><span>圖鑑</span>
+              </button>
+              <button type="button" class="mqst-hud-btn rescue" id="mqst-rescue-btn" hidden>
+                <span class="mqst-rescue-dot" aria-hidden="true">🆘</span><span>求救 (<strong id="mqst-rescue-count">0</strong>)</span>
+              </button>
+            </div>
+            <span class="mqst-hud-divider" role="separator" aria-orientation="vertical" aria-hidden="true"></span>
+            <div class="mqst-hud-group is-utility" role="group" aria-label="聲音與系統控制">
+              <button type="button" class="mqst-hud-btn audio-mini icon-only is-utility" id="mqst-map-audio-btn" aria-label="開啟聲音設定" title="聲音設定（音樂／音效／語音）">
+                <i data-lucide="volume-2" aria-hidden="true"></i>
+              </button>
+              <button type="button" class="mqst-hud-btn settings icon-only is-utility" id="mqst-open-parent-btn" aria-label="預習與家長設定" title="預習模式與家長設定">
+                <i data-lucide="settings" aria-hidden="true"></i>
+              </button>
+              <button type="button" class="mqst-hud-btn exit is-utility" id="mqst-exit-arcade-btn" aria-label="回到數字積木屋教室" title="回到數字積木屋教室">
+                <span aria-hidden="true">🏠</span><span>回教室</span>
+              </button>
+            </div>
           </div>
         </header>
 

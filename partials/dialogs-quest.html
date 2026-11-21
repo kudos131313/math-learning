@@ -1,31 +1,79 @@
   <!-- ================= 原生對話框：9×9 寶石圖鑑、小精靈與成就徽章 ================= -->
   <dialog class="mqst-dialog mqst-dex-dialog" id="mqst-dex-dialog" closedby="any" aria-labelledby="mqst-dex-title">
-    <div class="mqst-dialog-head">
+    <div class="mqst-dialog-head mqst-dex-head">
       <div class="mqst-dialog-title-wrap">
-        <span class="mqst-dialog-ico" aria-hidden="true">✨</span>
-        <h3 id="mqst-dex-title">我的數學冒險圖鑑</h3>
+        <span class="mqst-dialog-ico" aria-hidden="true">📚</span>
+        <div class="mqst-dex-title-stack">
+          <h3 id="mqst-dex-title">我的數學冒險圖鑑</h3>
+          <p class="mqst-dex-subtitle">收集寶石、技能卡、可愛裝扮與冒險回憶</p>
+        </div>
       </div>
       <form method="dialog">
         <button type="submit" class="close-modal-btn" value="close" aria-label="關閉榮譽圖鑑" autofocus>✕</button>
       </form>
     </div>
 
-    <div class="mqst-dex-tabs" role="tablist" aria-label="圖鑑切換">
-      <button type="button" class="mqst-dex-tab active" id="mqst-tab-gems" data-dex="gems" role="tab" aria-selected="true" tabindex="0">💎 9×9 寶石牆</button>
-      <button type="button" class="mqst-dex-tab" id="mqst-tab-skills" data-dex="skills" role="tab" aria-selected="false" tabindex="-1">📖 數學技能圖鑑</button>
-      <button type="button" class="mqst-dex-tab" id="mqst-tab-wardrobe" data-dex="wardrobe" role="tab" aria-selected="false" tabindex="-1">🎀 小兔換裝</button>
-      <button type="button" class="mqst-dex-tab" id="mqst-tab-sprites" data-dex="sprites" role="tab" aria-selected="false" tabindex="-1">🐣 守護小精靈</button>
-      <button type="button" class="mqst-dex-tab" id="mqst-tab-album" data-dex="album" role="tab" aria-selected="false" tabindex="-1">👹 魔王與故事冊</button>
-      <button type="button" class="mqst-dex-tab" id="mqst-tab-badges" data-dex="badges" role="tab" aria-selected="false" tabindex="-1">🏅 成就徽章</button>
-    </div>
+    <div class="mqst-dex-shell">
+      <aside class="mqst-dex-sidebar">
+        <div class="mqst-dex-tabs mqst-dex-nav" role="tablist" aria-label="圖鑑分類切換" aria-orientation="vertical">
+          <button type="button" class="mqst-dex-tab active" id="mqst-tab-gems" data-dex="gems" role="tab" aria-selected="true" tabindex="0">
+            <span class="mqst-dex-tab-ico" aria-hidden="true">💎</span>
+            <span class="mqst-dex-tab-text">
+              <span class="mqst-dex-tab-label">9×9 寶石牆</span>
+              <span class="mqst-dex-tab-count" id="mqst-dex-cnt-gems">0 / 81</span>
+            </span>
+          </button>
+          <button type="button" class="mqst-dex-tab" id="mqst-tab-skills" data-dex="skills" role="tab" aria-selected="false" tabindex="-1">
+            <span class="mqst-dex-tab-ico" aria-hidden="true">📖</span>
+            <span class="mqst-dex-tab-text">
+              <span class="mqst-dex-tab-label">數學技能圖鑑</span>
+              <span class="mqst-dex-tab-count" id="mqst-dex-cnt-skills">0 / 24</span>
+            </span>
+          </button>
+          <button type="button" class="mqst-dex-tab" id="mqst-tab-wardrobe" data-dex="wardrobe" role="tab" aria-selected="false" tabindex="-1">
+            <span class="mqst-dex-tab-ico" aria-hidden="true">🎀</span>
+            <span class="mqst-dex-tab-text">
+              <span class="mqst-dex-tab-label">小兔換裝</span>
+              <span class="mqst-dex-tab-count" id="mqst-dex-cnt-wardrobe">1 / 19</span>
+            </span>
+          </button>
+          <button type="button" class="mqst-dex-tab" id="mqst-tab-sprites" data-dex="sprites" role="tab" aria-selected="false" tabindex="-1">
+            <span class="mqst-dex-tab-ico" aria-hidden="true">🐣</span>
+            <span class="mqst-dex-tab-text">
+              <span class="mqst-dex-tab-label">守護小精靈</span>
+              <span class="mqst-dex-tab-count" id="mqst-dex-cnt-sprites">0 / 15</span>
+            </span>
+          </button>
+          <button type="button" class="mqst-dex-tab" id="mqst-tab-album" data-dex="album" role="tab" aria-selected="false" tabindex="-1">
+            <span class="mqst-dex-tab-ico" aria-hidden="true">👹</span>
+            <span class="mqst-dex-tab-text">
+              <span class="mqst-dex-tab-label">魔王與故事冊</span>
+              <span class="mqst-dex-tab-count" id="mqst-dex-cnt-album">0 / 27</span>
+            </span>
+          </button>
+          <button type="button" class="mqst-dex-tab" id="mqst-tab-badges" data-dex="badges" role="tab" aria-selected="false" tabindex="-1">
+            <span class="mqst-dex-tab-ico" aria-hidden="true">🏅</span>
+            <span class="mqst-dex-tab-text">
+              <span class="mqst-dex-tab-label">成就徽章</span>
+              <span class="mqst-dex-tab-count" id="mqst-dex-cnt-badges">0 / 10</span>
+            </span>
+          </button>
+        </div>
 
-    <div class="mqst-dialog-body" id="mqst-dex-body">
-      <div class="mqst-dex-pane active" id="mqst-pane-gems" role="tabpanel" aria-labelledby="mqst-tab-gems"></div>
-      <div class="mqst-dex-pane" id="mqst-pane-skills" role="tabpanel" aria-labelledby="mqst-tab-skills" hidden></div>
-      <div class="mqst-dex-pane" id="mqst-pane-wardrobe" role="tabpanel" aria-labelledby="mqst-tab-wardrobe" hidden></div>
-      <div class="mqst-dex-pane" id="mqst-pane-sprites" role="tabpanel" aria-labelledby="mqst-tab-sprites" hidden></div>
-      <div class="mqst-dex-pane" id="mqst-pane-album" role="tabpanel" aria-labelledby="mqst-tab-album" hidden></div>
-      <div class="mqst-dex-pane" id="mqst-pane-badges" role="tabpanel" aria-labelledby="mqst-tab-badges" hidden></div>
+        <div class="mqst-dex-sidebar-foot" aria-label="冒險總進度">
+          <span class="mqst-dex-mini-stat">⭐ <strong id="mqst-dex-total-stars">0 / 135</strong></span>
+          <span class="mqst-dex-mini-stat coin">🪙 <strong id="mqst-dex-total-coins">0</strong></span>
+        </div>
+      </aside>
+
+      <div class="mqst-dialog-body mqst-dex-body" id="mqst-dex-body">
+        <div class="mqst-dex-pane active" id="mqst-pane-gems" role="tabpanel" aria-labelledby="mqst-tab-gems"></div>
+        <div class="mqst-dex-pane" id="mqst-pane-skills" role="tabpanel" aria-labelledby="mqst-tab-skills" hidden></div>
+        <div class="mqst-dex-pane" id="mqst-pane-wardrobe" role="tabpanel" aria-labelledby="mqst-tab-wardrobe" hidden></div>
+        <div class="mqst-dex-pane" id="mqst-pane-sprites" role="tabpanel" aria-labelledby="mqst-tab-sprites" hidden></div>
+        <div class="mqst-dex-pane" id="mqst-pane-album" role="tabpanel" aria-labelledby="mqst-tab-album" hidden></div>
+        <div class="mqst-dex-pane" id="mqst-pane-badges" role="tabpanel" aria-labelledby="mqst-tab-badges" hidden></div>
+      </div>
     </div>
   </dialog>
 

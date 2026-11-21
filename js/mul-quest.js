@@ -377,7 +377,8 @@ import { createQuestDialogs } from '../src/quest/dialogs.js';
     var activeW = getActiveWardrobe(saveData);
     var normalSvg = getPinkBunnySvg('normal', activeW);
     if(els.launcherBunny) els.launcherBunny.innerHTML = normalSvg;
-    if(els.hudAvatar)     els.hudAvatar.innerHTML     = normalSvg;
+    if(els.hudAvatarArt)  els.hudAvatarArt.innerHTML  = normalSvg;
+    else if(els.hudAvatar) els.hudAvatar.innerHTML    = normalSvg;
     if(els.bunnyAvatar)   els.bunnyAvatar.innerHTML   = normalSvg;
     if(els.heroSvg){
       var battleMood = (session.active && session.combo >= 3) ? 'fever' : 'normal';
@@ -456,6 +457,8 @@ import { createQuestDialogs } from '../src/quest/dialogs.js';
     els.battleExitBtn  = document.getElementById('mqst-battle-exit-btn');
 
     els.hudAvatar      = document.getElementById('mqst-hud-avatar');
+    els.hudAvatarArt   = document.getElementById('mqst-hud-avatar-art');
+    els.hudStatusTray  = document.querySelector('#mqst-map-view .mqst-hud-status-tray');
     els.totalStars     = document.getElementById('mqst-total-stars');
     els.totalStarsMax  = document.getElementById('mqst-total-stars-max');
     els.coinCount      = document.getElementById('mqst-coin-count');
@@ -610,6 +613,9 @@ import { createQuestDialogs } from '../src/quest/dialogs.js';
     els.thPaneSprites  = document.getElementById('mqst-th-pane-sprites');
 
     els.dexDialog      = document.getElementById('mqst-dex-dialog');
+    els.dexBody        = document.getElementById('mqst-dex-body');
+    els.dexNav         = els.dexDialog ? els.dexDialog.querySelector('.mqst-dex-nav') : null;
+    els.dexTabWardrobe = document.getElementById('mqst-tab-wardrobe');
     els.paneGems       = document.getElementById('mqst-pane-gems');
     els.paneSkills     = document.getElementById('mqst-pane-skills');
     els.paneWardrobe   = document.getElementById('mqst-pane-wardrobe');
@@ -767,13 +773,21 @@ import { createQuestDialogs } from '../src/quest/dialogs.js';
       els.dailyBadge.textContent = String(claimableDaily);
     }
 
+    var hasNewCostume = Boolean(saveData.hasNewCostume);
+    if(els.hudAvatar){
+      els.hudAvatar.classList.toggle('has-new', hasNewCostume);
+    }
     if(els.openWardrobeBtn){
-      els.openWardrobeBtn.classList.toggle('has-new', Boolean(saveData.hasNewCostume));
+      els.openWardrobeBtn.classList.toggle('has-new', hasNewCostume);
+    }
+    if(els.dexTabWardrobe){
+      els.dexTabWardrobe.classList.toggle('has-new', hasNewCostume);
     }
 
     var rLen = (saveData.rescueCases || []).length;
     if(els.rescueCount) els.rescueCount.textContent = String(rLen);
     if(els.rescueBtn){
+      els.rescueBtn.hidden = (rLen === 0);
       els.rescueBtn.classList.toggle('has-rescue', rLen > 0);
       els.rescueBtn.disabled = (rLen === 0);
     }
@@ -1091,7 +1105,11 @@ import { createQuestDialogs } from '../src/quest/dialogs.js';
       t.setAttribute('tabindex', act ? '0' : '-1');
       if(act){
         if(t.scrollIntoView){
-          try { t.scrollIntoView({ block: 'nearest', inline: 'nearest' }); } catch(err){}
+          try {
+            t.scrollIntoView({ block: 'nearest', inline: 'nearest', container: 'nearest' });
+          } catch(err){
+            try { t.scrollIntoView({ block: 'nearest', inline: 'nearest' }); } catch(err2){}
+          }
         }
         if(focusTab) t.focus();
       }
@@ -1105,9 +1123,13 @@ import { createQuestDialogs } from '../src/quest/dialogs.js';
         onSwitch(tab.getAttribute(attrName), false);
       });
       tab.addEventListener('keydown', function(e){
+        var list = tab.closest ? tab.closest('[role="tablist"]') : null;
+        var isVertical = list && list.getAttribute('aria-orientation') === 'vertical';
+        var nextKey = isVertical ? 'ArrowDown' : 'ArrowRight';
+        var prevKey = isVertical ? 'ArrowUp' : 'ArrowLeft';
         var nextIdx = -1;
-        if(e.key === 'ArrowRight') nextIdx = (idx + 1) % tabs.length;
-        else if(e.key === 'ArrowLeft') nextIdx = (idx - 1 + tabs.length) % tabs.length;
+        if(e.key === nextKey) nextIdx = (idx + 1) % tabs.length;
+        else if(e.key === prevKey) nextIdx = (idx - 1 + tabs.length) % tabs.length;
         else if(e.key === 'Home') nextIdx = 0;
         else if(e.key === 'End') nextIdx = tabs.length - 1;
         if(nextIdx !== -1){
@@ -1217,6 +1239,7 @@ import { createQuestDialogs } from '../src/quest/dialogs.js';
     if(els.paneSprites)  els.paneSprites.hidden  = (target !== 'sprites');
     if(els.paneAlbum)    els.paneAlbum.hidden    = (target !== 'album');
     if(els.paneBadges)   els.paneBadges.hidden   = (target !== 'badges');
+    if(els.dexBody)      els.dexBody.scrollTop   = 0;
   }
 
   function openDexDialog(initialTab){
@@ -3596,6 +3619,18 @@ import { createQuestDialogs } from '../src/quest/dialogs.js';
       if(els.hudAvatar){
         els.hudAvatar.addEventListener('click', function(){ openDexDialog('wardrobe'); });
       }
+      if(els.hudStatusTray){
+        els.hudStatusTray.addEventListener('click', function(e){
+          var jumpBtn = e.target.closest('[data-hud-jump]');
+          if(!jumpBtn) return;
+          var dest = jumpBtn.getAttribute('data-hud-jump');
+          if(dest === 'shop'){
+            openShopDialog('wardrobe');
+          } else if(dest === 'gems' || dest === 'sprites' || dest === 'badges'){
+            openDexDialog(dest);
+          }
+        });
+      }
 
       if(els.paneWardrobe){
         els.paneWardrobe.addEventListener('click', function(e){
@@ -3800,6 +3835,36 @@ import { createQuestDialogs } from '../src/quest/dialogs.js';
       }
 
       bindTabGroup(dexTabs, 'data-dex', switchDexTab);
+
+      if(els.dexNav && typeof window.matchMedia === 'function'){
+        var dexNarrowMql = window.matchMedia('(max-width: 639px)');
+        var syncDexNavOrientation = function(){
+          if(els.dexNav){
+            els.dexNav.setAttribute('aria-orientation', dexNarrowMql.matches ? 'horizontal' : 'vertical');
+          }
+        };
+        syncDexNavOrientation();
+        if(typeof dexNarrowMql.addEventListener === 'function'){
+          dexNarrowMql.addEventListener('change', syncDexNavOrientation);
+        } else if(typeof dexNarrowMql.addListener === 'function'){
+          dexNarrowMql.addListener(syncDexNavOrientation);
+        }
+      }
+
+      if(els.dexNav && typeof IntersectionObserver === 'function' && (!window.CSS || !CSS.supports('animation-timeline', 'scroll()'))){
+        var firstDexTab = els.dexNav.firstElementChild;
+        var lastDexTab = els.dexNav.lastElementChild;
+        if(firstDexTab && lastDexTab){
+          var dexFadeObserver = new IntersectionObserver(function(entries){
+            entries.forEach(function(entry){
+              var cls = entry.target === firstDexTab ? 'more-start' : 'more-end';
+              els.dexNav.classList.toggle(cls, entry.intersectionRatio < 1);
+            });
+          }, { root: els.dexNav, threshold: 1, rootMargin: '1px' });
+          dexFadeObserver.observe(firstDexTab);
+          dexFadeObserver.observe(lastDexTab);
+        }
+      }
     }
 
     function bumpTreehouseDailyInteract(){

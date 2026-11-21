@@ -31,6 +31,18 @@
   text-align: left;
 }
 
+@property --dex-fade-start {
+  syntax: "<length>";
+  inherits: false;
+  initial-value: 0px;
+}
+
+@property --dex-fade-end {
+  syntax: "<length>";
+  inherits: false;
+  initial-value: 0px;
+}
+
 /* ---------------- 數學冒險島：立體繪本紙劇場（Pop-up Storybook Theater）作用域 ---------------- */
 /* 與全站 Hum 厚磅卡紙系統同源收斂（ADR-0005 / docs/art-style-guide.md），保留 #332b22 繪本貼紙深褐墨線 */
 #mqst-arcade-overlay,
@@ -321,51 +333,186 @@
   flex-wrap: wrap;
 }
 
+#mqst-map-view .mqst-hud-bar {
+  flex-wrap: nowrap;
+  min-height: 58px;
+  padding: 7px 14px;
+  gap: 10px;
+}
+
 .mqst-hud-profile {
   display: flex;
   align-items: center;
   gap: 8px;
+  min-width: 0;
+  flex-shrink: 1;
+}
+
+#mqst-map-view .mqst-hud-profile {
+  flex-shrink: 0;
 }
 
 .mqst-hud-avatar {
+  position: relative;
   width: 42px;
   height: 42px;
   padding: 0;
   border-radius: 50%;
   border: 2.5px solid var(--ink);
   background: #fce7f3;
-  display: flex;
+  display: inline-flex;
   align-items: center;
   justify-content: center;
-  overflow: hidden;
+  overflow: visible;
   cursor: pointer;
+  flex-shrink: 0;
   box-shadow: 2px 2px 0 var(--shadow-ink);
   transition: transform .1s ease, box-shadow .1s ease;
 }
 
-.mqst-hud-avatar:hover {
-  transform: translateY(-1px) scale(1.04);
+#mqst-map-view .mqst-hud-avatar {
+  width: auto;
+  height: 44px;
+  padding: 3px 11px 3px 4px;
+  gap: 6px;
+  border-radius: 999px;
+  border: 2px solid var(--ink);
+  background: #fff5f8;
+  box-shadow: 0 2.5px 0 rgba(51, 43, 34, 0.22);
+}
+
+.mqst-hud-avatar-art {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: #fce7f3;
+  border: 1.5px solid rgba(51, 43, 34, 0.22);
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.mqst-hud-avatar-art svg {
+  width: 32px;
+  height: 32px;
+}
+
+.mqst-hud-avatar-label {
+  font-size: 13px;
+  font-weight: 800;
+  color: #9d174d;
+  white-space: nowrap;
+  line-height: 1;
+}
+
+.mqst-hud-avatar.has-new::after {
+  content: "NEW";
+  position: absolute;
+  top: -7px;
+  right: -4px;
+  padding: 1px 6px;
+  border-radius: 999px;
+  border: 1.5px solid var(--ink);
+  background: #fde047;
+  color: var(--ink);
+  font-size: 10px;
+  font-weight: 900;
+  line-height: 1.2;
+  pointer-events: none;
+}
+
+@media (hover: hover) {
+  .mqst-hud-avatar:hover {
+    transform: translateY(-1px);
+  }
 }
 
 .mqst-hud-avatar:active {
   transform: translateY(1px);
-  box-shadow: 1px 1px 0 var(--shadow-ink);
+  box-shadow: 0 1px 0 rgba(51, 43, 34, 0.22);
 }
 
 .mqst-hud-avatar:focus-visible {
-  outline: 3px solid #ec4899;
+  outline: 3px solid var(--color-focus);
   outline-offset: 2px;
 }
 
 .mqst-hud-avatar svg {
-  width: 36px;
-  height: 36px;
+  width: 32px;
+  height: 32px;
 }
 
 .mqst-hud-counters {
   display: flex;
   gap: 6px;
   flex-wrap: wrap;
+}
+
+/* 統合進度狀態匣（取代四顆各自厚邊框的彩虹計數膠囊） */
+.mqst-hud-status-tray {
+  display: inline-flex;
+  align-items: center;
+  flex-wrap: nowrap;
+  gap: 0;
+  padding: 3px 4px;
+  border-radius: 999px;
+  border: 1.5px solid rgba(51, 43, 34, 0.2);
+  background: var(--color-paper-2);
+  box-shadow: inset 0 1px 2px rgba(51, 43, 34, 0.06);
+  min-width: 0;
+}
+
+.mqst-hud-stat {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  min-height: 34px;
+  padding: 3px 10px;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--ink);
+  font-family: var(--font-num);
+  font-variant-numeric: tabular-nums;
+  font-size: 13.5px;
+  font-weight: 800;
+  line-height: 1;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: background-color .12s ease;
+}
+
+.mqst-hud-stat + .mqst-hud-stat::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 7px;
+  bottom: 7px;
+  border-inline-start: 1.5px solid rgba(51, 43, 34, 0.16);
+  pointer-events: none;
+}
+
+.mqst-hud-stat.coin {
+  color: #9a3412;
+  background: rgba(255, 237, 213, 0.65);
+}
+
+@media (hover: hover) {
+  .mqst-hud-stat:hover {
+    background: rgba(255, 255, 255, 0.92);
+  }
+  .mqst-hud-stat.coin:hover {
+    background: #ffedd5;
+  }
+}
+
+.mqst-hud-stat:focus-visible {
+  outline: 3px solid var(--color-focus);
+  outline-offset: 1px;
+  z-index: 1;
 }
 
 .mqst-hud-pill {
@@ -640,6 +787,28 @@
   flex-wrap: wrap;
 }
 
+#mqst-map-view .mqst-hud-actions {
+  flex-wrap: nowrap;
+  flex-shrink: 0;
+  gap: 8px;
+}
+
+.mqst-hud-group {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.mqst-hud-divider {
+  display: inline-block;
+  width: 0;
+  height: 24px;
+  border-inline-start: 1.5px solid rgba(51, 43, 34, 0.2);
+  margin-inline: 2px;
+  flex-shrink: 0;
+}
+
 .mqst-hud-btn {
   display: inline-flex;
   align-items: center;
@@ -654,14 +823,83 @@
   color: var(--ink);
   font-size: 13.5px;
   font-weight: 800;
+  white-space: nowrap;
   cursor: pointer;
   box-shadow: 0 3px 0 var(--shadow-ink);
-  transition: transform .08s ease, box-shadow .08s ease;
+  transition: transform .08s ease, box-shadow .08s ease, background-color .12s ease;
+}
+
+.mqst-hud-btn[hidden] {
+  display: none !important;
+}
+
+.mqst-hud-btn:focus-visible {
+  outline: 3px solid var(--color-focus);
+  outline-offset: 2px;
 }
 
 .mqst-hud-btn:active:not(:disabled) {
   transform: translateY(2px);
   box-shadow: 0 1px 0 var(--shadow-ink);
+}
+
+#mqst-map-view .mqst-hud-group.is-primary .mqst-hud-btn {
+  background: #fffdf8;
+  color: var(--ink);
+  border: 2px solid var(--ink);
+  border-radius: 13px;
+  min-height: 42px;
+  padding: 5px 11px;
+  box-shadow: 0 2.5px 0 rgba(51, 43, 34, 0.22);
+}
+
+@media (hover: hover) {
+  #mqst-map-view .mqst-hud-group.is-primary .mqst-hud-btn:hover {
+    background: #fef9c3;
+  }
+}
+
+#mqst-map-view .mqst-hud-group.is-primary .mqst-hud-btn.daily.has-claimable {
+  background: linear-gradient(180deg, #fde047 0%, #f59e0b 100%);
+  color: #451a03;
+  border-color: #b45309;
+  box-shadow: 0 2.5px 0 #b45309;
+}
+
+#mqst-map-view .mqst-hud-group.is-primary .mqst-hud-btn.rescue.has-rescue {
+  background: #fee2e2;
+  color: #991b1b;
+  border-color: #991b1b;
+  box-shadow: 0 2.5px 0 rgba(153, 27, 27, 0.35);
+}
+
+#mqst-map-view .mqst-hud-group.is-utility .mqst-hud-btn {
+  background: var(--color-paper-2);
+  color: var(--ink-soft);
+  border: 1.5px solid rgba(51, 43, 34, 0.26);
+  box-shadow: 0 2px 0 rgba(51, 43, 34, 0.14);
+  min-height: 42px;
+}
+
+#mqst-map-view .mqst-hud-group.is-utility .mqst-hud-btn.icon-only {
+  min-width: 42px;
+  padding: 6px;
+}
+
+#mqst-map-view .mqst-hud-group.is-utility .mqst-hud-btn.exit {
+  color: #881337;
+}
+
+@media (hover: hover) {
+  #mqst-map-view .mqst-hud-group.is-utility .mqst-hud-btn:hover {
+    background: #ffffff;
+    color: var(--ink);
+  }
+  #mqst-map-view .mqst-hud-group.is-utility .mqst-hud-btn.exit:hover {
+    background: #fff1f2;
+    color: #9f1239;
+    border-color: rgba(159, 18, 57, 0.36);
+  }
 }
 
 .mqst-hud-btn.wardrobe { background: #fce7f3; color: #9d174d; position: relative; }
@@ -694,7 +932,8 @@
 .mqst-hud-btn.audio-mini { background: #f0fdf4; color: #166534; padding: 6px 11px; }
 .mqst-hud-btn.audio-mini.icon-only { padding: 6px 10px; }
 .mqst-hud-btn.audio-mini.is-off { background: #f1f5f9; color: #64748b; opacity: 0.86; }
-.mqst-hud-btn.audio-mini svg { width: 18px; height: 18px; flex-shrink: 0; }
+.mqst-hud-btn.audio-mini svg,
+.mqst-hud-btn.settings svg { width: 18px; height: 18px; flex-shrink: 0; }
 
 .mqst-dev-badge {
   display: inline-flex;
@@ -3423,6 +3662,327 @@ dialog.mqst-dialog::backdrop {
   background: #fff8eb;
 }
 
+/* ---------------- 「我的數學冒險圖鑑」雙欄立體繪本集郵冊 ---------------- */
+dialog.mqst-dex-dialog {
+  width: min(1040px, calc(100vw - 36px));
+  height: min(86vh, 780px);
+  height: min(86dvh, 780px);
+  max-height: min(86vh, 780px);
+  max-height: min(86dvh, 780px);
+  border-radius: 26px;
+}
+
+.mqst-dex-head {
+  padding: 13px 18px;
+}
+
+.mqst-dex-title-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 0;
+}
+
+.mqst-dex-subtitle {
+  margin: 2px 0 0;
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--ink-soft);
+  line-height: 1.35;
+}
+
+.mqst-dex-shell {
+  display: grid;
+  grid-template-columns: 224px minmax(0, 1fr);
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.mqst-dex-sidebar {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 14px 12px;
+  background: linear-gradient(180deg, #f7f1e3 0%, #f1e7d2 100%);
+  border-inline-end: 2px dashed rgba(51, 43, 34, 0.18);
+  overflow-y: auto;
+  min-height: 0;
+}
+
+.mqst-dex-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  padding: 0;
+  background: transparent;
+  border: 0;
+  overflow: visible;
+  flex-wrap: nowrap;
+}
+
+.mqst-dex-nav .mqst-dex-tab {
+  position: relative;
+  width: 100%;
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 54px;
+  padding: 8px 12px 8px 15px;
+  border-radius: 14px;
+  border: 2px solid rgba(51, 43, 34, 0.14);
+  background: rgba(255, 255, 255, 0.65);
+  color: var(--ink);
+  text-align: left;
+  cursor: pointer;
+  transition: background-color .14s ease, border-color .14s ease, box-shadow .14s ease;
+}
+
+@media (hover: hover) {
+  .mqst-dex-nav .mqst-dex-tab:hover:not([aria-selected="true"]) {
+    background: rgba(255, 255, 255, 0.94);
+    border-color: rgba(51, 43, 34, 0.35);
+  }
+}
+
+.mqst-dex-nav .mqst-dex-tab[aria-selected="true"],
+.mqst-dex-nav .mqst-dex-tab.active {
+  background: #ffffff;
+  color: var(--ink);
+  border-color: var(--ink);
+  box-shadow: 0 3px 0 rgba(51, 43, 34, 0.18);
+}
+
+.mqst-dex-nav .mqst-dex-tab[aria-selected="true"]::after {
+  content: "";
+  position: absolute;
+  inset: 8px auto 8px 3px;
+  border-inline-start: 4px solid #f59e0b;
+  border-block-end: none;
+  border-radius: 999px;
+}
+
+@media (forced-colors: active) {
+  .mqst-dex-nav .mqst-dex-tab[aria-selected="true"]::after {
+    border-inline-start-color: Highlight;
+  }
+}
+
+.mqst-dex-tab-ico {
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  background: rgba(51, 43, 34, 0.06);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  flex-shrink: 0;
+}
+
+.mqst-dex-nav .mqst-dex-tab[aria-selected="true"] .mqst-dex-tab-ico {
+  background: #fef3c7;
+}
+
+.mqst-dex-tab-text {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 0;
+  flex: 1;
+}
+
+.mqst-dex-tab-label {
+  font-size: 14px;
+  font-weight: 800;
+  line-height: 1.25;
+  white-space: nowrap;
+}
+
+.mqst-dex-tab-count {
+  font-family: var(--font-num);
+  font-variant-numeric: tabular-nums;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--ink-soft);
+  line-height: 1.2;
+}
+
+.mqst-dex-nav .mqst-dex-tab[aria-selected="true"] .mqst-dex-tab-count {
+  color: #b45309;
+}
+
+.mqst-dex-nav .mqst-dex-tab.has-new::before {
+  content: "NEW";
+  position: absolute;
+  top: 7px;
+  right: 8px;
+  padding: 1px 5px;
+  border-radius: 999px;
+  border: 1.5px solid var(--ink);
+  background: #fde047;
+  color: var(--ink);
+  font-size: 9.5px;
+  font-weight: 900;
+  line-height: 1.15;
+}
+
+.mqst-dex-sidebar-foot {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 10px 12px;
+  border-radius: 14px;
+  border: 1.5px solid rgba(51, 43, 34, 0.16);
+  background: rgba(255, 253, 248, 0.9);
+  flex-shrink: 0;
+}
+
+.mqst-dex-mini-stat {
+  display: inline-flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+  font-family: var(--font-num);
+  font-variant-numeric: tabular-nums;
+  font-size: 13px;
+  font-weight: 800;
+  color: var(--ink);
+}
+
+.mqst-dex-mini-stat.coin {
+  color: #9a3412;
+}
+
+.mqst-dex-body {
+  padding: 18px 22px 24px;
+  background-color: var(--card);
+  background-image: var(--grain), var(--fibre);
+  min-width: 0;
+  min-height: 0;
+}
+
+.mqst-dex-body .mqst-gem-grid {
+  max-width: 680px;
+  margin-inline: auto;
+}
+
+/* 平板直向（768×1024 等）：維持雙欄 6 書籤完整不截斷 */
+@media (max-width: 899px) {
+  dialog.mqst-dex-dialog {
+    width: min(744px, calc(100vw - 24px));
+    height: min(88vh, 880px);
+    height: min(88dvh, 880px);
+    max-height: min(88vh, 880px);
+    max-height: min(88dvh, 880px);
+  }
+  .mqst-dex-shell {
+    grid-template-columns: 176px minmax(0, 1fr);
+  }
+  .mqst-dex-sidebar {
+    padding: 10px 8px;
+  }
+  .mqst-dex-nav .mqst-dex-tab {
+    min-height: 50px;
+    padding: 7px 8px 7px 12px;
+    gap: 8px;
+  }
+  .mqst-dex-tab-ico {
+    width: 30px;
+    height: 30px;
+    font-size: 16px;
+  }
+  .mqst-dex-tab-label {
+    font-size: 13px;
+  }
+  .mqst-dex-tab-count {
+    font-size: 11.5px;
+  }
+  .mqst-dex-body {
+    padding: 14px 16px 20px;
+  }
+  .mqst-dex-body .mqst-collection-grid {
+    grid-template-columns: repeat(auto-fit, minmax(175px, 1fr));
+  }
+}
+
+/* 極窄視窗退化：頂部單行橫向捲動分頁列 ＋ 漸淡提示 */
+@media (max-width: 639px) {
+  dialog.mqst-dex-dialog {
+    width: calc(100vw - 16px);
+    height: 90vh;
+    height: 90dvh;
+    max-height: 90vh;
+    max-height: 90dvh;
+  }
+  .mqst-dex-subtitle,
+  .mqst-dex-sidebar-foot {
+    display: none;
+  }
+  .mqst-dex-shell {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto minmax(0, 1fr);
+  }
+  .mqst-dex-sidebar {
+    padding: 8px 10px;
+    border-inline-end: 0;
+    border-bottom: 2px dashed rgba(51, 43, 34, 0.18);
+    overflow: hidden;
+  }
+  .mqst-dex-nav {
+    flex-direction: row;
+    overflow-x: auto;
+    overflow-y: hidden;
+    scrollbar-width: none;
+    scroll-snap-type: inline proximity;
+    scroll-padding-inline: 2.2rem;
+    gap: 6px;
+    padding: 2px;
+    --dex-fade-size: 2.2rem;
+    mask:
+      linear-gradient(black, black) no-clip subtract,
+      linear-gradient(to right, black, transparent) 0 0 / var(--dex-fade-start) 100% no-repeat no-clip,
+      linear-gradient(to right, transparent, black) 100% 0 / var(--dex-fade-end) 100% no-repeat no-clip;
+    animation: mqstDexFadeStart linear both, mqstDexFadeEnd linear both;
+    animation-timeline: scroll(self inline);
+    animation-range: 0 var(--dex-fade-size), calc(100% - var(--dex-fade-size)) 100%;
+    transition: --dex-fade-start .2s, --dex-fade-end .2s;
+  }
+  .mqst-dex-nav.more-start { --dex-fade-start: var(--dex-fade-size); }
+  .mqst-dex-nav.more-end   { --dex-fade-end: var(--dex-fade-size); }
+  .mqst-dex-nav::-webkit-scrollbar { display: none; }
+  .mqst-dex-nav .mqst-dex-tab {
+    width: auto;
+    min-height: 44px;
+    padding: 6px 12px 9px;
+    border-radius: 999px;
+    scroll-snap-align: start;
+  }
+  .mqst-dex-nav .mqst-dex-tab-count {
+    display: none;
+  }
+  .mqst-dex-nav .mqst-dex-tab[aria-selected="true"]::after {
+    inset: auto 14px 3px;
+    border-inline-start: none;
+    border-block-end: 3px solid #f59e0b;
+  }
+  @media (forced-colors: active) {
+    .mqst-dex-nav .mqst-dex-tab[aria-selected="true"]::after {
+      border-block-end-color: Highlight;
+    }
+  }
+}
+
+@keyframes mqstDexFadeStart {
+  to { --dex-fade-start: var(--dex-fade-size); }
+}
+
+@keyframes mqstDexFadeEnd {
+  from { --dex-fade-end: var(--dex-fade-size); }
+}
+
 .mqst-gem-summary {
   display: flex;
   justify-content: space-between;
@@ -3926,19 +4486,76 @@ button.mqst-gem-cell:active {
   }
 }
 
-/* ---------------- 窄螢幕 / 手機適配 ---------------- */
+/* ---------------- 電腦小視窗與平板響應式 HUD ---------------- */
+@media (max-width: 1159px) {
+  #mqst-map-view .mqst-hud-stat.is-secondary {
+    display: none;
+  }
+}
+
 @media (max-width: 960px) {
   .mqst-hud-bar,
   .mqst-battle-hud {
     padding: 6px 10px;
     gap: 6px;
   }
+  #mqst-map-view .mqst-hud-bar {
+    padding: 6px 8px;
+    gap: 6px;
+  }
+  #mqst-map-view .mqst-hud-profile {
+    gap: 5px;
+  }
   .mqst-hud-avatar { width: 38px; height: 38px; }
   .mqst-hud-avatar svg { width: 32px; height: 32px; }
+  #mqst-map-view .mqst-hud-avatar {
+    width: 40px;
+    height: 40px;
+    padding: 2px;
+    border-radius: 50%;
+    justify-content: center;
+  }
+  #mqst-map-view .mqst-hud-avatar .mqst-hud-avatar-art {
+    width: 34px;
+    height: 34px;
+  }
+  #mqst-map-view .mqst-hud-avatar .mqst-hud-avatar-label {
+    display: none;
+  }
+  #mqst-map-view .mqst-hud-avatar::before {
+    content: "🎀";
+    position: absolute;
+    right: -4px;
+    bottom: -3px;
+    width: 19px;
+    height: 19px;
+    border-radius: 50%;
+    border: 1.5px solid var(--ink);
+    background: #fce7f3;
+    font-size: 10.5px;
+    line-height: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 1px 0 rgba(51, 43, 34, 0.25);
+    pointer-events: none;
+  }
   .mqst-hud-pill {
     min-height: 30px;
     padding: 2px 8px;
     font-size: 12.5px;
+  }
+  .mqst-hud-stat {
+    min-height: 30px;
+    padding: 2px 7px;
+    font-size: 12px;
+    gap: 3px;
+  }
+  #mqst-map-view .mqst-preview-badge,
+  #mqst-map-view .mqst-dev-badge {
+    padding: 2px 6px;
+    font-size: 11px;
+    white-space: nowrap;
   }
   .mqst-hud-btn {
     min-width: 40px;
@@ -3956,6 +4573,45 @@ button.mqst-gem-cell:active {
   .mqst-combo-pill {
     padding: 4px 8px;
     font-size: 12.5px;
+  }
+}
+
+@media (max-width: 840px) {
+  #mqst-map-view .mqst-hud-bar {
+    padding: 6px;
+    gap: 5px;
+  }
+  #mqst-map-view .mqst-hud-actions {
+    gap: 4px;
+  }
+  #mqst-map-view .mqst-hud-group {
+    gap: 3px;
+  }
+  #mqst-map-view .mqst-hud-divider {
+    height: 20px;
+    margin-inline: 1px;
+  }
+  #mqst-map-view .mqst-hud-group.is-primary .mqst-hud-btn,
+  #mqst-map-view .mqst-hud-group.is-utility .mqst-hud-btn {
+    min-width: 38px;
+    min-height: 38px;
+    padding: 4px 6px;
+    gap: 2.5px;
+    font-size: 12px;
+    border-radius: 11px;
+  }
+  #mqst-map-view .mqst-hud-group.is-utility .mqst-hud-btn.icon-only {
+    min-width: 38px;
+    padding: 4px;
+  }
+  #mqst-map-view .mqst-hud-actions:has(#mqst-rescue-btn:not([hidden])) .mqst-hud-btn.exit span:last-child,
+  #mqst-map-view .mqst-hud-actions:has(#mqst-dev-badge[style*="inline"]):has(#mqst-preview-badge[style*="inline"]) .mqst-hud-btn.exit span:last-child {
+    display: none;
+  }
+  #mqst-map-view .mqst-hud-actions:has(#mqst-rescue-btn:not([hidden])) .mqst-hud-btn.exit,
+  #mqst-map-view .mqst-hud-actions:has(#mqst-dev-badge[style*="inline"]):has(#mqst-preview-badge[style*="inline"]) .mqst-hud-btn.exit {
+    min-width: 38px;
+    padding: 4px;
   }
 }
 
