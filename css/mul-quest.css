@@ -5316,9 +5316,9 @@ dialog.mqst-shop-dialog {
 
 .mqst-th-ceiling    { left: 51%; top: 1.5%;  width: 25.5%; transform: translateX(-50%); transform-origin: 50% 0%; z-index: 3; }
 .mqst-th-window     { left: 51%; top: 21%;   width: 19.5%; transform: translateX(-50%); z-index: 1; }
-.mqst-th-wall-decor { left: 77%; top: 19%;   width: 18%;   transform: translateX(-50%); z-index: 1; }
-.mqst-th-furniture  { left: 24.5%; bottom: 26%; width: 23.5%; transform: translateX(-50%); z-index: 2; }
-.mqst-th-decor      { left: 83.5%; bottom: 25.5%; width: 13%; transform: translateX(-50%); z-index: 2; }
+.mqst-th-wall-decor { left: 75.5%; top: 20.5%; width: 17.5%; transform: translateX(-50%); z-index: 1; }
+.mqst-th-furniture  { left: 25.5%; bottom: 24.5%; width: 23.5%; transform: translateX(-50%); z-index: 2; }
+.mqst-th-decor      { left: 81.5%; bottom: 24%; width: 13%; transform: translateX(-50%); z-index: 2; }
 .mqst-th-rug        { left: 50%; bottom: 2.5%;  width: 50%;   transform: translateX(-50%); z-index: 0; }
 .mqst-th-rug svg    { filter: drop-shadow(0 3px 0 rgba(51, 43, 34, 0.16)); }
 
@@ -5352,7 +5352,7 @@ dialog.mqst-shop-dialog {
 .mqst-th-bunny-spot          { left: 44%; bottom: 7.5%;  width: 13.5%; z-index: 3; }
 .mqst-th-playmate-spot.spot-0 { left: 27%; bottom: 7%;    width: 12%;   z-index: 4; }
 .mqst-th-playmate-spot.spot-1 { left: 60%; bottom: 7.5%;  width: 12%;   z-index: 4; }
-.mqst-th-playmate-spot.spot-2 { left: 71.5%; bottom: 13.5%; width: 10.5%; z-index: 2; }
+.mqst-th-playmate-spot.spot-2 { left: 70.5%; bottom: 13%; width: 10.5%; z-index: 2; }
 
 .mqst-th-bunny-btn {
   width: 100%;
