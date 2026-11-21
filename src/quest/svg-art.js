@@ -654,12 +654,16 @@ export function getCharacterSvg(key, isBoss, mood, options = {}) {
           '<ellipse cx="48" cy="86" rx="28" ry="5.5" fill="rgba(51,43,34,0.16)"/>' +
           '<path d="M16 56 C8 43 13 24 26 24 C29 24 32 33 32 38 Z" fill="#f59e0b" stroke="#332b22" stroke-width="3" stroke-linejoin="round"/>' +
           '<path d="M80 56 C88 43 83 24 70 24 C67 24 64 33 64 38 Z" fill="#f59e0b" stroke="#332b22" stroke-width="3" stroke-linejoin="round"/>' +
+          '<ellipse cx="15" cy="60" rx="6" ry="4.5" transform="rotate(-20 15 60)" fill="#fbbf24" stroke="#332b22" stroke-width="2.5"/>' +
+          '<ellipse cx="81" cy="60" rx="6" ry="4.5" transform="rotate(20 81 60)" fill="#fbbf24" stroke="#332b22" stroke-width="2.5"/>' +
           '<ellipse cx="34" cy="79" rx="7.5" ry="4.5" fill="#b45309" stroke="#332b22" stroke-width="2.6"/>' +
           '<ellipse cx="62" cy="79" rx="7.5" ry="4.5" fill="#b45309" stroke="#332b22" stroke-width="2.6"/>' +
           '<path d="M18 54 C18 28 78 28 78 54 C78 74 64 81 48 81 C32 81 18 74 18 54 Z" fill="url(#' + gId + ')" stroke="#332b22" stroke-width="3.2"/>' +
           '<path d="M29 37 Q32 52 28 65 M67 37 Q64 52 68 65" fill="none" stroke="#92400e" stroke-width="2.6" stroke-linecap="round"/>' +
-          '<path d="M36 27 Q48 16 60 27" fill="none" stroke="#fef3c7" stroke-width="5" stroke-linecap="round"/>' +
-          '<path d="M36 27 Q48 16 60 27" fill="none" stroke="#332b22" stroke-width="2.2" stroke-linecap="round"/>' +
+          '<path d="M35 28 C29 14 42 9 48 15 C54 9 67 14 61 28 Z" fill="#ffffff" stroke="#332b22" stroke-width="2.6" stroke-linejoin="round"/>' +
+          '<rect x="34" y="25" width="28" height="5" rx="2.5" fill="#fde047" stroke="#332b22" stroke-width="2"/>' +
+          '<rect x="43" y="68" width="10" height="7" rx="2" fill="#fef08a" stroke="#332b22" stroke-width="1.8"/>' +
+          '<path d="M32 37 Q40 33 47 34" fill="none" stroke="#ffffff" stroke-width="2.4" stroke-linecap="round" opacity="0.75"/>' +
           '<ellipse cx="31" cy="56" rx="4.5" ry="2.6" fill="#fb7185" opacity="0.72"/>' +
           '<ellipse cx="65" cy="56" rx="4.5" ry="2.6" fill="#fb7185" opacity="0.72"/>' +
           buildFaceExpression(m, 38, 58, 51, 59, 4.1) +
@@ -672,8 +676,10 @@ export function getCharacterSvg(key, isBoss, mood, options = {}) {
           '<svg viewBox="0 0 96 96">' +
           '<defs><linearGradient id="' + gId + '" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#ffe4e6"/><stop offset="100%" stop-color="#fb7185"/></linearGradient></defs>' +
           '<ellipse cx="48" cy="86" rx="27" ry="5.5" fill="rgba(51,43,34,0.16)"/>' +
-          '<rect x="10" y="48" width="10" height="14" rx="4" fill="#f472b6" stroke="#332b22" stroke-width="2.6"/>' +
-          '<rect x="76" y="48" width="10" height="14" rx="4" fill="#f472b6" stroke="#332b22" stroke-width="2.6"/>' +
+          '<rect x="9" y="47" width="11" height="15" rx="5" fill="#f472b6" stroke="#332b22" stroke-width="2.6"/>' +
+          '<rect x="76" y="47" width="11" height="15" rx="5" fill="#f472b6" stroke="#332b22" stroke-width="2.6"/>' +
+          '<circle cx="14.5" cy="54.5" r="2.5" fill="#fef08a"/>' +
+          '<circle cx="81.5" cy="54.5" r="2.5" fill="#fef08a"/>' +
           '<rect x="28" y="75" width="12" height="8" rx="4" fill="#e11d48" stroke="#332b22" stroke-width="2.6"/>' +
           '<rect x="56" y="75" width="12" height="8" rx="4" fill="#e11d48" stroke="#332b22" stroke-width="2.6"/>' +
           '<line x1="48" y1="12" x2="48" y2="26" stroke="#332b22" stroke-width="3.2"/>' +
@@ -681,11 +687,12 @@ export function getCharacterSvg(key, isBoss, mood, options = {}) {
           '<path d="M44 12 A4 4 0 0 1 52 12" fill="none" stroke="#ffffff" stroke-width="2" stroke-linecap="round"/>' +
           '<rect x="18" y="25" width="60" height="53" rx="15" fill="url(#' + gId + ')" stroke="#332b22" stroke-width="3.2"/>' +
           '<path d="M19 34 Q28 42 36 33 Q44 43 52 33 Q60 43 68 33 Q73 39 77 34 L77 27 Q48 22 19 27 Z" fill="#ffffff" stroke="#332b22" stroke-width="2.4" stroke-linejoin="round"/>' +
-          '<circle cx="32" cy="30" r="2" fill="#f43f5e"/><circle cx="48" cy="29" r="2" fill="#38bdf8"/><circle cx="64" cy="30" r="2" fill="#facc15"/>' +
+          '<circle cx="32" cy="30" r="2.2" fill="#f43f5e"/><circle cx="48" cy="29" r="2.2" fill="#38bdf8"/><circle cx="64" cy="30" r="2.2" fill="#facc15"/>' +
           '<rect x="27" y="40" width="42" height="20" rx="8" fill="#1e293b" stroke="#332b22" stroke-width="2.4"/>' +
           '<rect x="30" y="43" width="15" height="13" rx="4" fill="#ffffff"/>' +
           '<rect x="51" y="43" width="15" height="13" rx="4" fill="#ffffff"/>' +
-          '<rect x="33" y="64" width="30" height="9" rx="4.5" fill="#fef08a" stroke="#332b22" stroke-width="2"/>' +
+          '<rect x="31" y="64" width="34" height="9" rx="4.5" fill="#fef08a" stroke="#332b22" stroke-width="2"/>' +
+          '<circle cx="38" cy="68.5" r="2.2" fill="#fb7185"/><circle cx="48" cy="68.5" r="2.2" fill="#38bdf8"/><circle cx="58" cy="68.5" r="2.2" fill="#4ade80"/>' +
           buildFaceExpression(m, 37.5, 58.5, 49.5, 61, 3.3) +
           '</svg>'
         );
@@ -698,11 +705,14 @@ export function getCharacterSvg(key, isBoss, mood, options = {}) {
           '<ellipse cx="48" cy="86" rx="28" ry="5.5" fill="rgba(51,43,34,0.16)"/>' +
           '<path d="M22 62 C11 66 8 78 18 81 C24 82 28 76 30 70 Z" fill="#22d3ee" stroke="#332b22" stroke-width="2.6"/>' +
           '<path d="M74 62 C85 66 88 78 78 81 C72 82 68 76 66 70 Z" fill="#22d3ee" stroke="#332b22" stroke-width="2.6"/>' +
+          '<circle cx="17" cy="75" r="2.2" fill="#fffbeb"/><circle cx="79" cy="75" r="2.2" fill="#fffbeb"/>' +
           '<circle cx="31" cy="79" r="6" fill="#67e8f9" stroke="#332b22" stroke-width="2.5"/>' +
           '<circle cx="48" cy="80" r="6.5" fill="#67e8f9" stroke="#332b22" stroke-width="2.5"/>' +
           '<circle cx="65" cy="79" r="6" fill="#67e8f9" stroke="#332b22" stroke-width="2.5"/>' +
           '<circle cx="48" cy="46" r="26" fill="url(#' + gId + ')" stroke="#332b22" stroke-width="3.2"/>' +
+          '<path d="M32 29 Q40 24 47 26" fill="none" stroke="#ffffff" stroke-width="2.6" stroke-linecap="round" opacity="0.8"/>' +
           '<polygon points="36,22 41,11 48,17 55,11 60,22" fill="#fde047" stroke="#332b22" stroke-width="2.4" stroke-linejoin="round"/>' +
+          '<circle cx="48" cy="18" r="2.5" fill="#fb7185" stroke="#332b22" stroke-width="1.2"/>' +
           '<circle cx="17" cy="24" r="5" fill="#e0f2fe" stroke="#0284c7" stroke-width="1.8" opacity="0.85"/>' +
           '<circle cx="80" cy="28" r="4" fill="#fce7f3" stroke="#db2777" stroke-width="1.6" opacity="0.85"/>' +
           '<ellipse cx="30" cy="50" rx="4.2" ry="2.5" fill="#fb7185" opacity="0.72"/>' +
@@ -717,15 +727,17 @@ export function getCharacterSvg(key, isBoss, mood, options = {}) {
           '<svg viewBox="0 0 96 96">' +
           '<defs><linearGradient id="' + gId + '" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#fef08a"/><stop offset="100%" stop-color="#eab308"/></linearGradient></defs>' +
           '<ellipse cx="48" cy="86" rx="28" ry="5.5" fill="rgba(51,43,34,0.16)"/>' +
+          '<ellipse cx="12" cy="52" rx="5.5" ry="4.5" fill="#fbbf24" stroke="#332b22" stroke-width="2.5"/>' +
+          '<ellipse cx="84" cy="52" rx="5.5" ry="4.5" fill="#fbbf24" stroke="#332b22" stroke-width="2.5"/>' +
           '<ellipse cx="34" cy="79" rx="7" ry="4.5" fill="#b45309" stroke="#332b22" stroke-width="2.6"/>' +
           '<ellipse cx="62" cy="79" rx="7" ry="4.5" fill="#b45309" stroke="#332b22" stroke-width="2.6"/>' +
           '<rect x="17" y="21" width="62" height="56" rx="11" fill="#92400e" stroke="#332b22" stroke-width="3.2"/>' +
           '<rect x="23" y="27" width="50" height="44" rx="7" fill="url(#' + gId + ')" stroke="#332b22" stroke-width="2.4"/>' +
           '<line x1="23" y1="36" x2="73" y2="36" stroke="#78350f" stroke-width="2.4"/>' +
-          '<circle cx="32" cy="36" r="4" fill="#ef4444" stroke="#332b22" stroke-width="1.8"/>' +
-          '<circle cx="42" cy="36" r="4" fill="#38bdf8" stroke="#332b22" stroke-width="1.8"/>' +
-          '<circle cx="58" cy="36" r="4" fill="#4ade80" stroke="#332b22" stroke-width="1.8"/>' +
-          '<circle cx="67" cy="36" r="4" fill="#a855f7" stroke="#332b22" stroke-width="1.8"/>' +
+          '<circle cx="32" cy="36" r="4.2" fill="#ef4444" stroke="#332b22" stroke-width="1.8"/>' +
+          '<circle cx="42" cy="36" r="4.2" fill="#38bdf8" stroke="#332b22" stroke-width="1.8"/>' +
+          '<circle cx="54" cy="36" r="4.2" fill="#4ade80" stroke="#332b22" stroke-width="1.8"/>' +
+          '<circle cx="64" cy="36" r="4.2" fill="#a855f7" stroke="#332b22" stroke-width="1.8"/>' +
           '<circle cx="48" cy="16" r="7" fill="#fde047" stroke="#332b22" stroke-width="2.4"/>' +
           '<rect x="45.5" y="13.5" width="5" height="5" fill="#ffffff" stroke="#332b22" stroke-width="1.4"/>' +
           '<ellipse cx="31" cy="54" rx="4" ry="2.4" fill="#fb7185" opacity="0.68"/>' +
@@ -740,14 +752,17 @@ export function getCharacterSvg(key, isBoss, mood, options = {}) {
           '<svg viewBox="0 0 96 96">' +
           '<defs><linearGradient id="' + gId + '" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#e0e7ff"/><stop offset="100%" stop-color="#6366f1"/></linearGradient></defs>' +
           '<ellipse cx="48" cy="86" rx="28" ry="5.5" fill="rgba(51,43,34,0.16)"/>' +
-          '<path d="M18 52 C8 54 8 68 18 70 L28 70 Z" fill="#475569" stroke="#332b22" stroke-width="2.6"/>' +
-          '<path d="M78 52 C88 54 88 68 78 70 L68 70 Z" fill="#475569" stroke="#332b22" stroke-width="2.6"/>' +
+          '<path d="M18 52 C8 54 8 68 18 70 L28 70 Z" fill="#64748b" stroke="#332b22" stroke-width="2.6"/>' +
+          '<path d="M78 52 C88 54 88 68 78 70 L68 70 Z" fill="#64748b" stroke="#332b22" stroke-width="2.6"/>' +
+          '<ellipse cx="35" cy="80" rx="7" ry="4" fill="#475569" stroke="#332b22" stroke-width="2.4"/>' +
+          '<ellipse cx="61" cy="80" rx="7" ry="4" fill="#475569" stroke="#332b22" stroke-width="2.4"/>' +
           '<path d="M29 35 L23 79 H73 L67 35 Z" fill="#ffffff" stroke="#332b22" stroke-width="3.2" stroke-linejoin="round"/>' +
           '<path d="M27 52 H69 L71 64 H25 Z" fill="#ef4444" stroke="#332b22" stroke-width="2.2"/>' +
           '<rect x="33" y="20" width="30" height="16" rx="4" fill="#fef08a" stroke="#332b22" stroke-width="2.6"/>' +
-          '<path d="M29 21 L48 9 L67 21 Z" fill="#4f46e5" stroke="#332b22" stroke-width="2.8" stroke-linejoin="round"/>' +
+          '<path d="M29 21 L48 9 L67 21 Z" fill="url(#' + gId + ')" stroke="#332b22" stroke-width="2.8" stroke-linejoin="round"/>' +
           '<rect x="26" y="34" width="44" height="5" rx="2.5" fill="#1e293b" stroke="#332b22" stroke-width="2"/>' +
-          '<circle cx="48" cy="28" r="5" fill="#fde047" opacity="0.9"/>' +
+          '<circle cx="48" cy="28" r="5" fill="#fde047" stroke="#f59e0b" stroke-width="1.5"/>' +
+          '<rect x="44" y="68" width="8" height="11" rx="4" fill="#38bdf8" stroke="#332b22" stroke-width="2"/>' +
           '<ellipse cx="33" cy="48" rx="4" ry="2.2" fill="#fb7185" opacity="0.68"/>' +
           '<ellipse cx="63" cy="48" rx="4" ry="2.2" fill="#fb7185" opacity="0.68"/>' +
           buildFaceExpression(m, 39, 57, 45, 55, 3.8) +
@@ -760,16 +775,23 @@ export function getCharacterSvg(key, isBoss, mood, options = {}) {
           '<svg viewBox="0 0 96 96">' +
           '<defs><linearGradient id="' + gId + '" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#bae6fd"/><stop offset="100%" stop-color="#0284c7"/></linearGradient></defs>' +
           '<ellipse cx="48" cy="86" rx="29" ry="5.5" fill="rgba(51,43,34,0.16)"/>' +
+          '<rect x="9" y="45" width="9" height="16" rx="4" fill="#fbbf24" stroke="#332b22" stroke-width="2.4"/>' +
+          '<rect x="78" y="45" width="9" height="16" rx="4" fill="#fbbf24" stroke="#332b22" stroke-width="2.4"/>' +
           '<circle cx="29" cy="78" r="8" fill="#475569" stroke="#332b22" stroke-width="2.6"/><circle cx="29" cy="78" r="3" fill="#fde047"/>' +
           '<circle cx="48" cy="79" r="8.5" fill="#475569" stroke="#332b22" stroke-width="2.6"/><circle cx="48" cy="79" r="3" fill="#fde047"/>' +
           '<circle cx="67" cy="78" r="8" fill="#475569" stroke="#332b22" stroke-width="2.6"/><circle cx="67" cy="78" r="3" fill="#fde047"/>' +
           '<rect x="26" y="13" width="14" height="16" rx="4" fill="#64748b" stroke="#332b22" stroke-width="2.6"/>' +
-          '<circle cx="23" cy="10" r="5" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.8"/>' +
-          '<circle cx="15" cy="7" r="3.5" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.4"/>' +
+          '<rect x="24" y="11" width="18" height="5" rx="2.5" fill="#ef4444" stroke="#332b22" stroke-width="2"/>' +
+          '<circle cx="23" cy="7" r="4.5" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.8"/>' +
+          '<circle cx="15" cy="5" r="3.2" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.4"/>' +
+          '<rect x="58" y="16" width="10" height="11" rx="3" fill="#fde047" stroke="#332b22" stroke-width="2.2"/>' +
           '<rect x="16" y="26" width="64" height="49" rx="14" fill="url(#' + gId + ')" stroke="#332b22" stroke-width="3.2"/>' +
-          '<circle cx="48" cy="48" r="18" fill="#fffbeb" stroke="#332b22" stroke-width="2.8"/>' +
+          '<circle cx="48" cy="48" r="19" fill="#fffbeb" stroke="#332b22" stroke-width="2.8"/>' +
+          '<circle cx="48" cy="32.5" r="1.4" fill="#332b22"/><circle cx="63.5" cy="48" r="1.4" fill="#332b22"/><circle cx="48" cy="63.5" r="1.4" fill="#332b22"/><circle cx="32.5" cy="48" r="1.4" fill="#332b22"/>' +
           '<line x1="48" y1="36" x2="48" y2="48" stroke="#ef4444" stroke-width="2.6" stroke-linecap="round"/>' +
           '<line x1="48" y1="48" x2="57" y2="52" stroke="#332b22" stroke-width="2.4" stroke-linecap="round"/>' +
+          '<ellipse cx="36" cy="50" rx="3.4" ry="2" fill="#fb7185" opacity="0.65"/>' +
+          '<ellipse cx="60" cy="50" rx="3.4" ry="2" fill="#fb7185" opacity="0.65"/>' +
           buildFaceExpression(m, 39, 57, 45, 56, 3.3) +
           '</svg>'
         );
@@ -780,13 +802,19 @@ export function getCharacterSvg(key, isBoss, mood, options = {}) {
           '<svg viewBox="0 0 96 96">' +
           '<defs><linearGradient id="' + gId + '" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#fde68a"/><stop offset="100%" stop-color="#d97706"/></linearGradient></defs>' +
           '<ellipse cx="48" cy="86" rx="28" ry="5.5" fill="rgba(51,43,34,0.16)"/>' +
+          '<ellipse cx="12" cy="53" rx="6" ry="4.5" fill="#f59e0b" stroke="#332b22" stroke-width="2.5"/>' +
+          '<ellipse cx="84" cy="53" rx="6" ry="4.5" fill="#f59e0b" stroke="#332b22" stroke-width="2.5"/>' +
           '<polygon points="24,28 19,12 34,21" fill="#f59e0b" stroke="#332b22" stroke-width="2.8" stroke-linejoin="round"/>' +
           '<polygon points="72,28 77,12 62,21" fill="#f59e0b" stroke="#332b22" stroke-width="2.8" stroke-linejoin="round"/>' +
           '<ellipse cx="33" cy="79" rx="7" ry="4.5" fill="#92400e" stroke="#332b22" stroke-width="2.6"/>' +
           '<ellipse cx="63" cy="79" rx="7" ry="4.5" fill="#92400e" stroke="#332b22" stroke-width="2.6"/>' +
           '<rect x="17" y="24" width="62" height="53" rx="14" fill="url(#' + gId + ')" stroke="#332b22" stroke-width="3.2"/>' +
-          '<circle cx="48" cy="64" r="9" fill="#e2e8f0" stroke="#332b22" stroke-width="2.4"/>' +
-          '<polygon points="48,16 53,22 48,28 43,22" fill="#38bdf8" stroke="#332b22" stroke-width="2"/>' +
+          '<rect x="22" y="29" width="52" height="43" rx="10" fill="none" stroke="#fef3c7" stroke-width="2" opacity="0.75"/>' +
+          '<circle cx="48" cy="64" r="9.5" fill="#e2e8f0" stroke="#332b22" stroke-width="2.4"/>' +
+          '<line x1="48" y1="57" x2="48" y2="71" stroke="#475569" stroke-width="2.2"/>' +
+          '<line x1="41" y1="64" x2="55" y2="64" stroke="#475569" stroke-width="2.2"/>' +
+          '<circle cx="48" cy="64" r="3.2" fill="#fde047" stroke="#332b22" stroke-width="1.6"/>' +
+          '<polygon points="48,14 54,21 48,28 42,21" fill="#38bdf8" stroke="#332b22" stroke-width="2.2"/>' +
           '<ellipse cx="31" cy="49" rx="4" ry="2.4" fill="#fb7185" opacity="0.65"/>' +
           '<ellipse cx="65" cy="49" rx="4" ry="2.4" fill="#fb7185" opacity="0.65"/>' +
           buildFaceExpression(m, 37, 59, 44, 52, 4) +
@@ -799,13 +827,20 @@ export function getCharacterSvg(key, isBoss, mood, options = {}) {
           '<svg viewBox="0 0 96 96">' +
           '<defs><linearGradient id="' + gId + '" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#fef08a"/><stop offset="100%" stop-color="#4ade80"/></linearGradient></defs>' +
           '<ellipse cx="48" cy="86" rx="28" ry="5.5" fill="rgba(51,43,34,0.16)"/>' +
-          '<circle cx="24" cy="22" r="9" fill="#fb7185" stroke="#332b22" stroke-width="2.5"/>' +
-          '<circle cx="72" cy="22" r="9" fill="#60a5fa" stroke="#332b22" stroke-width="2.5"/>' +
-          '<path d="M29 28 L37 42 M67 28 L59 42" stroke="#332b22" stroke-width="2.2"/>' +
-          '<polygon points="34,26 48,10 62,26" fill="#f43f5e" stroke="#332b22" stroke-width="2.8" stroke-linejoin="round"/>' +
+          '<circle cx="20" cy="21" r="9" fill="#fb7185" stroke="#332b22" stroke-width="2.5"/><circle cx="17" cy="18" r="2.2" fill="#ffffff" opacity="0.8"/>' +
+          '<circle cx="76" cy="21" r="9" fill="#60a5fa" stroke="#332b22" stroke-width="2.5"/><circle cx="73" cy="18" r="2.2" fill="#ffffff" opacity="0.8"/>' +
+          '<path d="M23 29 L20 53 M73 29 L76 53" stroke="#332b22" stroke-width="2.2"/>' +
+          '<circle cx="18" cy="56" r="5.5" fill="#ffffff" stroke="#332b22" stroke-width="2.4"/>' +
+          '<circle cx="78" cy="56" r="5.5" fill="#ffffff" stroke="#332b22" stroke-width="2.4"/>' +
+          '<ellipse cx="35" cy="80" rx="7.5" ry="4.5" fill="#f43f5e" stroke="#332b22" stroke-width="2.6"/>' +
+          '<ellipse cx="61" cy="80" rx="7.5" ry="4.5" fill="#3b82f6" stroke="#332b22" stroke-width="2.6"/>' +
+          '<path d="M24 72 Q32 80 40 73 Q48 81 56 73 Q64 80 72 72" fill="#fbcfe8" stroke="#332b22" stroke-width="2.4"/>' +
+          '<polygon points="32,27 48,10 64,27" fill="#f43f5e" stroke="#332b22" stroke-width="2.8" stroke-linejoin="round"/>' +
+          '<path d="M32 27 Q23 16 18 22" fill="none" stroke="#a855f7" stroke-width="3" stroke-linecap="round"/>' +
+          '<path d="M64 27 Q73 16 78 22" fill="none" stroke="#38bdf8" stroke-width="3" stroke-linecap="round"/>' +
           '<circle cx="48" cy="9" r="4.5" fill="#fde047" stroke="#332b22" stroke-width="2"/>' +
-          '<circle cx="48" cy="53" r="26" fill="url(#' + gId + ')" stroke="#332b22" stroke-width="3.2"/>' +
-          '<circle cx="48" cy="54" r="5" fill="#ef4444" stroke="#332b22" stroke-width="2"/>' +
+          '<circle cx="48" cy="53" r="25" fill="url(#' + gId + ')" stroke="#332b22" stroke-width="3.2"/>' +
+          '<circle cx="48" cy="54" r="4.5" fill="#ef4444" stroke="#332b22" stroke-width="2"/><circle cx="46.5" cy="52.5" r="1.4" fill="#ffffff"/>' +
           '<ellipse cx="30" cy="54" rx="4.2" ry="2.5" fill="#fb7185" opacity="0.72"/>' +
           '<ellipse cx="66" cy="54" rx="4.2" ry="2.5" fill="#fb7185" opacity="0.72"/>' +
           buildFaceExpression(m, 37, 59, 47, 61, 3.9) +
@@ -818,15 +853,20 @@ export function getCharacterSvg(key, isBoss, mood, options = {}) {
           '<svg viewBox="0 0 96 96">' +
           '<defs><linearGradient id="' + gId + '" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#fff1f2"/><stop offset="100%" stop-color="#f9a8d4"/></linearGradient></defs>' +
           '<ellipse cx="48" cy="86" rx="28" ry="5.5" fill="rgba(51,43,34,0.16)"/>' +
+          '<ellipse cx="14" cy="58" rx="6" ry="4" transform="rotate(-18 14 58)" fill="#fef3c7" stroke="#332b22" stroke-width="2.4"/>' +
+          '<ellipse cx="82" cy="58" rx="6" ry="4" transform="rotate(18 82 58)" fill="#fef3c7" stroke="#332b22" stroke-width="2.4"/>' +
           '<ellipse cx="35" cy="79" rx="7" ry="4.5" fill="#f472b6" stroke="#332b22" stroke-width="2.6"/>' +
           '<ellipse cx="61" cy="79" rx="7" ry="4.5" fill="#f472b6" stroke="#332b22" stroke-width="2.6"/>' +
           '<path d="M18 46 H78 L73 76 H23 Z" fill="url(#' + gId + ')" stroke="#332b22" stroke-width="3.2" stroke-linejoin="round"/>' +
+          '<path d="M21 67 H75" stroke="#fde68a" stroke-width="4" stroke-linecap="round"/>' +
+          '<path d="M21 67 H75" stroke="#332b22" stroke-width="1.6" stroke-dasharray="6 4"/>' +
           '<path d="M16 46 Q24 24 48 24 Q72 24 80 46 Q68 52 58 46 Q48 53 38 46 Q28 52 16 46 Z" fill="#fef3c7" stroke="#332b22" stroke-width="3" stroke-linejoin="round"/>' +
-          '<circle cx="48" cy="19" r="6" fill="#f43f5e" stroke="#332b22" stroke-width="2.4"/>' +
-          '<path d="M48 13 Q54 9 57 12" fill="none" stroke="#16a34a" stroke-width="2.4" stroke-linecap="round"/>' +
+          '<circle cx="34" cy="36" r="2" fill="#fb7185"/><circle cx="62" cy="36" r="2" fill="#38bdf8"/><circle cx="48" cy="33" r="2" fill="#4ade80"/>' +
+          '<circle cx="48" cy="19" r="6.5" fill="#f43f5e" stroke="#332b22" stroke-width="2.4"/><circle cx="46" cy="17" r="1.8" fill="#ffffff" opacity="0.85"/>' +
+          '<path d="M48 13 Q54 9 57 12" fill="none" stroke="#16a34a" stroke-width="2.6" stroke-linecap="round"/>' +
           '<ellipse cx="31" cy="60" rx="4.2" ry="2.4" fill="#fb7185" opacity="0.72"/>' +
           '<ellipse cx="65" cy="60" rx="4.2" ry="2.4" fill="#fb7185" opacity="0.72"/>' +
-          buildFaceExpression(m, 38, 58, 57, 65, 3.8) +
+          buildFaceExpression(m, 38, 58, 55, 63, 3.8) +
           '</svg>'
         );
       },
@@ -836,10 +876,16 @@ export function getCharacterSvg(key, isBoss, mood, options = {}) {
           '<svg viewBox="0 0 96 96">' +
           '<defs><linearGradient id="' + gId + '" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#f3e8ff"/><stop offset="100%" stop-color="#7c3aed"/></linearGradient></defs>' +
           '<ellipse cx="48" cy="86" rx="28" ry="5.5" fill="rgba(51,43,34,0.16)"/>' +
-          '<circle cx="48" cy="48" r="33" fill="none" stroke="#fde047" stroke-width="2.6" stroke-dasharray="9 6" opacity="0.85"/>' +
+          '<circle cx="48" cy="48" r="34" fill="none" stroke="#fde047" stroke-width="2.6" stroke-dasharray="9 6" opacity="0.9"/>' +
+          '<circle cx="14" cy="48" r="4.5" fill="#38bdf8" stroke="#332b22" stroke-width="2"/>' +
+          '<circle cx="82" cy="48" r="4.5" fill="#38bdf8" stroke="#332b22" stroke-width="2"/>' +
           '<path d="M22 36 L11 66 Q48 75 85 66 L74 36 Z" fill="#4c1d95" stroke="#332b22" stroke-width="2.8" stroke-linejoin="round"/>' +
+          '<ellipse cx="36" cy="78" rx="6.5" ry="4" fill="#fde047" stroke="#332b22" stroke-width="2.4"/>' +
+          '<ellipse cx="60" cy="78" rx="6.5" ry="4" fill="#fde047" stroke="#332b22" stroke-width="2.4"/>' +
           '<polygon points="26,28 32,10 42,20 48,7 54,20 64,10 70,28" fill="#fde047" stroke="#332b22" stroke-width="2.8" stroke-linejoin="round"/>' +
+          '<circle cx="48" cy="18" r="2.8" fill="#38bdf8" stroke="#332b22" stroke-width="1.2"/>' +
           '<circle cx="48" cy="49" r="24" fill="url(#' + gId + ')" stroke="#332b22" stroke-width="3.2"/>' +
+          '<polygon points="48,62 50,66 54,66.5 51,69 52,73 48,71 44,73 45,69 42,66.5 46,66" fill="#fde047" stroke="#332b22" stroke-width="1.5"/>' +
           '<ellipse cx="32" cy="54" rx="4.2" ry="2.4" fill="#f472b6" opacity="0.7"/>' +
           '<ellipse cx="64" cy="54" rx="4.2" ry="2.4" fill="#f472b6" opacity="0.7"/>' +
           buildFaceExpression(m, 38, 58, 48, 57, 4) +
@@ -994,14 +1040,17 @@ export function getCharacterSvg(key, isBoss, mood, options = {}) {
         '<defs><linearGradient id="' + gId + '" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#fef3c7"/><stop offset="100%" stop-color="#fbbf24"/></linearGradient></defs>' +
         '<ellipse cx="40" cy="70" rx="20" ry="4.5" fill="rgba(51,43,34,0.14)"/>' +
         buildSparkles('#f59e0b') +
+        '<ellipse cx="15" cy="50" rx="5" ry="3.6" transform="rotate(-22 15 50)" fill="#fde68a" stroke="#332b22" stroke-width="2.3"/>' +
+        '<ellipse cx="65" cy="50" rx="5" ry="3.6" transform="rotate(22 65 50)" fill="#fde68a" stroke="#332b22" stroke-width="2.3"/>' +
         '<ellipse cx="30" cy="65" rx="6" ry="3.8" fill="#f59e0b" stroke="#332b22" stroke-width="2.4"/>' +
         '<ellipse cx="50" cy="65" rx="6" ry="3.8" fill="#f59e0b" stroke="#332b22" stroke-width="2.4"/>' +
         '<path d="M16 44 C11 33 17 21 26 24 L29 34 Z" fill="#f59e0b" stroke="#332b22" stroke-width="2.4"/>' +
         '<path d="M64 44 C69 33 63 21 54 24 L51 34 Z" fill="#f59e0b" stroke="#332b22" stroke-width="2.4"/>' +
         '<ellipse cx="40" cy="46" rx="23" ry="20" fill="url(#' + gId + ')" stroke="#332b22" stroke-width="2.8"/>' +
-        '<path d="M27 25 Q40 16 53 25" fill="none" stroke="#ffffff" stroke-width="4.5" stroke-linecap="round"/>' +
-        '<path d="M27 25 Q40 16 53 25" fill="none" stroke="#332b22" stroke-width="2" stroke-linecap="round"/>' +
-        '<path d="M30 58 L40 63 L50 58" fill="none" stroke="#fb7185" stroke-width="3.2" stroke-linecap="round"/>' +
+        '<path d="M29 25 C24 14 35 11 40 16 C45 11 56 14 51 25 Z" fill="#ffffff" stroke="#332b22" stroke-width="2.2" stroke-linejoin="round"/>' +
+        '<rect x="28" y="23" width="24" height="4" rx="2" fill="#fde047" stroke="#332b22" stroke-width="1.8"/>' +
+        '<path d="M29 57 L40 64 L51 57 Z" fill="#fb7185" stroke="#332b22" stroke-width="2" stroke-linejoin="round"/>' +
+        '<circle cx="40" cy="59" r="2.2" fill="#fde047" stroke="#332b22" stroke-width="1.2"/>' +
         '<ellipse cx="26" cy="48" rx="3.8" ry="2.2" fill="#fb7185" opacity="0.65"/>' +
         '<ellipse cx="54" cy="48" rx="3.8" ry="2.2" fill="#fb7185" opacity="0.65"/>' +
         buildFaceExpression(spMood, 32, 48, 44, 49, 3.1) +
@@ -1015,10 +1064,16 @@ export function getCharacterSvg(key, isBoss, mood, options = {}) {
         '<defs><linearGradient id="' + gId + '" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#fff1f2"/><stop offset="100%" stop-color="#fbcfe8"/></linearGradient></defs>' +
         '<ellipse cx="40" cy="70" rx="20" ry="4.5" fill="rgba(51,43,34,0.14)"/>' +
         buildSparkles('#f472b6') +
-        '<circle cx="24" cy="39" r="11" fill="#fce7f3" stroke="#332b22" stroke-width="2.4"/>' +
-        '<circle cx="56" cy="39" r="11" fill="#fce7f3" stroke="#332b22" stroke-width="2.4"/>' +
+        '<ellipse cx="30" cy="65" rx="6" ry="3.8" fill="#f472b6" stroke="#332b22" stroke-width="2.3"/>' +
+        '<ellipse cx="50" cy="65" rx="6" ry="3.8" fill="#f472b6" stroke="#332b22" stroke-width="2.3"/>' +
+        '<circle cx="23" cy="39" r="11" fill="#fce7f3" stroke="#332b22" stroke-width="2.4"/>' +
+        '<circle cx="57" cy="39" r="11" fill="#fce7f3" stroke="#332b22" stroke-width="2.4"/>' +
+        '<ellipse cx="15" cy="51" rx="4.8" ry="3.4" transform="rotate(-18 15 51)" fill="#fbcfe8" stroke="#332b22" stroke-width="2.2"/>' +
+        '<ellipse cx="65" cy="51" rx="4.8" ry="3.4" transform="rotate(18 65 51)" fill="#fbcfe8" stroke="#332b22" stroke-width="2.2"/>' +
         '<circle cx="40" cy="46" r="21" fill="url(#' + gId + ')" stroke="#332b22" stroke-width="2.8"/>' +
+        '<circle cx="28" cy="34" r="1.7" fill="#38bdf8"/><circle cx="52" cy="34" r="1.7" fill="#facc15"/><circle cx="40" cy="59" r="2" fill="#4ade80"/>' +
         '<path d="M33 21 C33 14 47 14 47 21 C47 27 40 31 40 31 C40 31 33 27 33 21 Z" fill="#f43f5e" stroke="#332b22" stroke-width="2.2"/>' +
+        '<circle cx="38" cy="19" r="1.5" fill="#ffffff" opacity="0.85"/>' +
         '<path d="M34 16 L40 12 L46 16" fill="none" stroke="#22c55e" stroke-width="2.4" stroke-linecap="round"/>' +
         '<ellipse cx="27" cy="49" rx="3.8" ry="2.2" fill="#fb7185" opacity="0.68"/>' +
         '<ellipse cx="53" cy="49" rx="3.8" ry="2.2" fill="#fb7185" opacity="0.68"/>' +
@@ -1033,11 +1088,12 @@ export function getCharacterSvg(key, isBoss, mood, options = {}) {
         '<defs><linearGradient id="' + gId + '" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#cffafe"/><stop offset="100%" stop-color="#38bdf8"/></linearGradient></defs>' +
         '<ellipse cx="40" cy="71" rx="18" ry="4" fill="rgba(51,43,34,0.13)"/>' +
         buildSparkles('#38bdf8') +
-        '<path d="M52 34 C62 32 65 44 56 48 C62 50 61 58 53 56" fill="#f9a8d4" stroke="#332b22" stroke-width="2.3" stroke-linejoin="round"/>' +
-        '<path d="M35 20 Q40 12 45 20" fill="#fde047" stroke="#332b22" stroke-width="2"/>' +
-        '<path d="M24 38 C22 22 52 22 52 40 C52 54 46 66 36 66 C26 66 24 58 29 54 C33 52 36 56 34 60" fill="url(#' + gId + ')" stroke="#332b22" stroke-width="2.6" stroke-linecap="round"/>' +
+        '<path d="M52 34 C63 31 66 43 56 48 C63 50 62 59 53 56 Z" fill="#f9a8d4" stroke="#332b22" stroke-width="2.3" stroke-linejoin="round"/>' +
+        '<polygon points="34,21 37,13 41,18 45,13 48,21" fill="#fde047" stroke="#332b22" stroke-width="2" stroke-linejoin="round"/>' +
+        '<path d="M24 38 C22 22 52 22 52 40 C52 54 46 66 36 66 C25 66 23 57 29 53 C34 50 38 56 34 60" fill="url(#' + gId + ')" stroke="#332b22" stroke-width="2.6" stroke-linecap="round"/>' +
+        '<ellipse cx="22" cy="49" rx="4.5" ry="3.2" transform="rotate(24 22 49)" fill="#7dd3fc" stroke="#332b22" stroke-width="2.1"/>' +
         '<circle cx="29" cy="52" r="7" fill="#fffbeb" stroke="#332b22" stroke-width="2"/>' +
-        '<circle cx="27" cy="50" r="2" fill="#ffffff"/>' +
+        '<circle cx="27" cy="50" r="2.2" fill="#ffffff"/>' +
         '<ellipse cx="29" cy="41" rx="3.2" ry="2" fill="#fb7185" opacity="0.6"/>' +
         '<ellipse cx="46" cy="41" rx="3.2" ry="2" fill="#fb7185" opacity="0.6"/>' +
         buildFaceExpression(spMood, 32, 44, 37, 42, 2.7) +
@@ -1051,10 +1107,18 @@ export function getCharacterSvg(key, isBoss, mood, options = {}) {
         '<defs><linearGradient id="' + gId + '" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#ffedd5"/><stop offset="100%" stop-color="#fb923c"/></linearGradient></defs>' +
         '<ellipse cx="40" cy="71" rx="20" ry="4.5" fill="rgba(51,43,34,0.14)"/>' +
         buildSparkles('#fb923c') +
-        '<polygon points="21,31 19,16 32,24" fill="#fb923c" stroke="#332b22" stroke-width="2.5" stroke-linejoin="round"/>' +
-        '<polygon points="59,31 61,16 48,24" fill="#fb923c" stroke="#332b22" stroke-width="2.5" stroke-linejoin="round"/>' +
+        '<ellipse cx="15" cy="50" rx="5" ry="3.6" transform="rotate(-18 15 50)" fill="#fdba74" stroke="#332b22" stroke-width="2.3"/>' +
+        '<ellipse cx="65" cy="50" rx="5" ry="3.6" transform="rotate(18 65 50)" fill="#fdba74" stroke="#332b22" stroke-width="2.3"/>' +
+        '<ellipse cx="30" cy="66" rx="6" ry="3.8" fill="#ea580c" stroke="#332b22" stroke-width="2.4"/>' +
+        '<ellipse cx="50" cy="66" rx="6" ry="3.8" fill="#ea580c" stroke="#332b22" stroke-width="2.4"/>' +
+        '<polygon points="21,31 19,15 33,24" fill="#fb923c" stroke="#332b22" stroke-width="2.5" stroke-linejoin="round"/>' +
+        '<polygon points="23,28 22,19 30,24" fill="#fbcfe8"/>' +
+        '<polygon points="59,31 61,15 47,24" fill="#fb923c" stroke="#332b22" stroke-width="2.5" stroke-linejoin="round"/>' +
+        '<polygon points="57,28 58,19 50,24" fill="#fbcfe8"/>' +
         '<rect x="19" y="25" width="42" height="40" rx="16" fill="url(#' + gId + ')" stroke="#332b22" stroke-width="2.8"/>' +
         '<ellipse cx="40" cy="57" rx="13" ry="8" fill="#ffffff"/>' +
+        '<path d="M26 53 Q40 58 54 53" fill="none" stroke="#ef4444" stroke-width="3.2" stroke-linecap="round"/>' +
+        '<circle cx="40" cy="56" r="3" fill="#fde047" stroke="#332b22" stroke-width="1.5"/>' +
         '<rect x="31" y="16" width="9" height="8" rx="1.5" fill="#60a5fa" stroke="#332b22" stroke-width="2"/>' +
         '<rect x="40" y="16" width="9" height="8" rx="1.5" fill="#fde047" stroke="#332b22" stroke-width="2"/>' +
         '<ellipse cx="26" cy="46" rx="3.8" ry="2.2" fill="#fb7185" opacity="0.65"/>' +
@@ -1068,16 +1132,20 @@ export function getCharacterSvg(key, isBoss, mood, options = {}) {
       const gId = 'sp-lgh-' + uid;
       return (
         '<svg viewBox="0 0 80 80">' +
-        '<defs><linearGradient id="' + gId + '" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#ffffff"/><stop offset="100%" stop-color="#e0f2fe"/></linearGradient></defs>' +
+        '<defs><linearGradient id="' + gId + '" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#ffffff"/><stop offset="100%" stop-color="#bae6fd"/></linearGradient></defs>' +
         '<ellipse cx="40" cy="70" rx="19" ry="4.5" fill="rgba(51,43,34,0.14)"/>' +
         buildSparkles('#facc15') +
-        '<path d="M21 44 C10 38 9 50 18 55 L25 52 Z" fill="#bae6fd" stroke="#332b22" stroke-width="2.4"/>' +
-        '<path d="M59 44 C70 38 71 50 62 55 L55 52 Z" fill="#bae6fd" stroke="#332b22" stroke-width="2.4"/>' +
+        '<ellipse cx="32" cy="66" rx="5.5" ry="3.5" fill="#f59e0b" stroke="#332b22" stroke-width="2.2"/>' +
+        '<ellipse cx="48" cy="66" rx="5.5" ry="3.5" fill="#f59e0b" stroke="#332b22" stroke-width="2.2"/>' +
+        '<path d="M21 44 C10 38 9 50 18 55 L25 52 Z" fill="#7dd3fc" stroke="#332b22" stroke-width="2.4"/>' +
+        '<path d="M59 44 C70 38 71 50 62 55 L55 52 Z" fill="#7dd3fc" stroke="#332b22" stroke-width="2.4"/>' +
         '<ellipse cx="40" cy="46" rx="20" ry="20" fill="url(#' + gId + ')" stroke="#332b22" stroke-width="2.8"/>' +
-        '<path d="M31 27 A9 9 0 0 1 49 27" fill="none" stroke="#f43f5e" stroke-width="3" stroke-linecap="round"/>' +
-        '<path d="M34 27 A6 6 0 0 1 46 27" fill="none" stroke="#facc15" stroke-width="2.6" stroke-linecap="round"/>' +
+        '<path d="M30 27 A10 10 0 0 1 50 27" fill="none" stroke="#f43f5e" stroke-width="3" stroke-linecap="round"/>' +
+        '<path d="M33 27 A7 7 0 0 1 47 27" fill="none" stroke="#facc15" stroke-width="2.6" stroke-linecap="round"/>' +
+        '<path d="M36 27 A4 4 0 0 1 44 27" fill="none" stroke="#38bdf8" stroke-width="2.4" stroke-linecap="round"/>' +
         '<polygon points="36,44 44,44 40,50" fill="#f59e0b" stroke="#332b22" stroke-width="1.8" stroke-linejoin="round"/>' +
-        '<circle cx="40" cy="58" r="4" fill="#fde047" stroke="#332b22" stroke-width="1.8"/>' +
+        '<path d="M30 55 L40 61 L50 55" fill="none" stroke="#1e40af" stroke-width="2.4" stroke-linecap="round"/>' +
+        '<circle cx="40" cy="59" r="3.8" fill="#fde047" stroke="#332b22" stroke-width="1.8"/>' +
         '<ellipse cx="26" cy="46" rx="3.5" ry="2.1" fill="#fb7185" opacity="0.65"/>' +
         '<ellipse cx="54" cy="46" rx="3.5" ry="2.1" fill="#fb7185" opacity="0.65"/>' +
         buildFaceExpression(spMood, 31, 49, 40, 46, 2.9) +
@@ -1091,12 +1159,19 @@ export function getCharacterSvg(key, isBoss, mood, options = {}) {
         '<defs><linearGradient id="' + gId + '" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#e0f2fe"/><stop offset="100%" stop-color="#7dd3fc"/></linearGradient></defs>' +
         '<ellipse cx="40" cy="70" rx="19" ry="4.5" fill="rgba(51,43,34,0.14)"/>' +
         buildSparkles('#38bdf8') +
-        '<circle cx="24" cy="28" r="7" fill="#bae6fd" stroke="#332b22" stroke-width="2.3"/>' +
-        '<circle cx="56" cy="28" r="7" fill="#bae6fd" stroke="#332b22" stroke-width="2.3"/>' +
+        '<ellipse cx="62" cy="58" rx="8" ry="5" transform="rotate(-18 62 58)" fill="#0284c7" stroke="#332b22" stroke-width="2.2"/>' +
+        '<ellipse cx="15" cy="49" rx="5" ry="3.6" transform="rotate(-20 15 49)" fill="#bae6fd" stroke="#332b22" stroke-width="2.2"/>' +
+        '<ellipse cx="65" cy="49" rx="5" ry="3.6" transform="rotate(20 65 49)" fill="#bae6fd" stroke="#332b22" stroke-width="2.2"/>' +
+        '<ellipse cx="30" cy="65" rx="6" ry="3.8" fill="#0284c7" stroke="#332b22" stroke-width="2.3"/>' +
+        '<ellipse cx="50" cy="65" rx="6" ry="3.8" fill="#0284c7" stroke="#332b22" stroke-width="2.3"/>' +
+        '<circle cx="24" cy="28" r="7" fill="#bae6fd" stroke="#332b22" stroke-width="2.3"/><circle cx="24" cy="28" r="3.2" fill="#fbcfe8"/>' +
+        '<circle cx="56" cy="28" r="7" fill="#bae6fd" stroke="#332b22" stroke-width="2.3"/><circle cx="56" cy="28" r="3.2" fill="#fbcfe8"/>' +
         '<ellipse cx="40" cy="46" rx="21" ry="20" fill="url(#' + gId + ')" stroke="#332b22" stroke-width="2.8"/>' +
         '<ellipse cx="40" cy="56" rx="13" ry="8" fill="#ffffff"/>' +
+        '<polygon points="40,54 35,61 45,61" fill="#ef4444" stroke="#332b22" stroke-width="1.5" stroke-linejoin="round"/>' +
         '<rect x="26" y="16" width="28" height="10" rx="3" fill="#1e40af" stroke="#332b22" stroke-width="2.3"/>' +
         '<rect x="22" y="23" width="36" height="4" rx="2" fill="#fde047" stroke="#332b22" stroke-width="1.8"/>' +
+        '<circle cx="40" cy="20" r="2.2" fill="#fde047"/>' +
         '<ellipse cx="26" cy="48" rx="3.6" ry="2.2" fill="#fb7185" opacity="0.65"/>' +
         '<ellipse cx="54" cy="48" rx="3.6" ry="2.2" fill="#fb7185" opacity="0.65"/>' +
         buildFaceExpression(spMood, 31, 49, 42, 49, 3) +
@@ -1110,15 +1185,20 @@ export function getCharacterSvg(key, isBoss, mood, options = {}) {
         '<defs><linearGradient id="' + gId + '" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#fef3c7"/><stop offset="100%" stop-color="#f59e0b"/></linearGradient></defs>' +
         '<ellipse cx="40" cy="70" rx="19" ry="4.5" fill="rgba(51,43,34,0.14)"/>' +
         buildSparkles('#fbbf24') +
-        '<ellipse cx="21" cy="50" rx="6" ry="4" fill="#fed7aa" stroke="#332b22" stroke-width="2.2"/>' +
-        '<ellipse cx="59" cy="50" rx="6" ry="4" fill="#fed7aa" stroke="#332b22" stroke-width="2.2"/>' +
+        '<ellipse cx="30" cy="65" rx="6" ry="3.8" fill="#b45309" stroke="#332b22" stroke-width="2.3"/>' +
+        '<ellipse cx="50" cy="65" rx="6" ry="3.8" fill="#b45309" stroke="#332b22" stroke-width="2.3"/>' +
+        '<ellipse cx="16" cy="50" rx="6" ry="4" transform="rotate(-15 16 50)" fill="#fed7aa" stroke="#332b22" stroke-width="2.2"/>' +
+        '<ellipse cx="64" cy="50" rx="6" ry="4" transform="rotate(15 64 50)" fill="#fed7aa" stroke="#332b22" stroke-width="2.2"/>' +
         '<ellipse cx="40" cy="46" rx="21" ry="19" fill="url(#' + gId + ')" stroke="#332b22" stroke-width="2.8"/>' +
-        '<rect x="25" y="16" width="30" height="11" rx="5" fill="#fde047" stroke="#332b22" stroke-width="2.3"/>' +
-        '<circle cx="40" cy="21" r="4" fill="#38bdf8" stroke="#332b22" stroke-width="1.8"/>' +
-        '<ellipse cx="40" cy="53" rx="6" ry="4" fill="#fb7185" stroke="#332b22" stroke-width="1.8"/>' +
-        '<ellipse cx="26" cy="48" rx="3.6" ry="2.2" fill="#fb7185" opacity="0.65"/>' +
-        '<ellipse cx="54" cy="48" rx="3.6" ry="2.2" fill="#fb7185" opacity="0.65"/>' +
-        buildFaceExpression(spMood, 31, 49, 41, 49, 2.9) +
+        '<ellipse cx="40" cy="57" rx="11" ry="6.5" fill="#fffbeb"/>' +
+        '<polygon points="40,54 43,58 40,62 37,58" fill="#38bdf8" stroke="#332b22" stroke-width="1.4"/>' +
+        '<path d="M24 27 C24 14 56 14 56 27 Z" fill="#fde047" stroke="#332b22" stroke-width="2.3"/>' +
+        '<rect x="21" y="24" width="38" height="4.5" rx="2.2" fill="#f59e0b" stroke="#332b22" stroke-width="2"/>' +
+        '<circle cx="40" cy="20" r="4.2" fill="#38bdf8" stroke="#332b22" stroke-width="1.8"/><circle cx="38.8" cy="18.8" r="1.3" fill="#ffffff"/>' +
+        '<ellipse cx="40" cy="46" rx="4.5" ry="3" fill="#fb7185" stroke="#332b22" stroke-width="1.6"/>' +
+        '<ellipse cx="26" cy="47" rx="3.6" ry="2.2" fill="#fb7185" opacity="0.65"/>' +
+        '<ellipse cx="54" cy="47" rx="3.6" ry="2.2" fill="#fb7185" opacity="0.65"/>' +
+        buildFaceExpression(spMood, 31, 49, 41, 50, 2.9) +
         '</svg>'
       );
     },
@@ -1126,16 +1206,21 @@ export function getCharacterSvg(key, isBoss, mood, options = {}) {
       const gId = 'sp-prk-' + uid;
       return (
         '<svg viewBox="0 0 80 80">' +
-        '<defs><linearGradient id="' + gId + '" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#e0f2fe"/><stop offset="100%" stop-color="#60a5fa"/></linearGradient></defs>' +
+        '<defs><linearGradient id="' + gId + '" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#bae6fd"/><stop offset="100%" stop-color="#3b82f6"/></linearGradient></defs>' +
         '<ellipse cx="40" cy="70" rx="19" ry="4.5" fill="rgba(51,43,34,0.14)"/>' +
         buildSparkles('#4ade80') +
-        '<circle cx="64" cy="20" r="7" fill="#fb7185" stroke="#332b22" stroke-width="2.1"/>' +
-        '<line x1="60" y1="26" x2="53" y2="42" stroke="#332b22" stroke-width="1.6"/>' +
+        '<circle cx="64" cy="19" r="7.5" fill="#fb7185" stroke="#332b22" stroke-width="2.2"/><circle cx="61.5" cy="16.5" r="2" fill="#ffffff" opacity="0.85"/>' +
+        '<line x1="61" y1="26" x2="57" y2="45" stroke="#332b22" stroke-width="1.8"/>' +
+        '<ellipse cx="31" cy="66" rx="6" ry="3.6" fill="#fbbf24" stroke="#332b22" stroke-width="2.2"/>' +
+        '<ellipse cx="49" cy="66" rx="6" ry="3.6" fill="#fbbf24" stroke="#332b22" stroke-width="2.2"/>' +
+        '<path d="M21 44 C12 42 12 53 20 55 Z" fill="#60a5fa" stroke="#332b22" stroke-width="2.3"/>' +
+        '<path d="M59 44 C68 42 68 53 60 55 Z" fill="#60a5fa" stroke="#332b22" stroke-width="2.3"/>' +
         '<ellipse cx="40" cy="46" rx="20" ry="20" fill="url(#' + gId + ')" stroke="#332b22" stroke-width="2.8"/>' +
-        '<ellipse cx="40" cy="50" rx="14" ry="14" fill="#ffffff"/>' +
-        '<polygon points="36,44 44,44 40,50" fill="#fbbf24" stroke="#332b22" stroke-width="1.8" stroke-linejoin="round"/>' +
-        '<ellipse cx="27" cy="47" rx="3.5" ry="2.1" fill="#fb7185" opacity="0.65"/>' +
-        '<ellipse cx="53" cy="47" rx="3.5" ry="2.1" fill="#fb7185" opacity="0.65"/>' +
+        '<ellipse cx="40" cy="52" rx="13.5" ry="12.5" fill="#ffffff"/>' +
+        '<polygon points="36,44 44,44 40,49.5" fill="#fbbf24" stroke="#332b22" stroke-width="1.8" stroke-linejoin="round"/>' +
+        '<path d="M40 55 L34 52 L34 58 Z M40 55 L46 52 L46 58 Z" fill="#f43f5e" stroke="#332b22" stroke-width="1.5" stroke-linejoin="round"/>' +
+        '<ellipse cx="27" cy="46" rx="3.5" ry="2.1" fill="#fb7185" opacity="0.65"/>' +
+        '<ellipse cx="53" cy="46" rx="3.5" ry="2.1" fill="#fb7185" opacity="0.65"/>' +
         buildFaceExpression(spMood, 32, 48, 40, 46, 2.9) +
         '</svg>'
       );
@@ -1147,11 +1232,16 @@ export function getCharacterSvg(key, isBoss, mood, options = {}) {
         '<defs><linearGradient id="' + gId + '" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#fef08a"/><stop offset="100%" stop-color="#fbbf24"/></linearGradient></defs>' +
         '<ellipse cx="40" cy="70" rx="19" ry="4.5" fill="rgba(51,43,34,0.14)"/>' +
         buildSparkles('#f472b6') +
-        '<ellipse cx="19" cy="40" rx="8" ry="5" transform="rotate(-22 19 40)" fill="#ffffff" stroke="#332b22" stroke-width="2.2"/>' +
-        '<ellipse cx="61" cy="40" rx="8" ry="5" transform="rotate(22 61 40)" fill="#ffffff" stroke="#332b22" stroke-width="2.2"/>' +
+        '<ellipse cx="18" cy="39" rx="9" ry="5.5" transform="rotate(-22 18 39)" fill="#ffffff" stroke="#332b22" stroke-width="2.2"/>' +
+        '<ellipse cx="62" cy="39" rx="9" ry="5.5" transform="rotate(22 62 39)" fill="#ffffff" stroke="#332b22" stroke-width="2.2"/>' +
+        '<ellipse cx="32" cy="66" rx="5.2" ry="3.4" fill="#b45309" stroke="#332b22" stroke-width="2.2"/>' +
+        '<ellipse cx="48" cy="66" rx="5.2" ry="3.4" fill="#b45309" stroke="#332b22" stroke-width="2.2"/>' +
+        '<path d="M35 28 Q32 17 26 19 M45 28 Q48 17 54 19" fill="none" stroke="#332b22" stroke-width="2.2" stroke-linecap="round"/>' +
+        '<circle cx="26" cy="19" r="2.6" fill="#f472b6" stroke="#332b22" stroke-width="1.6"/>' +
+        '<circle cx="54" cy="19" r="2.6" fill="#f472b6" stroke="#332b22" stroke-width="1.6"/>' +
         '<ellipse cx="40" cy="46" rx="20" ry="19" fill="url(#' + gId + ')" stroke="#332b22" stroke-width="2.8"/>' +
-        '<path d="M23 50 H57 M25 56 H55" stroke="#332b22" stroke-width="2.8" stroke-linecap="round"/>' +
-        '<path d="M35 28 Q32 19 28 21 M45 28 Q48 19 52 21" fill="none" stroke="#332b22" stroke-width="2.1" stroke-linecap="round"/>' +
+        '<path d="M21 51 Q30 55 40 51 Q50 55 59 51" fill="none" stroke="#f472b6" stroke-width="4.2" stroke-linecap="round"/>' +
+        '<path d="M23 57 H57" stroke="#332b22" stroke-width="2.8" stroke-linecap="round"/>' +
         '<ellipse cx="27" cy="45" rx="3.5" ry="2.1" fill="#fb7185" opacity="0.68"/>' +
         '<ellipse cx="53" cy="45" rx="3.5" ry="2.1" fill="#fb7185" opacity="0.68"/>' +
         buildFaceExpression(spMood, 32, 48, 40, 44, 2.9) +
@@ -1165,11 +1255,18 @@ export function getCharacterSvg(key, isBoss, mood, options = {}) {
         '<defs><linearGradient id="' + gId + '" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#ffffff"/><stop offset="100%" stop-color="#e9d5ff"/></linearGradient></defs>' +
         '<ellipse cx="40" cy="70" rx="19" ry="4.5" fill="rgba(51,43,34,0.14)"/>' +
         buildSparkles('#c084fc') +
-        '<path d="M20 44 C10 38 11 49 19 53" fill="#fbcfe8" stroke="#332b22" stroke-width="2.2"/>' +
-        '<path d="M60 44 C70 38 69 49 61 53" fill="#fbcfe8" stroke="#332b22" stroke-width="2.2"/>' +
-        '<polygon points="40,8 36,24 44,24" fill="#fde047" stroke="#332b22" stroke-width="2.2" stroke-linejoin="round"/>' +
-        '<path d="M27 25 Q40 20 53 25" fill="none" stroke="#f472b6" stroke-width="3.2" stroke-linecap="round"/>' +
-        '<ellipse cx="40" cy="46" rx="20" ry="20" fill="url(#' + gId + ')" stroke="#332b22" stroke-width="2.8"/>' +
+        '<ellipse cx="30" cy="65" rx="6" ry="3.8" fill="#fde047" stroke="#332b22" stroke-width="2.3"/>' +
+        '<ellipse cx="50" cy="65" rx="6" ry="3.8" fill="#fde047" stroke="#332b22" stroke-width="2.3"/>' +
+        '<path d="M20 44 C9 37 10 50 19 54 Z" fill="#fbcfe8" stroke="#332b22" stroke-width="2.3"/>' +
+        '<path d="M60 44 C71 37 70 50 61 54 Z" fill="#fbcfe8" stroke="#332b22" stroke-width="2.3"/>' +
+        '<polygon points="25,29 22,18 32,24" fill="#f3e8ff" stroke="#332b22" stroke-width="2.2" stroke-linejoin="round"/>' +
+        '<polygon points="55,29 58,18 48,24" fill="#f3e8ff" stroke="#332b22" stroke-width="2.2" stroke-linejoin="round"/>' +
+        '<polygon points="40,7 35,25 45,25" fill="#fde047" stroke="#332b22" stroke-width="2.2" stroke-linejoin="round"/>' +
+        '<line x1="37" y1="18" x2="43" y2="20" stroke="#b45309" stroke-width="1.6"/>' +
+        '<ellipse cx="40" cy="46" rx="20" ry="19.5" fill="url(#' + gId + ')" stroke="#332b22" stroke-width="2.8"/>' +
+        '<path d="M29 26 Q40 21 51 26" fill="none" stroke="#f472b6" stroke-width="3.6" stroke-linecap="round"/>' +
+        '<path d="M32 28 Q40 24 48 28" fill="none" stroke="#38bdf8" stroke-width="2.6" stroke-linecap="round"/>' +
+        '<polygon points="40,54 41.8,57.5 45.5,58 42.8,60.5 43.5,64 40,62 36.5,64 37.2,60.5 34.5,58 38.2,57.5" fill="#fde047" stroke="#332b22" stroke-width="1.5"/>' +
         '<ellipse cx="27" cy="47" rx="3.5" ry="2.1" fill="#fb7185" opacity="0.65"/>' +
         '<ellipse cx="53" cy="47" rx="3.5" ry="2.1" fill="#fb7185" opacity="0.65"/>' +
         buildFaceExpression(spMood, 31, 49, 41, 47, 2.9) +

@@ -88,31 +88,38 @@ function renderFurnitureSvg(furnitureId) {
   if (furnitureId === 'dessert_table') {
     return (
       '<svg viewBox="0 0 130 110" xmlns="http://www.w3.org/2000/svg">' +
+      '<ellipse cx="65" cy="103" rx="46" ry="5" fill="rgba(51,43,34,0.15)"/>' +
       '<rect x="30" y="64" width="10" height="40" rx="3" fill="#b45309" stroke="#332b22" stroke-width="2.4"/>' +
       '<rect x="90" y="64" width="10" height="40" rx="3" fill="#b45309" stroke="#332b22" stroke-width="2.4"/>' +
       '<ellipse cx="65" cy="64" rx="54" ry="13" fill="#fde68a" stroke="#332b22" stroke-width="2.8"/>' +
+      '<ellipse cx="65" cy="62" rx="46" ry="9" fill="#fef3c7"/>' +
       '<rect x="44" y="34" width="42" height="22" rx="6" fill="#fbcfe8" stroke="#332b22" stroke-width="2.2"/>' +
       '<path d="M44 42 Q54 48 65 42 Q76 48 86 42" fill="#ffffff" stroke="#332b22" stroke-width="1.8"/>' +
-      '<circle cx="65" cy="29" r="5" fill="#f43f5e" stroke="#332b22" stroke-width="1.8"/>' +
+      '<circle cx="65" cy="29" r="5" fill="#f43f5e" stroke="#332b22" stroke-width="1.8"/><circle cx="63.5" cy="27.5" r="1.5" fill="#ffffff"/>' +
       '<rect x="92" y="47" width="16" height="12" rx="4" fill="#38bdf8" stroke="#332b22" stroke-width="2"/>' +
+      '<path d="M108 50 C113 50 113 56 108 56" fill="none" stroke="#332b22" stroke-width="2" stroke-linecap="round"/>' +
       '</svg>'
     );
   }
   if (furnitureId === 'cloud_sofa') {
     return (
       '<svg viewBox="0 0 140 110" xmlns="http://www.w3.org/2000/svg">' +
+      '<ellipse cx="70" cy="103" rx="54" ry="5" fill="rgba(51,43,34,0.15)"/>' +
+      '<rect x="30" y="88" width="12" height="14" rx="4" fill="#92400e" stroke="#332b22" stroke-width="2.2"/>' +
+      '<rect x="98" y="88" width="12" height="14" rx="4" fill="#92400e" stroke="#332b22" stroke-width="2.2"/>' +
       '<ellipse cx="42" cy="48" rx="26" ry="22" fill="#e0f2fe" stroke="#332b22" stroke-width="2.8"/>' +
       '<ellipse cx="98" cy="48" rx="26" ry="22" fill="#e0f2fe" stroke="#332b22" stroke-width="2.8"/>' +
       '<ellipse cx="70" cy="40" rx="32" ry="24" fill="#ffffff" stroke="#332b22" stroke-width="2.8"/>' +
       '<rect x="18" y="58" width="104" height="30" rx="14" fill="#bae6fd" stroke="#332b22" stroke-width="2.8"/>' +
-      '<rect x="30" y="88" width="12" height="14" rx="4" fill="#92400e" stroke="#332b22" stroke-width="2.2"/>' +
-      '<rect x="98" y="88" width="12" height="14" rx="4" fill="#92400e" stroke="#332b22" stroke-width="2.2"/>' +
+      '<path d="M30 64 H110" stroke="#ffffff" stroke-width="2.2" stroke-linecap="round" opacity="0.75"/>' +
       '<polygon points="48,66 51,71 57,72 52,76 53,81 48,78 43,81 44,76 39,72 45,71" fill="#fde047" stroke="#332b22" stroke-width="1.4"/>' +
+      '<ellipse cx="92" cy="69" rx="11" ry="8" transform="rotate(12 92 69)" fill="#fbcfe8" stroke="#332b22" stroke-width="1.8"/>' +
       '</svg>'
     );
   }
   return (
     '<svg viewBox="0 0 130 110" xmlns="http://www.w3.org/2000/svg">' +
+    '<ellipse cx="65" cy="103" rx="50" ry="5" fill="rgba(51,43,34,0.15)"/>' +
     '<rect x="18" y="14" width="94" height="88" rx="10" fill="#d97706" stroke="#332b22" stroke-width="3"/>' +
     '<rect x="26" y="22" width="78" height="24" rx="4" fill="#fef3c7" stroke="#332b22" stroke-width="2"/>' +
     '<rect x="26" y="54" width="78" height="26" rx="4" fill="#fef3c7" stroke="#332b22" stroke-width="2"/>' +
@@ -122,6 +129,8 @@ function renderFurnitureSvg(furnitureId) {
     '<rect x="76" y="29" width="16" height="16" rx="2" fill="#60a5fa" stroke="#332b22" stroke-width="1.6"/>' +
     '<rect x="34" y="62" width="22" height="14" rx="3" fill="#fb923c" stroke="#332b22" stroke-width="1.6"/>' +
     '<rect x="64" y="60" width="28" height="16" rx="3" fill="#a78bfa" stroke="#332b22" stroke-width="1.6"/>' +
+    '<circle cx="48" cy="91" r="2.5" fill="#fde047" stroke="#332b22" stroke-width="1.4"/>' +
+    '<circle cx="82" cy="91" r="2.5" fill="#fde047" stroke="#332b22" stroke-width="1.4"/>' +
     '</svg>'
   );
 }
@@ -130,8 +139,10 @@ function renderDecorSvg(decorId) {
   if (decorId === 'trophy_stand') {
     return (
       '<svg viewBox="0 0 90 100" xmlns="http://www.w3.org/2000/svg">' +
+      '<ellipse cx="45" cy="93" rx="26" ry="4.5" fill="rgba(51,43,34,0.15)"/>' +
       '<rect x="25" y="72" width="40" height="20" rx="5" fill="#92400e" stroke="#332b22" stroke-width="2.4"/>' +
-      '<path d="M30 22 H60 L55 48 Q45 58 35 48 Z" fill="#fbbf24" stroke="#332b22" stroke-width="2.6"/>' +
+      '<path d="M30 28 C19 28 19 42 32 44 M60 28 C71 28 71 42 58 44" fill="none" stroke="#f59e0b" stroke-width="3" stroke-linecap="round"/>' +
+      '<path d="M30 22 H60 L55 48 Q45 58 35 48 Z" fill="#fbbf24" stroke="#332b22" stroke-width="2.6" stroke-linejoin="round"/>' +
       '<rect x="41" y="52" width="8" height="16" fill="#f59e0b" stroke="#332b22" stroke-width="2"/>' +
       '<rect x="33" y="65" width="24" height="7" rx="3" fill="#fde047" stroke="#332b22" stroke-width="2"/>' +
       '<polygon points="45,28 47,33 52,33 48,36 49,41 45,38 41,41 42,36 38,33 43,33" fill="#ffffff"/>' +
@@ -141,27 +152,37 @@ function renderDecorSvg(decorId) {
   if (decorId === 'mini_globe') {
     return (
       '<svg viewBox="0 0 90 100" xmlns="http://www.w3.org/2000/svg">' +
+      '<ellipse cx="45" cy="92" rx="25" ry="4.5" fill="rgba(51,43,34,0.15)"/>' +
       '<rect x="26" y="76" width="38" height="14" rx="5" fill="#b45309" stroke="#332b22" stroke-width="2.4"/>' +
       '<path d="M45 62 V76" stroke="#332b22" stroke-width="4"/>' +
       '<path d="M25 22 A24 24 0 1 1 65 58" fill="none" stroke="#f59e0b" stroke-width="4" stroke-linecap="round"/>' +
       '<circle cx="45" cy="40" r="20" fill="#38bdf8" stroke="#332b22" stroke-width="2.6"/>' +
       '<path d="M34 32 Q42 28 46 36 Q54 34 56 44 Q46 50 38 44 Z" fill="#4ade80" stroke="#15803d" stroke-width="1.4"/>' +
+      '<circle cx="38" cy="29" r="2.2" fill="#ffffff" opacity="0.8"/>' +
       '</svg>'
     );
   }
   if (decorId === 'gramophone') {
     return (
       '<svg viewBox="0 0 90 100" xmlns="http://www.w3.org/2000/svg">' +
+      '<ellipse cx="45" cy="92" rx="28" ry="4.5" fill="rgba(51,43,34,0.15)"/>' +
       '<rect x="20" y="60" width="50" height="30" rx="6" fill="#b45309" stroke="#332b22" stroke-width="2.6"/>' +
+      '<rect x="27" y="67" width="36" height="16" rx="4" fill="#fde68a" stroke="#332b22" stroke-width="1.8"/>' +
       '<ellipse cx="45" cy="60" rx="18" ry="4" fill="#1e293b"/>' +
       '<path d="M54 58 Q62 40 46 28 L32 16 Q56 12 68 34 Q68 48 54 58 Z" fill="#fbbf24" stroke="#332b22" stroke-width="2.4" stroke-linejoin="round"/>' +
-      '<circle cx="24" cy="24" r="3" fill="#ec4899"/><text x="20" y="24" font-size="14">🎵</text>' +
+      '<ellipse cx="34" cy="24" rx="6" ry="10" transform="rotate(-24 34 24)" fill="#fde047" stroke="#332b22" stroke-width="2.2"/>' +
+      '<g stroke="#332b22" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">' +
+      '<circle cx="17" cy="30" r="3.4" fill="#fb7185"/>' +
+      '<circle cx="27" cy="27" r="3.4" fill="#38bdf8"/>' +
+      '<path d="M20 30 V17 L30 14 V27" fill="none"/>' +
+      '</g>' +
       '</svg>'
     );
   }
   if (decorId === 'star_lantern') {
     return (
       '<svg viewBox="0 0 90 100" xmlns="http://www.w3.org/2000/svg">' +
+      '<ellipse cx="45" cy="92" rx="22" ry="4" fill="rgba(51,43,34,0.13)"/>' +
       '<line x1="45" y1="0" x2="45" y2="24" stroke="#332b22" stroke-width="3"/>' +
       '<circle cx="45" cy="52" r="28" fill="#fef08a" opacity="0.45"/>' +
       '<polygon points="45,22 52,40 71,42 56,55 60,74 45,64 30,74 34,55 19,42 38,40" fill="#fde047" stroke="#b45309" stroke-width="2.8" stroke-linejoin="round"/>' +
@@ -172,6 +193,7 @@ function renderDecorSvg(decorId) {
   if (decorId === 'rainbow_musicbox') {
     return (
       '<svg viewBox="0 0 90 100" xmlns="http://www.w3.org/2000/svg">' +
+      '<ellipse cx="45" cy="91" rx="29" ry="4.5" fill="rgba(51,43,34,0.15)"/>' +
       '<rect x="18" y="54" width="54" height="34" rx="8" fill="#f472b6" stroke="#332b22" stroke-width="2.6"/>' +
       '<path d="M22 54 L30 34 H66 L58 54 Z" fill="#fbcfe8" stroke="#332b22" stroke-width="2.4" stroke-linejoin="round"/>' +
       '<path d="M28 48 A16 16 0 0 1 60 48" fill="none" stroke="#38bdf8" stroke-width="3"/>' +
@@ -182,12 +204,13 @@ function renderDecorSvg(decorId) {
   }
   return (
     '<svg viewBox="0 0 90 100" xmlns="http://www.w3.org/2000/svg">' +
+    '<ellipse cx="45" cy="92" rx="22" ry="4.5" fill="rgba(51,43,34,0.15)"/>' +
     '<path d="M26 60 H64 L58 90 H32 Z" fill="#fb923c" stroke="#332b22" stroke-width="2.6" stroke-linejoin="round"/>' +
     '<rect x="22" y="54" width="46" height="9" rx="4" fill="#fdba74" stroke="#332b22" stroke-width="2.4"/>' +
     '<line x1="45" y1="54" x2="45" y2="34" stroke="#15803d" stroke-width="3.6" stroke-linecap="round"/>' +
     '<path d="M45 38 C31 24 22 36 33 44 Z" fill="#4ade80" stroke="#332b22" stroke-width="2.2"/>' +
     '<path d="M45 38 C59 24 68 36 57 44 Z" fill="#22c55e" stroke="#332b22" stroke-width="2.2"/>' +
-    '<circle cx="45" cy="28" r="6" fill="#fde047" stroke="#332b22" stroke-width="2"/>' +
+    '<circle cx="45" cy="28" r="6" fill="#fde047" stroke="#332b22" stroke-width="2"/><circle cx="43.5" cy="26.5" r="1.8" fill="#ffffff"/>' +
     '</svg>'
   );
 }

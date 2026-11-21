@@ -4493,9 +4493,9 @@ dialog.mqst-shop-dialog {
   outline: 3px solid #2563eb;
   outline-offset: 2px;
 }
-.mqst-th-furniture svg { width: clamp(92px, 13vw, 134px); height: auto; display: block; }
-.mqst-th-window svg    { width: clamp(106px, 15vw, 152px); height: auto; display: block; }
-.mqst-th-decor svg     { width: clamp(72px, 9.5vw, 96px); height: auto; display: block; }
+.mqst-th-furniture svg { width: clamp(92px, 13vw, 134px); height: auto; display: block; filter: var(--shadow-paper); }
+.mqst-th-window svg    { width: clamp(106px, 15vw, 152px); height: auto; display: block; filter: var(--shadow-paper); }
+.mqst-th-decor svg     { width: clamp(72px, 9.5vw, 96px); height: auto; display: block; filter: var(--shadow-paper); }
 
 .mqst-th-floor {
   position: relative;
@@ -4600,6 +4600,7 @@ dialog.mqst-shop-dialog {
   width: clamp(58px, 7.6vw, 76px);
   height: clamp(58px, 7.6vw, 76px);
   display: block;
+  filter: var(--shadow-paper);
 }
 .mqst-th-empty-cushion {
   padding: 8px 10px;
