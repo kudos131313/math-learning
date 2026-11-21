@@ -4,10 +4,12 @@
 - **狀態**：`draft`（待審閱後啟動分期開發）
 - **相關領域文件**：
   - [領域詞彙表](../../GLOSSARY.md)
+  - [數學冒險島美術風格指導規範](../../docs/art-style-guide.md)
   - [ADR-0001：將數學冒險島升格為獨立主單元並採用多海域地圖架構](../../docs/adr/0001-promote-adventure-island-and-multi-realm-world.md)
   - [ADR-0002：採用雙軌圖鑑收集與跨題型結構化救援案件](../../docs/adr/0002-dual-track-codex-and-structured-rescue-cases.md)
   - [ADR-0003：採用 v2 存檔無縫遷移、單一星星幣經濟與低壓力耐玩設計](../../docs/adr/0003-save-v2-migration-starcoin-and-low-stress-retention.md)
   - [ADR-0004：僅支援電腦與平板視窗，不針對手機窄螢幕進行專屬適配](../../docs/adr/0004-desktop-and-tablet-viewport-scope.md)
+  - [ADR-0005：數學冒險島採用「立體繪本紙劇場」介面與「厚描邊繪本貼紙」向量美術方向](../../docs/adr/0005-popup-storybook-theater-and-sticker-svg-art-direction.md)
 
 ---
 
@@ -418,21 +420,32 @@
 
 ---
 
-## 8. 美術與資源需求清單（Q6）
+## 8. 美術與資源需求清單（Q6 & 美術風格指導規範）
 
-### 8.1 繪本點陣插畫（比照既有 `public/assets/quest/*.jpg` 柔光繪本風格）
-- **世界地圖（2 張）**：
+完整視覺層級、色票、字型、貼紙 SVG 座標契約、動態演出紅線與樣式收斂檢核表，請參閱 **[數學冒險島 — 美術風格指導規範](../../docs/art-style-guide.md)** 與 **[ADR-0005](../../docs/adr/0005-popup-storybook-theater-and-sticker-svg-art-direction.md)**。核心規範摘要如下：
+
+### 8.1 立體繪本紙劇場（Pop-up Storybook Theater）介面與色彩準則
+- **與全站 Hum 厚磅卡紙系統同源**：淘汰 `css/mul-quest.css` 舊版 `ZCOOL KuaiLe` 字型與隔離舊色票，全面對齊 `css/tokens.css` 的圓體字族（`--font-display`：`Chillax`、`Zen Maru Gothic`、`Noto Sans TC`）與等寬數字（`--font-num` + `tabular-nums`）。
+- **木框鑲嵌厚白卡（Wood-Framed Cardstock）**：戰鬥題卡與對話框內芯恆為高對比暖白厚磅卡紙（`--color-card` + `--grain` 紙紋）；生活應用題題幹字級 `>= 18px`、關鍵數量與單位以厚卡紙高光膠囊標示；僅舞台外框、頂部 HUD 橫樑與木牌頂飾依場域切換 **四大劇場主題色票**（☀️ 陽光暖琥珀、🌲 森林午後翠綠、☁️ 雲端黎明天青、🗼 試煉星穹紫金）。
+- **位值語意色絕對優先（Semantic Color Immunity）**：迷你直式卡、十進位積木小幫手與位值組數卡永遠鎖定全站課本位值語意色（千紫 `--th-*`、百藍 `--h-*`、十橘 `--t-*`、個白灰 `--o-*`），絕不隨海域主題變色。
+
+### 8.2 繪本點陣插畫（暖調柔光童話繪本風 `.jpg`）
+- **世界地圖（3 張，含既有 1 張 ＋ 新增 2 張）**：
+  - `public/assets/quest/world-map.jpg`（九九乘法奇幻群島）
   - `public/assets/quest/world-map-sunny.jpg`（陽光加減群島 5 座島全景）
   - `public/assets/quest/world-map-cloud.jpg`（雲端應用王國 5 座浮空島全景）
-- **戰鬥舞台背景（10 張）**：
+- **戰鬥舞台背景（15 張，含既有 5 張 ＋ 新增 10 張）**：
   - 陽光加減群島：`bg-bakery.jpg`、`bg-candy.jpg`、`bg-bay.jpg`、`bg-market.jpg`、`bg-lighthouse.jpg`
   - 雲端應用王國：`bg-station.jpg`、`bg-vault.jpg`、`bg-park.jpg`、`bg-patisserie.jpg`、`bg-skycastle.jpg`
+  - **舞台構圖安全區**：所有戰鬥背景下半部 55%～100% 角色對峙地面與中央題卡覆蓋區須保持平坦低對比並搭配柔光遮罩（Scrim）。
 
-### 8.2 程式 SVG 資產擴展
-- `src/quest/svg-art.js`（可依領域拆分子模組避免單檔過肥）：
-  - 10 位新島嶼魔王與 10 隻新守護小精靈 SVG（含 `normal` / `hit` / `dizzy` / `happy` 多神情與 Lv.3 光環層）。
-  - 小兔三部位裝扮圖層渲染器（`hat` / `outfit` / `wand` 分層疊加，並提供光彈風格對應）。
-  - 秘密樹屋場景與家具 SVG、魔王與故事收集冊徽章圖示、以及無盡試煉塔大門／樓層視覺元件。
+### 8.3 厚描邊繪本貼紙 SVG（Die-Cut Storybook Sticker SVG）與收藏空間
+- `src/quest/svg-art.js` 與 `src/quest/treehouse-svg.js`：
+  - 統一採用暖深褐圓角粗描邊（`#332b22`、`stroke-width: 2.8~3.2`）、腳底半透明接地橢圓影與外層貼紙紙影（`--shadow-paper`）。
+  - 15 位**呆萌玩具魔王**（`viewBox="0 0 96 96"`）與 15 隻**守護小精靈**（`viewBox="0 0 80 80"`，含 `normal` / `hit` / `dizzy` / `happy` / `fever` / `oops` 表情與 Lv.3 光環層）。
+  - 粉紅小兔（`viewBox="0 0 100 100"`）三部位裝扮圖層渲染器（`hat` / `outfit` / `wand` 分層疊加，所有頭飾嚴格遵守 `y <= 34` 不遮臉紅線）。
+  - **秘密樹屋**（剖面立體紙娃娃屋）、**雙軌圖鑑**（凹槽壓痕寶石貼紙牆 ＋ 銅／銀／金三階材質技能卡）與**冒險印章本**（微傾 `-5deg ~ +5deg` 手感橡皮郵戳）。
+  - **動態演出紅線**：思考期零干擾（僅 `<= 3px` 柔和呼吸）、答錯與開小幫手零懲罰感、完整支援 `prefers-reduced-motion: reduce`。
 
 ---
 
