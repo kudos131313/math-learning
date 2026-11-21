@@ -41,6 +41,7 @@ import {
 } from '../src/domain/quest-questions.js';
 import { generateMulChoices } from '../src/domain/multiplication.js';
 import { generateCalcChoices } from '../src/domain/quest-calc-questions.js';
+import { generateCloudChoices } from '../src/domain/quest-cloud-questions.js';
 import {
   renderPinkBunnySvg,
   getStageChestSvg,
@@ -48,22 +49,25 @@ import {
 } from '../src/quest/svg-art.js';
 
 describe('數學冒險島靜態配置與多海域完整性', () => {
-  it('應定義 3 大海域、10 座島嶼（陽光加減 ＋ 九九乘法）、30 個關卡、10 枚徽章、10 張技能卡與 8 款造型', () => {
+  it('應定義 3 大海域、15 座島嶼（陽光 ＋ 乘法 ＋ 雲端）、45 個關卡、10 枚徽章、24 張技能卡與 8 款造型', () => {
     expect(REALMS).toHaveLength(3);
     expect(getRealmById('sunny').unlockMode).toBe('initial');
     expect(getRealmById('sunny').status).toBe('active');
     expect(getRealmById('mul').status).toBe('active');
     expect(getRealmById('cloud').unlockMode).toBe('conditional');
+    expect(getRealmById('cloud').status).toBe('active');
 
-    expect(ISLANDS).toHaveLength(10);
+    expect(ISLANDS).toHaveLength(15);
     expect(getIslandsByRealm('sunny')).toHaveLength(5);
     expect(getIslandsByRealm('mul')).toHaveLength(5);
-    expect(STAGES).toHaveLength(30);
+    expect(getIslandsByRealm('cloud')).toHaveLength(5);
+    expect(STAGES).toHaveLength(45);
     expect(getStagesByRealm('sunny')).toHaveLength(15);
     expect(getStagesByRealm('mul')).toHaveLength(15);
+    expect(getStagesByRealm('cloud')).toHaveLength(15);
     expect(BADGES).toHaveLength(10);
     expect(BUNNY_COSTUMES).toHaveLength(8);
-    expect(SKILL_CARDS).toHaveLength(10);
+    expect(SKILL_CARDS).toHaveLength(24);
 
     for (const isl of ISLANDS) {
       expect(isl.fullId).toBe(isl.realmId + ':' + isl.id);
@@ -308,13 +312,18 @@ describe('Phase 1：v1 → v2 無縫存檔遷移、海域解鎖、救援案件�
 });
 
 describe('冒險關卡題庫與低 1 乘法權重驗證', () => {
-  it('30 個關卡皆能產出符合數量的題目，且選擇題誘答有效不重複', () => {
+  it('45 個關卡皆能產出符合數量的題目，且選擇題誘答有效不重複', () => {
     for (const st of STAGES) {
       const qs = buildStageQuestions(st, {});
       expect(qs).toHaveLength(st.count);
       for (const q of qs) {
         if (q.uiMode === 'choice') {
-          const opts = q.realm === 'sunny' ? generateCalcChoices(q, 4) : generateMulChoices(q, 4);
+          const opts =
+            q.kind === 'mul'
+              ? generateMulChoices(q, 4)
+              : q.realm === 'cloud'
+                ? generateCloudChoices(q, 4)
+                : generateCalcChoices(q, 4);
           expect(opts).toHaveLength(4);
           expect(opts).toContain(q.slots[0].expected);
           expect(new Set(opts).size).toBe(4);

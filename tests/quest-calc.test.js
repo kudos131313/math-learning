@@ -31,12 +31,13 @@ import { renderCalcEquationHtml, renderCalcHelperHtml } from '../src/quest/calc-
 import { getStageChestSvg, getCharacterSvg } from '../src/quest/svg-art.js';
 
 describe('Phase 2a：陽光加減群島靜態結構與 SVG 美術完整性', () => {
-  it('應完整配置 5 座陽光加減島嶼、15 個關卡、Boss 護盾與 10 張技能卡', () => {
+  it('應完整配置 5 座陽光加減島嶼、15 個關卡、Boss 護盾與 10 張陽光技能卡', () => {
     const sunnyIslands = getIslandsByRealm('sunny');
     const sunnyStages = getStagesByRealm('sunny');
     expect(sunnyIslands).toHaveLength(5);
     expect(sunnyStages).toHaveLength(15);
-    expect(SKILL_CARDS).toHaveLength(10);
+    expect(SKILL_CARDS.filter((c) => c.realmId === 'sunny')).toHaveLength(10);
+    expect(SKILL_CARDS).toHaveLength(24);
 
     for (const isl of sunnyIslands) {
       expect(toCanonicalPartnerId(isl.id)).toBe('sunny:' + isl.id);

@@ -26,6 +26,7 @@ import {
 import { buildMulQuestion } from './multiplication.js';
 import { randInt } from './number-text.js';
 import { buildSunnyStageQuestions, rebuildCalcQuestionFromSnapshot } from './quest-calc-questions.js';
+import { buildCloudStageQuestions, rebuildCloudQuestionFromSnapshot } from './quest-cloud-questions.js';
 
 function isPlainObject(val) {
   return Boolean(val) && typeof val === 'object' && !Array.isArray(val);
@@ -657,8 +658,10 @@ export function getRealmUnlockProgress(realmId, saveData) {
     unlocked: isRealmUnlocked(realmId, saveData),
     stars,
     minStars,
+    remainingStars: Math.max(0, minStars - stars),
     bosses,
-    minBosses
+    minBosses,
+    remainingBosses: Math.max(0, minBosses - bosses)
   };
 }
 
@@ -1008,6 +1011,9 @@ export function buildStageQuestions(stage, gemsMap = {}, options = {}) {
   if (stage && stage.realmId === 'sunny') {
     return buildSunnyStageQuestions(stage, options);
   }
+  if (stage && stage.realmId === 'cloud') {
+    return buildCloudStageQuestions(stage, options);
+  }
 
   const randIntFn = options.randIntFn || randInt;
   const randomFn = options.randomFn || Math.random;
@@ -1101,6 +1107,14 @@ export function buildRescueQuestions(rescueList, options = {}) {
         return q;
       }
       if (!isPlainObject(entry) || !isPlainObject(entry.snapshot)) return null;
+      if (
+        entry.realm === 'cloud' ||
+        entry.kind === 'seq' ||
+        entry.kind === 'place_value' ||
+        entry.kind === 'word_two_step'
+      ) {
+        return rebuildCloudQuestionFromSnapshot(entry);
+      }
       if (
         entry.realm === 'sunny' ||
         entry.kind === 'add' ||

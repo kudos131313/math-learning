@@ -1353,6 +1353,404 @@
   white-space: nowrap;
 }
 
+/* ---------------- Phase 2b：雲端應用王國（跳數火車／位值金庫／兩步驟引導與解鎖進度） ---------------- */
+.mq-input-slot.is-4d {
+  width: 128px;
+}
+
+.mqst-unlock-meters {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+  gap: 10px;
+  margin-top: 8px;
+  text-align: left;
+}
+
+.mqst-unlock-meter {
+  padding: 8px 10px;
+  border-radius: 12px;
+  border: 2px solid rgba(51, 43, 34, 0.2);
+  background: #ffffff;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.mqst-unlock-meter-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 6px;
+  font-size: 12.5px;
+  color: var(--ink);
+}
+
+/* 跳數密碼 5 節車廂 */
+.mqst-seq-train {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 6px;
+  width: 100%;
+}
+
+.mqst-seq-car {
+  min-width: 72px;
+  min-height: 52px;
+  padding: 6px 12px;
+  border-radius: 14px;
+  border: 2.5px solid var(--ink);
+  background: #f0f9ff;
+  box-shadow: 0 3px 0 rgba(51, 43, 34, 0.22);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.mqst-seq-car.is-blank {
+  background: #fef9c3;
+  border-color: #d97706;
+  padding: 4px 8px;
+}
+
+.mqst-seq-num {
+  font-family: var(--font-num);
+  font-size: 24px;
+  font-weight: 900;
+  color: #0369a1;
+}
+
+.mqst-seq-arc {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  font-size: 11px;
+  font-weight: 900;
+  color: #64748b;
+  line-height: 1.1;
+}
+
+.mqst-seq-arc span {
+  background: #ffedd5;
+  color: #9a3412;
+  padding: 1px 6px;
+  border-radius: 999px;
+  border: 1px solid #fdba74;
+}
+
+.mqst-seq-input,
+.mqst-pv-input,
+.mqst-direct-input,
+.mqst-step-input {
+  height: 48px !important;
+  font-size: 26px !important;
+}
+
+/* 位值金庫卡片 */
+.mqst-pv-stage {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 10px 14px;
+  width: 100%;
+}
+
+.mqst-pv-cards-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.mqst-pv-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 6px 12px;
+  border-radius: 14px;
+  border: 2.5px solid var(--ink);
+  background: #ffffff;
+  box-shadow: 2px 3px 0 rgba(51, 43, 34, 0.18);
+  min-width: 74px;
+}
+
+.mqst-pv-card.tone-h   { background: #dbeafe; color: var(--h-color-dark); }
+.mqst-pv-card.tone-t   { background: #ffedd5; color: var(--t-color-dark); }
+.mqst-pv-card.tone-o   { background: #f8fafc; color: var(--o-color-dark); }
+.mqst-pv-card.tone-th  { background: #f3e8ff; color: #6b21a8; }
+.mqst-pv-card.tone-word,
+.mqst-pv-card.tone-digit { background: #fef9c3; color: #713f12; }
+
+.mqst-pv-card-lbl {
+  font-size: 11px;
+  font-weight: 800;
+  opacity: 0.85;
+}
+
+.mqst-pv-card-val {
+  font-family: var(--font-num);
+  font-size: 20px;
+  font-weight: 900;
+}
+
+.mqst-pv-answer-row {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.mqst-pv-eq-arrow {
+  font-size: 26px;
+  font-weight: 900;
+  color: var(--ink);
+}
+
+/* 兩步驟分步引導追蹤器與雙步驟算式 */
+.mqst-two-step-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+  width: 100%;
+}
+
+.mqst-step-tracker {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 6px;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.mqst-step-chip {
+  padding: 2px 10px;
+  border-radius: 999px;
+  border: 2px solid rgba(51, 43, 34, 0.25);
+  background: #f1f5f9;
+  color: #475569;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.mqst-step-chip.is-current {
+  border-color: #2563eb;
+  background: #dbeafe;
+  color: #1e3a8a;
+}
+
+.mqst-step-chip.is-done {
+  border-color: #16a34a;
+  background: #dcfce7;
+  color: #14532d;
+}
+
+.mqst-two-step-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding: 5px 12px;
+  border-radius: 16px;
+  border: 2.5px solid var(--ink);
+  background: #ffffff;
+  width: min(100%, 540px);
+}
+
+.mqst-two-step-row.is-active {
+  background: #fffbeb;
+  border-color: #d97706;
+  box-shadow: 0 3px 0 rgba(180, 83, 9, 0.22);
+}
+
+.mqst-two-step-row.is-done {
+  background: #f0fdf4;
+  border-color: #16a34a;
+}
+
+.mqst-two-step-row.is-waiting {
+  background: #f8fafc;
+  border-style: dashed;
+  border-color: #94a3b8;
+  opacity: 0.78;
+}
+
+.mqst-two-step-badge {
+  padding: 2px 9px;
+  border-radius: 999px;
+  background: #fef3c7;
+  border: 1.5px solid #d97706;
+  color: #78350f;
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.mqst-two-step-badge.is-done {
+  background: #bbf7d0;
+  border-color: #16a34a;
+  color: #14532d;
+}
+
+.mqst-two-step-badge.is-locked {
+  background: #e2e8f0;
+  border-color: #94a3b8;
+  color: #475569;
+}
+
+.mqst-step-locked-val {
+  font-family: var(--font-num);
+  font-size: 22px;
+  font-weight: 900;
+  color: #15803d;
+  padding: 3px 12px;
+  border-radius: 12px;
+  background: #dcfce7;
+  border: 2px solid #22c55e;
+}
+
+.mqst-step-carry-pill {
+  padding: 5px 12px;
+  border-radius: 12px;
+  background: #e0f2fe;
+  border: 2px solid #0284c7;
+  color: #0c4a6e;
+  font-family: var(--font-num);
+  font-size: 18px;
+  font-weight: 900;
+}
+
+.mqst-step-wait-q {
+  padding: 5px 14px;
+  border-radius: 12px;
+  background: #f1f5f9;
+  border: 2px dashed #94a3b8;
+  font-size: 20px;
+  font-weight: 900;
+  color: #64748b;
+}
+
+/* 兩步驟一步直解 */
+.mqst-direct-step-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+.mqst-direct-step-pill {
+  padding: 3px 12px;
+  border-radius: 999px;
+  background: #fef2f2;
+  border: 2px solid #ef4444;
+  color: #991b1b;
+  font-size: 12.5px;
+  font-weight: 900;
+}
+
+.mqst-direct-answer-line {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 20px;
+  font-weight: 900;
+  color: var(--ink);
+}
+
+/* 小幫手：5 節迷你跳數火車 與 兩步驟推理圖 */
+.mqst-mini-train-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 5px;
+  padding: 6px;
+}
+
+.mqst-mini-car {
+  padding: 6px 10px;
+  border-radius: 10px;
+  border: 2px solid var(--ink);
+  background: #e0f2fe;
+  color: #0369a1;
+  font-family: var(--font-num);
+  font-size: 16px;
+  font-weight: 900;
+}
+
+.mqst-mini-car.is-mystery {
+  background: #fef9c3;
+  border-color: #d97706;
+  color: #92400e;
+}
+
+.mqst-mini-arc {
+  font-size: 11px;
+  font-weight: 900;
+  color: #b45309;
+  background: #ffedd5;
+  padding: 1px 6px;
+  border-radius: 999px;
+}
+
+.mqst-twostep-diagram {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.mqst-twostep-flow {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.mqst-twostep-box {
+  flex: 1 1 200px;
+  padding: 8px 12px;
+  border-radius: 14px;
+  border: 2px solid var(--ink);
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  text-align: center;
+}
+
+.mqst-twostep-box.is-step1 {
+  background: #e0f2fe;
+  border-color: #0284c7;
+  color: #0c4a6e;
+}
+
+.mqst-twostep-box.is-step2 {
+  background: #ffedd5;
+  border-color: #ea580c;
+  color: #7c2d12;
+}
+
+.mqst-twostep-tag {
+  font-size: 11.5px;
+  font-weight: 800;
+  opacity: 0.9;
+}
+
+.mqst-twostep-box strong {
+  font-size: 15.5px;
+  font-weight: 900;
+}
+
+.mqst-twostep-arrow {
+  font-size: 20px;
+  font-weight: 900;
+  color: var(--ink);
+}
+
 /* ---------------- 數學技能圖鑑與分組標題 ---------------- */
 .mqst-dex-pane[hidden] {
   display: none !important;
@@ -3419,5 +3817,44 @@ button.mqst-gem-cell:active {
   }
   .mqst-switch-btn {
     align-self: flex-start;
+  }
+}
+
+/* 桌機／平板橫向矮螢幕（<= 820px 高）舞台與控制台緊湊適配：避免高題卡擠壓下方精靈標籤與技能按鈕 */
+@media (max-height: 820px) and (min-width: 781px) {
+  .mqst-stage-arena {
+    padding: 8px 16px 6px;
+  }
+  .mqst-wood-board {
+    padding: 8px 14px 9px;
+  }
+  .mqst-board-head {
+    margin-bottom: 3px;
+  }
+  .mqst-story-ribbon {
+    padding: 4px 10px;
+    margin-bottom: 4px;
+    font-size: 13.5px;
+    line-height: 1.32;
+  }
+  .mqst-wood-board:has(.mqst-two-step-wrap) .mqst-board-hint {
+    margin-top: 2px;
+    font-size: 12px;
+  }
+  .mqst-actors-row {
+    padding: 0 12px clamp(12px, 2.6vh, 24px);
+  }
+  .mqst-hero-svg,
+  .mqst-enemy-svg {
+    width: clamp(82px, 10.5vw, 112px);
+    height: clamp(82px, 10.5vw, 112px);
+  }
+  .mqst-partner-svg {
+    width: clamp(56px, 7.2vw, 72px);
+    height: clamp(56px, 7.2vw, 72px);
+  }
+  .mqst-console-dock {
+    padding: 9px 14px 10px;
+    min-height: 132px;
   }
 }

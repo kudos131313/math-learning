@@ -51,9 +51,9 @@ export const REALMS = [
     subtitle: '跳數密碼、千以內位值與兩步驟生活大挑戰',
     unlockMode: 'conditional',
     unlockRule: { minStars: 15, minBosses: 2 },
-    status: 'coming_soon',
-    releaseNote: 'Phase 2b 啟航',
-    mapImg: 'assets/quest/world-map.jpg',
+    status: 'active',
+    releaseNote: '',
+    mapImg: 'assets/quest/world-map-cloud.jpg',
     plannedIslands: [
       '1. 跳數雲朵車站（跨百跳數密碼）',
       '2. 積木金庫港（千以內位值機關）',
@@ -64,7 +64,7 @@ export const REALMS = [
   }
 ];
 
-/* ---------------- 十大主題島嶼與守護小精靈（陽光加減 ＋ 九九乘法） ---------------- */
+/* ---------------- 十五大主題島嶼與守護小精靈（陽光加減 ＋ 九九乘法 ＋ 雲端應用） ---------------- */
 export const ISLANDS = [
   {
     id: 'bakery',
@@ -245,10 +245,100 @@ export const ISLANDS = [
     partnerSkillDesc: '施展皇冠星光，給粉紅小兔最強大的免費提示與雙重助陣！',
     partnerCheers: ['皇冠星光閃耀加持！', '乘法大師就是你！', '守護小隊無人能敵！'],
     bossStageId: '5-3'
+  },
+  {
+    id: 'station',
+    fullId: 'cloud:station',
+    realmId: 'cloud',
+    order: 1,
+    theme: 'station',
+    specialty: 'eliminate',
+    title: '1. 跳數雲朵車站',
+    rangeText: '跨百跳數密碼',
+    signPos: { x: 14, y: 21 },
+    bgImg: 'assets/quest/bg-station.jpg',
+    spriteName: '雲朵車長狸',
+    spriteDesc: '打敗蒸汽時鐘列車怪即可收服，能一眼看出列車每隔幾格的跳數密碼！',
+    partnerProjectile: '🚂',
+    partnerSkillDesc: '吹響小車長哨子，幫你找出跳數規則或震飛錯選項！',
+    partnerCheers: ['噗噗！準時發車向前衝！', '跳數規則抓得超準！', '車站小車長幫你加油！'],
+    bossStageId: 'cloud:1-3'
+  },
+  {
+    id: 'vault',
+    fullId: 'cloud:vault',
+    realmId: 'cloud',
+    order: 2,
+    theme: 'vault',
+    specialty: 'blocks',
+    title: '2. 積木金庫港',
+    rangeText: '千以內位值機關',
+    signPos: { x: 32, y: 12 },
+    bgImg: 'assets/quest/bg-vault.jpg',
+    spriteName: '金庫小鼴鼠',
+    spriteDesc: '打敗寶石金庫守衛即可收服，專解百十個補零陷阱與 10 個百換 1000 機關！',
+    partnerProjectile: '💎',
+    partnerSkillDesc: '亮出金庫密碼手電筒，讓缺失十位或個位的補零細節無所遁形！',
+    partnerCheers: ['卡滋！金庫密碼解開啦！', '補零陷阱完全難不倒你！', '十張百格板閃閃發亮！'],
+    bossStageId: 'cloud:2-3'
+  },
+  {
+    id: 'park',
+    fullId: 'cloud:park',
+    realmId: 'cloud',
+    order: 3,
+    theme: 'park',
+    specialty: 'shield',
+    title: '3. 森林遊樂園',
+    rangeText: '兩步驟先乘後加',
+    signPos: { x: 50, y: 22 },
+    bgImg: 'assets/quest/bg-park.jpg',
+    spriteName: '氣球小企鵝',
+    spriteDesc: '打敗摩天輪小丑王即可收服，帶著安全氣球陪你完成遊樂園先乘後加任務！',
+    partnerProjectile: '🎈',
+    partnerSkillDesc: '送出遊樂園彩色氣球，幫你穩住兩步驟節奏！',
+    partnerCheers: ['先算乘法小計太棒了！', '氣球飛高高，第二步驟也秒殺！', '遊樂園今日滿星大豐收！'],
+    bossStageId: 'cloud:3-3'
+  },
+  {
+    id: 'patisserie',
+    fullId: 'cloud:patisserie',
+    realmId: 'cloud',
+    order: 4,
+    theme: 'patisserie',
+    specialty: 'eliminate',
+    title: '4. 魔法點心店',
+    rangeText: '先乘後減找零',
+    signPos: { x: 68, y: 12 },
+    bgImg: 'assets/quest/bg-patisserie.jpg',
+    spriteName: '馬卡龍蜜蜂',
+    spriteDesc: '打敗千層舒芙蕾怪即可收服，最擅長算幾盒點心總價再找回零錢！',
+    partnerProjectile: '🧁',
+    partnerSkillDesc: '飛舞點心花香，替你消除干擾或展開找零推理框！',
+    partnerCheers: ['找零一毛錢也不會算錯！', '甜點買好準備派對囉！', '嗡嗡！心算速度超快！'],
+    bossStageId: 'cloud:4-3'
+  },
+  {
+    id: 'skycastle',
+    fullId: 'cloud:skycastle',
+    realmId: 'cloud',
+    order: 5,
+    theme: 'skycastle',
+    specialty: 'lucky',
+    title: '5. 星光天空城',
+    rangeText: '全課綱大魔王',
+    signPos: { x: 86, y: 21 },
+    bgImg: 'assets/quest/bg-skycastle.jpg',
+    spriteName: '星光獨角獸',
+    spriteDesc: '打敗星穹時計大帝即可收服，雲端應用王國的終極聖獸，閃耀彩虹加持！',
+    partnerProjectile: '🦄',
+    partnerSkillDesc: '揮動彩虹獨角魔法，為粉紅小兔灑下星光祝福與豐盛星星幣！',
+    partnerCheers: ['星光彩虹照亮天空城！', '全課綱題目通通難不倒！', '我們是最強冒險拍檔！'],
+    bossStageId: 'cloud:5-3'
   }
 ];
 
-/* ---------------- 30 個冒險關卡（陽光加減 15 關 ＋ 九九乘法 15 關） ---------------- */
+/* ---------------- 45 個冒險關卡（陽光 15 關 ＋ 九九乘法 15 關 ＋ 雲端應用 15 關） ---------------- */
 export const STAGES = [
   // 海域 1：陽光加減群島（sunny）
   {
@@ -401,10 +491,131 @@ export const STAGES = [
   {
     id: '5-3', stageKey: 'mul:5-3', legacyId: '5-3', displayNum: '5-3', realmId: 'mul', islandId: 'castle', label: '城堡大魔王', mapPos: { x: 92, y: 46 }, tables: [2, 3, 4, 5, 6, 7, 8, 9], qTypes: ['standard', 'missing_b', 'commutative'], count: 8, inputMode: 'keypad', isBoss: true, bossShield: 2,
     boss: { name: '積木大魔王', svgKey: 'castle', tauntStart: '「歡迎來到大師城堡！接受終極試煉吧！」', tauntHit: '「可惡，居然連這題都秒殺我！」', tauntWin: '「太閃耀了！你就是九九乘法大師！」' }
+  },
+
+  // 海域 3：雲端應用王國（cloud）
+  {
+    id: 'cloud:1-1', stageKey: 'cloud:1-1', displayNum: '1-1', realmId: 'cloud', islandId: 'station',
+    label: '跨百列車門', mapPos: { x: 6.5, y: 63 },
+    cloudTypes: ['seq_step_1_10'], count: 5, inputMode: 'choice', isBoss: false
+  },
+  {
+    id: 'cloud:1-2', stageKey: 'cloud:1-2', displayNum: '1-2', realmId: 'cloud', islandId: 'station',
+    label: '時間與錢幣跳跳', mapPos: { x: 11.5, y: 75 },
+    cloudTypes: ['seq_step_2_5'], count: 5, inputMode: 'mixed', isBoss: false
+  },
+  {
+    id: 'cloud:1-3', stageKey: 'cloud:1-3', displayNum: '1-3', realmId: 'cloud', islandId: 'station',
+    label: '列車長大考驗', mapPos: { x: 16.5, y: 58 },
+    cloudTypes: ['seq_step_1_10', 'seq_step_2_5', 'seq_reverse_left'], count: 5, inputMode: 'keypad', isBoss: true, bossShield: 1,
+    boss: {
+      name: '蒸汽時鐘列車怪',
+      svgKey: 'station',
+      tauntStart: '「嗚嗚——！看得懂跨百跳數和倒數反推才准上車！」',
+      tauntHit: '「噗嗤！煙囪裡的數字密碼被你破解啦！」',
+      tauntWin: '「太神了！雲朵車長狸正式加入你的冒險隊伍！」'
+    }
+  },
+  {
+    id: 'cloud:2-1', stageKey: 'cloud:2-1', displayNum: '2-1', realmId: 'cloud', islandId: 'vault',
+    label: '積木組成密碼', mapPos: { x: 24.5, y: 60 },
+    cloudTypes: ['pv_compose'], count: 5, inputMode: 'choice', isBoss: false
+  },
+  {
+    id: 'cloud:2-2', stageKey: 'cloud:2-2', displayNum: '2-2', realmId: 'cloud', islandId: 'vault',
+    label: '最大與最小金幣', mapPos: { x: 30.5, y: 73 },
+    cloudTypes: ['pv_compare_max_min', 'pv_compare_pair'], count: 5, inputMode: 'mixed', isBoss: false
+  },
+  {
+    id: 'cloud:2-3', stageKey: 'cloud:2-3', displayNum: '2-3', realmId: 'cloud', islandId: 'vault',
+    label: '金庫守門巨龍', mapPos: { x: 36, y: 57 },
+    cloudTypes: ['pv_compose', 'pv_compare_max_min', 'pv_thousand_exchange'], count: 6, inputMode: 'keypad', isBoss: true, bossShield: 1,
+    boss: {
+      name: '寶石金庫守衛',
+      svgKey: 'vault',
+      tauntStart: '「喀喀！沒有十位的數記得補 0，10 張百格板又是多少？」',
+      tauntHit: '「叮噹！我的大金庫鎖頭鬆掉一道啦！」',
+      tauntWin: '「位值判斷無懈可擊！金庫小鼴鼠跟你一起去挖寶！」'
+    }
+  },
+  {
+    id: 'cloud:3-1', stageKey: 'cloud:3-1', displayNum: '3-1', realmId: 'cloud', islandId: 'park',
+    label: '買票再買爆米花', mapPos: { x: 43, y: 58 },
+    cloudTypes: ['word_mul_add_guided'], count: 5, inputMode: 'keypad', isBoss: false
+  },
+  {
+    id: 'cloud:3-2', stageKey: 'cloud:3-2', displayNum: '3-2', realmId: 'cloud', islandId: 'park',
+    label: '貼紙收集大比拼', mapPos: { x: 50.5, y: 72 },
+    cloudTypes: ['word_mul_add_compare_guided'], count: 5, inputMode: 'keypad', isBoss: false
+  },
+  {
+    id: 'cloud:3-3', stageKey: 'cloud:3-3', displayNum: '3-3', realmId: 'cloud', islandId: 'park',
+    label: '摩天輪魔術師', mapPos: { x: 56.5, y: 58 },
+    cloudTypes: ['word_mul_add_direct'], count: 6, inputMode: 'keypad', isBoss: true, bossShield: 2,
+    boss: {
+      name: '摩天輪小丑王',
+      svgKey: 'park',
+      tauntStart: '「哈哈！這關沒有分步提示，要一次把先乘後加直解算出來！」',
+      tauntHit: '「哇呀！你的心算速度比摩天輪轉得還快！」',
+      tauntWin: '「不靠提示也全對！氣球小企鵝飛來陪你啦！」'
+    }
+  },
+  {
+    id: 'cloud:4-1', stageKey: 'cloud:4-1', displayNum: '4-1', realmId: 'cloud', islandId: 'patisserie',
+    label: '付百元找零錢', mapPos: { x: 64.5, y: 60 },
+    cloudTypes: ['word_mul_sub_change_guided'], count: 5, inputMode: 'keypad', isBoss: false
+  },
+  {
+    id: 'cloud:4-2', stageKey: 'cloud:4-2', displayNum: '4-2', realmId: 'cloud', islandId: 'patisserie',
+    label: '分完點心剩多少', mapPos: { x: 70.5, y: 72 },
+    cloudTypes: ['word_mul_sub_left_guided'], count: 5, inputMode: 'keypad', isBoss: false
+  },
+  {
+    id: 'cloud:4-3', stageKey: 'cloud:4-3', displayNum: '4-3', realmId: 'cloud', islandId: 'patisserie',
+    label: '千層蛋糕魔王', mapPos: { x: 76, y: 58 },
+    cloudTypes: ['word_mul_sub_change_direct', 'word_mul_sub_left_direct'], count: 6, inputMode: 'keypad', isBoss: true, bossShield: 2,
+    boss: {
+      name: '千層舒芙蕾怪',
+      svgKey: 'patisserie',
+      tauntStart: '「甜滋滋兩步驟直解考驗！先乘後減找零和剩餘一次算出來！」',
+      tauntHit: '「呼哇！舒芙蕾要塌下來啦！」',
+      tauntWin: '「超強帳房小高手！馬卡龍蜜蜂嗡嗡加入團隊！」'
+    }
+  },
+  {
+    id: 'cloud:5-1', stageKey: 'cloud:5-1', displayNum: '5-1', realmId: 'cloud', islandId: 'skycastle',
+    label: '全能冒險清單', mapPos: { x: 83, y: 53 },
+    cloudTypes: ['sky_mixed_calc', 'sky_mixed_mul', 'seq_step_1_10', 'pv_compose'], count: 6, inputMode: 'mixed', isBoss: false
+  },
+  {
+    id: 'cloud:5-2', stageKey: 'cloud:5-2', displayNum: '5-2', realmId: 'cloud', islandId: 'skycastle',
+    label: '謎題大迴廊', mapPos: { x: 88, y: 70 },
+    cloudTypes: ['word_mul_add_direct', 'word_mul_sub_change_direct', 'word_mul_sub_left_direct', 'sky_mixed_word_single'], count: 6, inputMode: 'keypad', isBoss: false
+  },
+  {
+    id: 'cloud:5-3', stageKey: 'cloud:5-3', displayNum: '5-3', realmId: 'cloud', islandId: 'skycastle',
+    label: '星光天空大帝', mapPos: { x: 94, y: 56 },
+    cloudTypes: [
+      'word_mul_add_direct',
+      'word_mul_sub_change_direct',
+      'word_mul_sub_left_direct',
+      'seq_reverse_left',
+      'pv_compose',
+      'sky_mixed_calc',
+      'sky_mixed_mul'
+    ],
+    count: 8, inputMode: 'keypad', isBoss: true, bossShield: 2,
+    boss: {
+      name: '星穹時計大帝',
+      svgKey: 'skycastle',
+      tauntStart: '「星光天空城最終試煉！迎戰跨海域全課綱混合大考驗吧！」',
+      tauntHit: '「不可思議！星辰魔法也擋不住你的數學實力！」',
+      tauntWin: '「榮耀歸於雲端冒險王！星光獨角獸永遠守護著你！」'
+    }
   }
 ];
 
-/* ---------------- 數學技能圖鑑（Phase 2a 前 10 張加減／生活應用技能卡） ---------------- */
+/* ---------------- 數學技能圖鑑（完整 24 張銅／銀／金技能卡） ---------------- */
 export const SKILL_TIER_THRESHOLDS = {
   bronze: 3,
   silver: 8,
@@ -427,7 +638,21 @@ export const SKILL_CARDS = [
   { id: 'sub_across_zero', realmId: 'sunny', icon: '🌈', name: '跨零破關者', desc: '十位是 0 時向百位借一的跨零退位', sampleStageId: 'sunny:5-1' },
   { id: 'calc_missing', realmId: 'sunny', icon: '🔍', name: '算式偵探家', desc: '加減未知數反推（□ ＋ b ＝ c、a − □ ＝ c）', sampleStageId: 'sunny:5-2' },
   { id: 'word_buy_change', realmId: 'sunny', icon: '🛒', name: '購物找錢達人', desc: '單步驟購物合併與付錢找零生活題', sampleStageId: 'sunny:3-2' },
-  { id: 'word_compare', realmId: 'sunny', icon: '⚖️', name: '比多比少秤', desc: '單步驟比多比少生活比較應用題', sampleStageId: 'sunny:3-2' }
+  { id: 'word_compare', realmId: 'sunny', icon: '⚖️', name: '比多比少秤', desc: '單步驟比多比少生活比較應用題', sampleStageId: 'sunny:3-2' },
+  { id: 'mul_commutative', realmId: 'mul', icon: '🪄', name: '交換律魔術師', desc: 'a × b ＝ b × a 乘法交換律配對', sampleStageId: '3-2' },
+  { id: 'mul_missing', realmId: 'mul', icon: '🔎', name: '逆向口訣王', desc: '乘法未知乘數或被乘數反推填空', sampleStageId: '5-2' },
+  { id: 'mul_concept', realmId: 'mul', icon: '🧱', name: '幾個幾倍數通', desc: '連加轉化為「幾個幾」倍數概念', sampleStageId: '2-3' },
+  { id: 'word_mul_life', realmId: 'mul', icon: '🍎', name: '生活分組家', desc: '單步驟包裝、花瓣與車輪乘法生活題', sampleStageId: '1-2' },
+  { id: 'seq_step_1_10', realmId: 'cloud', icon: '🚂', name: '跨百列車長', desc: '+1 / −1 / +10 / −10 跨百數列規律', sampleStageId: 'cloud:1-1' },
+  { id: 'seq_step_2_5', realmId: 'cloud', icon: '🕒', name: '時鐘硬幣手', desc: '+2 / +5 跳數與時間錢幣數數', sampleStageId: 'cloud:1-2' },
+  { id: 'pv_compose', realmId: 'cloud', icon: '🏛️', name: '千位建築師', desc: '百十個位值組數與讀數（含補零位值）', sampleStageId: 'cloud:2-1' },
+  { id: 'pv_compare', realmId: 'cloud', icon: '🪙', name: '大小比較王', desc: '三位數比大小與數字卡排最大／最小', sampleStageId: 'cloud:2-2' },
+  { id: 'word_mul_add_guided', realmId: 'cloud', icon: '🎡', name: '遊園小幫手', desc: '兩步驟先乘後加（分步引導模式）', sampleStageId: 'cloud:3-1' },
+  { id: 'word_mul_sub_guided', realmId: 'cloud', icon: '🧁', name: '點心帳房通', desc: '兩步驟先乘後減找零與剩餘（分步引導）', sampleStageId: 'cloud:4-1' },
+  { id: 'word_two_step_direct', realmId: 'cloud', icon: '⚡', name: '心算雙連擊', desc: '兩步驟生活應用題（一步直解挑戰）', sampleStageId: 'cloud:3-3' },
+  { id: 'sky_mixed_calc', realmId: 'cloud', icon: '🌩️', name: '運算大總管', desc: '加減進退位與九九乘法綜合混戰', sampleStageId: 'cloud:5-1' },
+  { id: 'sky_boss_slayer', realmId: 'cloud', icon: '🦄', name: '天空試煉者', desc: '雲端應用王國大魔王與高階試煉關卡', sampleStageId: 'cloud:5-3' },
+  { id: 'rescue_master', realmId: 'global', icon: '🆘', name: '救援大隊長', desc: '完成求救小精靈特訓累計救回案件數', sampleStageId: '' }
 ];
 
 /* ---------------- 10 枚成就徽章定義 ---------------- */

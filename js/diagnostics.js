@@ -534,7 +534,7 @@
         var badges = MathApp.mulQuest.getBadges();
         var costumes = MathApp.mulQuest.getCostumes ? MathApp.mulQuest.getCostumes() : [];
         var skillCards = MathApp.mulQuest.getSkillCards ? MathApp.mulQuest.getSkillCards() : [];
-        if(realms.length !== 3 || islands.length !== 10 || stages.length !== 30 || badges.length !== 10 || costumes.length !== 8 || skillCards.length < 10){
+        if(realms.length !== 3 || islands.length !== 15 || stages.length !== 45 || badges.length !== 10 || costumes.length !== 8 || skillCards.length !== 24){
           throw new Error('海域或關卡設定數量異常：海域=' + realms.length + ' 島嶼=' + islands.length + ' 關卡=' + stages.length + ' 徽章=' + badges.length + ' 造型=' + costumes.length + ' 技能卡=' + skillCards.length);
         }
 
@@ -545,8 +545,10 @@
             throw new Error('關卡 ' + st.id + ' 題數不符預期');
           }
           qs.forEach(function(q){
-            if(q.uiMode === 'choice' && q.kind === 'mul'){
-              var opts = MathApp.mulQuiz.generateChoices(q, 4);
+            if(q.uiMode === 'choice'){
+              var opts = MathApp.mulQuest.generateChoicesForQuestion
+                ? MathApp.mulQuest.generateChoicesForQuestion(q, 4)
+                : (q.kind === 'mul' ? MathApp.mulQuiz.generateChoices(q, 4) : []);
               if(opts.length !== 4){
                 throw new Error('關卡 ' + st.id + ' 選擇題選項數量不足 4 個');
               }
@@ -586,7 +588,7 @@
           throw new Error('關卡 1-1 含 1 乘法比例過高：' + Math.round((one11 / total11) * 100) + '%');
         }
 
-        return '驗證通過 2 大活躍海域、10 大島 30 關題庫配置、10 張技能卡與低 1 乘法比例（5-1: ' + Math.round((one51 / total51) * 100) + '%, 1-1: ' + Math.round((one11 / total11) * 100) + '%）';
+        return '驗證通過 3 大海域、15 大島 45 關題庫配置、24 張技能卡與低 1 乘法比例（5-1: ' + Math.round((one51 / total51) * 100) + '%, 1-1: ' + Math.round((one11 / total11) * 100) + '%）';
       }
     }
   ];

@@ -59,7 +59,9 @@ import {
   buildGemHuntQuestions as buildQuestGemHuntQuestions
 } from '../src/domain/quest-questions.js';
 import { generateCalcChoices } from '../src/domain/quest-calc-questions.js';
+import { generateCloudChoices } from '../src/domain/quest-cloud-questions.js';
 import { renderCalcEquationHtml, renderCalcHelperHtml } from '../src/quest/calc-ui.js';
+import { renderCloudQuestionHtml, renderCloudHelperHtml } from '../src/quest/cloud-ui.js';
 import {
   renderPinkBunnySvg,
   getStageChestSvg,
@@ -129,6 +131,8 @@ import { createQuestDialogs } from '../src/quest/dialogs.js';
     skillHitsThisRun: 0,
     skillUpgradesThisRun: [],
     displayFormat: 'equation',
+    guidedStepIdx: 0,
+    cloudUnlockedBefore: true,
     earnedCoinsThisRun: 0,
     rescuedThisRun: 0,
     locked: false,
@@ -665,18 +669,43 @@ import { createQuestDialogs } from '../src/quest/dialogs.js';
     var islandsListHtml = (realm.plannedIslands || []).map(function(name){
       return '<li>🏝️ ' + name + '</li>';
     }).join('');
+    var isComingSoon = (realm.status !== 'active');
+    var starPct = Math.min(100, Math.round((prog.stars / prog.minStars) * 100));
+    var bossPct = Math.min(100, Math.round((prog.bosses / prog.minBosses) * 100));
+
     var unlockNoteHtml = '';
     if(realm.unlockMode === 'conditional'){
-      unlockNoteHtml = prog.unlocked
-        ? '<div class="mqst-realm-unlock-box is-ready">✅ 恭喜！你的跨海域探險資歷已達雲端門檻（⭐ ' + prog.stars + ' 星 / 🐣 ' + prog.bosses + ' 隻精靈），待 Phase 2b 航道竣工即可直接登島！</div>'
-        : '<div class="mqst-realm-unlock-box">🔓 正式啟航解鎖條件：全海域累積 <b>' + prog.minStars + ' 顆星</b>（目前 ' + prog.stars + ' 星）或擊敗任 <b>' + prog.minBosses + ' 位島嶼魔王</b>（目前 ' + prog.bosses + ' 位），預習模式也可全開！</div>';
+      if(isComingSoon){
+        unlockNoteHtml = prog.unlocked
+          ? '<div class="mqst-realm-unlock-box is-ready">✅ 恭喜！你的跨海域探險資歷已達雲端門檻（⭐ ' + prog.stars + ' 星 / 🐣 ' + prog.bosses + ' 隻精靈），待航道竣工即可直接登島！</div>'
+          : '<div class="mqst-realm-unlock-box">🔓 正式啟航解鎖條件：全海域累積 <b>' + prog.minStars + ' 顆星</b>（目前 ' + prog.stars + ' 星）或擊敗任 <b>' + prog.minBosses + ' 位島嶼魔王</b>（目前 ' + prog.bosses + ' 位），預習模式也可全開！</div>';
+      } else {
+        unlockNoteHtml =
+          '<div class="mqst-realm-unlock-box">' +
+          '<div>🔒 完成<strong>任一項</strong>條件即可開啟「' + realm.title + '」航道（或點擊右上 <b>⚙️ 設定</b> 開啟自由預習模式）：</div>' +
+          '<div class="mqst-unlock-meters">' +
+            '<div class="mqst-unlock-meter">' +
+              '<div class="mqst-unlock-meter-top"><span>⭐ 總收集星數</span><strong>' + prog.stars + ' / ' + prog.minStars + ' 星（還差 ' + prog.remainingStars + ' 星）</strong></div>' +
+              '<div class="mqst-costume-progress-track"><div class="mqst-costume-progress-fill" style="width:' + starPct + '%;"></div></div>' +
+            '</div>' +
+            '<div class="mqst-unlock-meter">' +
+              '<div class="mqst-unlock-meter-top"><span>👑 擊敗島嶼魔王</span><strong>' + prog.bosses + ' / ' + prog.minBosses + ' 位（還差 ' + prog.remainingBosses + ' 位）</strong></div>' +
+              '<div class="mqst-costume-progress-track"><div class="mqst-costume-progress-fill" style="width:' + bossPct + '%;"></div></div>' +
+            '</div>' +
+          '</div>' +
+          '</div>';
+      }
     } else {
-      unlockNoteHtml = '<div class="mqst-realm-unlock-box is-ready">☀️ 雙起點平行開放海域：未來一上線即可直接從第 1 關出發！</div>';
+      unlockNoteHtml = '<div class="mqst-realm-unlock-box is-ready">☀️ 雙起點平行開放海域：可直接從第 1 關出發！</div>';
     }
+
+    var pillText = isComingSoon
+      ? ('🚢 ' + (realm.releaseNote || '即將啟航'))
+      : '🔒 跨海域解鎖條件尚未達成';
 
     els.realmPreviewStage.innerHTML =
       '<div class="mqst-realm-preview-head">' +
-        '<span class="mqst-realm-preview-pill">🚢 ' + (realm.releaseNote || '即將啟航') + '</span>' +
+        '<span class="mqst-realm-preview-pill">' + pillText + '</span>' +
         '<h3 class="mqst-realm-preview-title">' + realm.icon + ' ' + realm.title + '</h3>' +
         '<p class="mqst-realm-preview-sub">' + realm.subtitle + '</p>' +
       '</div>' +
@@ -699,14 +728,17 @@ import { createQuestDialogs } from '../src/quest/dialogs.js';
     if(!els.islandsGrid) return;
 
     var activeRealm = getRealmById(saveData.activeRealm || 'mul');
-    if(activeRealm.status !== 'active'){
+    var realmOpen = (activeRealm.status === 'active') && isRealmUnlocked(activeRealm.id, saveData);
+    if(!realmOpen){
       if(els.worldCanvas) els.worldCanvas.style.display = 'none';
       if(els.realmPreviewStage){
         els.realmPreviewStage.style.display = 'flex';
         renderRealmPreview(activeRealm);
       }
       if(els.mapTip){
-        els.mapTip.textContent = '🚢 【' + activeRealm.title + '】將於 ' + (activeRealm.releaseNote || '後續階段') + ' 正式開放航行，先去陽光加減或九九乘法群島收集星星與星星幣吧！';
+        els.mapTip.textContent = activeRealm.status !== 'active'
+          ? ('🚢 【' + activeRealm.title + '】將於 ' + (activeRealm.releaseNote || '後續階段') + ' 正式開放航行，先去陽光加減或九九乘法群島收集星星吧！')
+          : ('🔒 再多累積幾顆星星或擊敗 2 位島嶼魔王，就能解鎖【' + activeRealm.title + '】冒險航道！');
       }
       return;
     }
@@ -925,8 +957,10 @@ import { createQuestDialogs } from '../src/quest/dialogs.js';
     session.isRescueMode = false;
     session.isGemHuntMode = false;
     session.stage = st;
+    session.cloudUnlockedBefore = isRealmUnlocked('cloud', saveData);
     session.questions = buildStageQuestions(st);
     session.idx = 0;
+    session.guidedStepIdx = 0;
     session.combo = 0;
     session.maxCombo = 0;
     session.firstTryCorrect = 0;
@@ -952,8 +986,10 @@ import { createQuestDialogs } from '../src/quest/dialogs.js';
     session.isRescueMode = true;
     session.isGemHuntMode = false;
     session.stage = null;
+    session.cloudUnlockedBefore = isRealmUnlocked('cloud', saveData);
     session.questions = buildRescueQuestions();
     session.idx = 0;
+    session.guidedStepIdx = 0;
     session.combo = 0;
     session.maxCombo = 0;
     session.firstTryCorrect = 0;
@@ -970,13 +1006,13 @@ import { createQuestDialogs } from '../src/quest/dialogs.js';
     session.partnerUsedSkill = false;
 
     var firstQ = session.questions[0];
+    var isCloudRescue = Boolean(firstQ && firstQ.realm === 'cloud');
     var isSunnyRescue = Boolean(firstQ && firstQ.realm === 'sunny');
-    beginBattleUI(
-      '🆘 求救小精靈特訓',
-      isSunnyRescue ? 'assets/quest/bg-bay.jpg' : 'assets/quest/bg-garden.jpg',
-      isSunnyRescue ? 'bay' : 'garden',
-      null
-    );
+    var rescueBg = isCloudRescue
+      ? 'assets/quest/bg-skycastle.jpg'
+      : (isSunnyRescue ? 'assets/quest/bg-bay.jpg' : 'assets/quest/bg-garden.jpg');
+    var rescueTheme = isCloudRescue ? 'skycastle' : (isSunnyRescue ? 'bay' : 'garden');
+    beginBattleUI('🆘 求救小精靈特訓', rescueBg, rescueTheme, null);
   }
 
   function startGemHuntBattle(){
@@ -1202,11 +1238,31 @@ import { createQuestDialogs } from '../src/quest/dialogs.js';
     }
   }
 
+  function renderHelperForQuestion(q){
+    if(!els.helperStage || !q) return;
+    if(q.helperSpec && (
+      q.helperSpec.type === 'mini_train' ||
+      q.helperSpec.type === 'place_value_blocks' ||
+      (q.helperSpec.type === 'bar_diagram' && q.helperSpec.mode === 'two_step')
+    )){
+      els.helperStage.innerHTML = renderCloudHelperHtml(q, MathApp.utils.blockGlyph);
+      return;
+    }
+    if(q.kind !== 'mul'){
+      els.helperStage.innerHTML = renderCalcHelperHtml(q, MathApp.utils.blockGlyph);
+      return;
+    }
+    if(MathApp.mulQuiz.buildHelperBlocksHtml){
+      els.helperStage.innerHTML = MathApp.mulQuiz.buildHelperBlocksHtml(q);
+    }
+  }
+
   function renderCurrentQuestion(){
     var q = session.questions[session.idx];
     session.locked = false;
     session.hadWrongOnCurrent = false;
     session.usedHelperOnCurrent = false;
+    session.guidedStepIdx = 0;
     session.displayFormat = q.displayFormat || 'equation';
     updateBattleMoods(session.combo >= 3 ? 'fever' : 'normal', 'normal', 'normal');
     updatePartnerSkillButton();
@@ -1236,7 +1292,30 @@ import { createQuestDialogs } from '../src/quest/dialogs.js';
     }
 
     var eqHtml = '';
-    if(q.kind !== 'mul' && q.equationModel){
+    if(q.kind === 'seq' || q.kind === 'place_value' || q.kind === 'word_two_step'){
+      els.equationRow.innerHTML = renderCloudQuestionHtml(q, { stepIdx: session.guidedStepIdx });
+      if(q.uiMode === 'choice'){
+        els.choicesGrid.style.display = 'grid';
+        els.keypadWrap.style.display  = 'none';
+
+        var cloudChoices = generateCloudChoices(q, 4);
+        var clHtml = '';
+        cloudChoices.forEach(function(val){
+          clHtml += '<button type="button" class="mqst-choice-bubble" data-choice="' + val + '">' + val + '</button>';
+        });
+        els.choicesGrid.innerHTML = clHtml;
+
+        runAnim(function(gsap){
+          var bubbles = els.choicesGrid.querySelectorAll('.mqst-choice-bubble');
+          gsap.fromTo(bubbles, { autoAlpha: 0, scale: 0.85 }, { autoAlpha: 1, scale: 1, duration: 0.25, stagger: 0.04, ease: 'back.out(1.6)', clearProps: 'transform,opacity,visibility' });
+        });
+      } else {
+        els.choicesGrid.style.display = 'none';
+        els.keypadWrap.style.display  = 'block';
+        bindEquationInputs();
+      }
+      renderHelperForQuestion(q);
+    } else if(q.kind !== 'mul' && q.equationModel){
       els.equationRow.innerHTML = renderCalcEquationHtml(q, session.displayFormat);
       if(q.uiMode === 'choice'){
         els.choicesGrid.style.display = 'grid';
@@ -1258,9 +1337,7 @@ import { createQuestDialogs } from '../src/quest/dialogs.js';
         els.keypadWrap.style.display  = 'block';
         bindEquationInputs();
       }
-      if(els.helperStage){
-        els.helperStage.innerHTML = renderCalcHelperHtml(q, MathApp.utils.blockGlyph);
-      }
+      renderHelperForQuestion(q);
     } else if(q.uiMode === 'choice'){
       if(q.qType === 'commutative'){
         eqHtml = '<span class="mq-num-box" style="color:var(--t-color-dark);background:#ffedd5;">' + q.b + '</span><span>×</span><span class="mq-num-box" style="color:var(--h-color-dark);background:#dbeafe;">' + q.a + '</span><span>＝</span><span class="mq-num-box" style="color:var(--h-color-dark);background:#dbeafe;">' + q.a + '</span><span>×</span><span class="mq-num-box" style="background:#fef9c3;">？</span>';
@@ -1399,17 +1476,21 @@ import { createQuestDialogs } from '../src/quest/dialogs.js';
     }
 
     var skillUpgradeNote = '';
-    if(cleanFirstTry && q.skillTag){
-      var skillRes = recordSkillCodexHit(saveData, q.skillTag);
-      if(skillRes.card){
-        session.skillHitsThisRun++;
-        if(skillRes.upgraded){
-          saveData.starCoins = Number(saveData.starCoins || 0) + skillRes.bonusCoins;
-          session.skillUpgradesThisRun.push(skillRes);
-          var tierTitle = skillRes.newTier === 'gold' ? '金卡' : (skillRes.newTier === 'silver' ? '銀卡' : '銅卡');
-          skillUpgradeNote = '（📖 ' + skillRes.card.name + ' 升至' + tierTitle + ' +' + skillRes.bonusCoins + '🪙！）';
-        }
+    function applySkillHit(tag){
+      if(!tag) return;
+      var skillRes = recordSkillCodexHit(saveData, tag);
+      if(!skillRes.card) return;
+      session.skillHitsThisRun++;
+      if(skillRes.upgraded){
+        saveData.starCoins = Number(saveData.starCoins || 0) + skillRes.bonusCoins;
+        session.skillUpgradesThisRun.push(skillRes);
+        var tierTitle = skillRes.newTier === 'gold' ? '金卡' : (skillRes.newTier === 'silver' ? '銀卡' : '銅卡');
+        skillUpgradeNote += '（📖 ' + skillRes.card.name + ' 升至' + tierTitle + ' +' + skillRes.bonusCoins + '🪙！）';
       }
+    }
+
+    if(cleanFirstTry && q.skillTag){
+      applySkillHit(q.skillTag);
     }
 
     if(session.isRescueMode){
@@ -1419,6 +1500,9 @@ import { createQuestDialogs } from '../src/quest/dialogs.js';
       });
       saveData.stats.rescuedCount++;
       session.rescuedThisRun++;
+      if(cleanFirstTry){
+        applySkillHit('rescue_master');
+      }
     }
 
     var shieldEvent = '';
@@ -1604,14 +1688,57 @@ import { createQuestDialogs } from '../src/quest/dialogs.js';
 
     if(hasEmpty){
       if(MathApp.sfx) MathApp.sfx('wrong');
-    updateBattleMoods('oops', 'normal', 'normal');
-    if(getActivePartnerIsland()){
-      setPartnerSpeech('沒關係！看看積木再試一次！');
-    }
+      updateBattleMoods('oops', 'normal', 'normal');
+      if(getActivePartnerIsland()){
+        setPartnerSpeech('沒關係！看看積木再試一次！');
+      }
       if(els.feedback){
         els.feedback.textContent = '⚠️ 先用下方彩色玩具數字鍵盤填入答案喔！';
         els.feedback.className = 'mqst-stage-toast bad';
       }
+      return;
+    }
+
+    // 兩步驟分步引導模式：先檢查第 1 步，答對鎖定並自動推進至第 2 步
+    if(q.stepMode === 'guided_two_step'){
+      var curSlotSpec = q.slots[session.guidedStepIdx];
+      var curInp = curSlotSpec ? els.equationRow.querySelector('[data-slot-id="' + curSlotSpec.id + '"]') : null;
+      var stepOk = curSlotSpec && Number(userValues[curSlotSpec.id]) === curSlotSpec.expected;
+      if(!stepOk){
+        if(curInp){
+          curInp.classList.remove('active-input', 'correct', 'wrong');
+          curInp.classList.add('wrong');
+        }
+        handleWrong(q);
+        if(curInp){
+          curInp.value = '';
+          setActiveInput(curInp);
+        }
+        return;
+      }
+
+      if(session.guidedStepIdx === 0){
+        session.guidedStepIdx = 1;
+        if(MathApp.sfx) MathApp.sfx('correct');
+        updateBattleMoods('happy', 'hit', 'happy');
+        if(getActivePartnerIsland()){
+          setPartnerSpeech('第 1 步算對囉！繼續完成第 2 步！');
+        }
+        runAnim(function(gsap){
+          if(els.enemyActor){
+            gsap.fromTo(els.enemyActor, { x: 0 }, { x: 8, duration: 0.08, yoyo: true, repeat: 3, ease: 'power1.inOut', clearProps: 'transform' });
+          }
+        });
+        els.equationRow.innerHTML = renderCloudQuestionHtml(q, { stepIdx: 1 });
+        bindEquationInputs();
+        if(els.feedback){
+          els.feedback.textContent = '✅ 第 1 步算出 ' + curSlotSpec.expected + '，很棒！現在完成第 2 步發動攻擊！';
+          els.feedback.className = 'mqst-stage-toast good';
+        }
+        return;
+      }
+
+      handleCorrect(q);
       return;
     }
 
@@ -1779,12 +1906,12 @@ import { createQuestDialogs } from '../src/quest/dialogs.js';
 
     if(els.resFirstAcc) els.resFirstAcc.textContent = session.firstTryCorrect + ' / ' + total;
     if(els.resCoins)    els.resCoins.textContent    = '+' + session.earnedCoinsThisRun + ' 🪙';
-    var isSunnySummary = Boolean((session.stage && session.stage.realmId === 'sunny') || (session.isRescueMode && session.skillHitsThisRun > 0 && session.newGemsThisRun.length === 0));
+    var isSkillSummary = Boolean((session.stage && (session.stage.realmId === 'sunny' || session.stage.realmId === 'cloud')) || (session.isRescueMode && session.skillHitsThisRun > 0 && session.newGemsThisRun.length === 0));
     if(els.resCollectLbl){
-      els.resCollectLbl.textContent = isSunnySummary ? '技能累積' : '新亮寶石';
+      els.resCollectLbl.textContent = isSkillSummary ? '技能累積' : '新亮寶石';
     }
     if(els.resNewGems){
-      els.resNewGems.textContent = isSunnySummary
+      els.resNewGems.textContent = isSkillSummary
         ? ('+' + session.skillHitsThisRun + ' 📖')
         : ('+' + session.newGemsThisRun.length + ' 💎');
     }
@@ -1856,6 +1983,12 @@ import { createQuestDialogs } from '../src/quest/dialogs.js';
         '<div><div>📖 技能卡進階：【' + up.card.name + '】達成 ' + tierTxt + '！</div>' +
         '<div style="font-size:13px;font-weight:700;color:var(--ink-soft);">額外獎勵 +' + up.bonusCoins + ' 枚星星幣！</div></div></div>';
     });
+    if(!session.cloudUnlockedBefore && isRealmUnlocked('cloud', saveData)){
+      showcaseHtml += '<div class="mqst-unlock-banner" style="background:linear-gradient(135deg,#e0f2fe 0%,#ddd6fe 100%);border-color:#2563eb;">' +
+        '<span style="font-size:34px;">☁️</span>' +
+        '<div><div>🌟 解鎖新海域：【雲端應用王國】航道開啟！</div>' +
+        '<div style="font-size:13px;font-weight:700;color:var(--ink-soft);">回世界地圖點擊上方「☁️ 雲端應用王國」就能前往五大浮空島冒險囉！</div></div></div>';
+    }
     els.unlockShowcase.innerHTML = showcaseHtml;
 
     if(unlockedSprite && MathApp.utils && MathApp.utils.showToast){
@@ -2039,21 +2172,36 @@ import { createQuestDialogs } from '../src/quest/dialogs.js';
     if(els.helperStage){
       els.helperStage.addEventListener('click', function(e){
         var labBtn = e.target.closest('[data-goto-calc-lab]');
-        if(!labBtn) return;
-        var aVal = Number(labBtn.getAttribute('data-a')) || 28;
-        var bVal = Number(labBtn.getAttribute('data-b')) || 15;
-        var opVal = labBtn.getAttribute('data-op') === 'sub' ? 'sub' : 'add';
+        if(labBtn){
+          var aVal = Number(labBtn.getAttribute('data-a')) || 28;
+          var bVal = Number(labBtn.getAttribute('data-b')) || 15;
+          var opVal = labBtn.getAttribute('data-op') === 'sub' ? 'sub' : 'add';
+          if(MathApp.sfx) MathApp.sfx('click');
+          closeArcade();
+          if(MathApp.tabs){
+            MathApp.tabs.switchMainTab('calc');
+            MathApp.tabs.switchSubTab('calc', 'learn');
+          }
+          if(MathApp.calc && MathApp.calc.loadProblem){
+            MathApp.calc.loadProblem(aVal, bVal, opVal);
+          }
+          if(MathApp.utils && MathApp.utils.showToast){
+            MathApp.utils.showToast('🧱 已帶入 ' + aVal + (opVal === 'add' ? ' ＋ ' : ' − ') + bVal + ' 到直式教室，按「下一步」看積木動畫！');
+          }
+          return;
+        }
+        var unitBtn = e.target.closest('[data-goto-unit]');
+        if(!unitBtn) return;
+        var targetUnit = unitBtn.getAttribute('data-goto-unit');
         if(MathApp.sfx) MathApp.sfx('click');
         closeArcade();
         if(MathApp.tabs){
-          MathApp.tabs.switchMainTab('calc');
-          MathApp.tabs.switchSubTab('calc', 'learn');
-        }
-        if(MathApp.calc && MathApp.calc.loadProblem){
-          MathApp.calc.loadProblem(aVal, bVal, opVal);
+          MathApp.tabs.switchMainTab(targetUnit);
+          var subKey = targetUnit === 'learn' ? 'pv' : targetUnit;
+          MathApp.tabs.switchSubTab(subKey, 'learn');
         }
         if(MathApp.utils && MathApp.utils.showToast){
-          MathApp.utils.showToast('🧱 已帶入 ' + aVal + (opVal === 'add' ? ' ＋ ' : ' − ') + bVal + ' 到直式教室，按「下一步」看積木動畫！');
+          MathApp.utils.showToast(targetUnit === 'seq' ? '🚂 已前往「規律與跳數列車」教室，快按播放看看規律吧！' : '🧱 已前往「位值探索屋」，親手擺百／十／個積木試試看！');
         }
       });
     }
@@ -2247,7 +2395,7 @@ import { createQuestDialogs } from '../src/quest/dialogs.js';
 
       function openDexDialog(initialTab){
         if(MathApp.sfx) MathApp.sfx('click');
-        var tab = initialTab || (saveData.activeRealm === 'sunny' ? 'skills' : 'gems');
+        var tab = initialTab || ((saveData.activeRealm === 'sunny' || saveData.activeRealm === 'cloud') ? 'skills' : 'gems');
         if(tab === 'wardrobe' && saveData.hasNewCostume){
           saveData.hasNewCostume = false;
           persistSave();
@@ -2688,6 +2836,12 @@ import { createQuestDialogs } from '../src/quest/dialogs.js';
     getCostumes: function(){ return BUNNY_COSTUMES.slice(); },
     getSkillCards: function(){ return SKILL_CARDS.slice(); },
     buildStageQuestions: buildStageQuestions,
+    generateChoicesForQuestion: function(q, count){
+      if(!q) return [];
+      if(q.kind === 'mul') return MathApp.mulQuiz.generateChoices(q, count);
+      if(q.realm === 'cloud') return generateCloudChoices(q, count);
+      return generateCalcChoices(q, count);
+    },
     getPinkBunnySvg: getPinkBunnySvg,
     getStageChestSvg: getStageChestSvg,
     getCharacterSvg: getCharacterSvg,

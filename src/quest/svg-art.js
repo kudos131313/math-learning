@@ -237,7 +237,12 @@ export function getStageChestSvg(theme, mood) {
     candy: { top: '#fecdd3', body: '#fb7185', trim: '#ffe4e6', accent: '#e11d48', badge: 'berry' },
     bay: { top: '#a5f3fc', body: '#22d3ee', trim: '#cffafe', accent: '#0891b2', badge: 'shell' },
     market: { top: '#fed7aa', body: '#fb923c', trim: '#ffedd5', accent: '#ea580c', badge: 'blocks' },
-    lighthouse: { top: '#c7d2fe', body: '#818cf8', trim: '#e0e7ff', accent: '#4f46e5', badge: 'prism' }
+    lighthouse: { top: '#c7d2fe', body: '#818cf8', trim: '#e0e7ff', accent: '#4f46e5', badge: 'prism' },
+    station: { top: '#bae6fd', body: '#38bdf8', trim: '#e0f2fe', accent: '#0284c7', badge: 'train' },
+    vault: { top: '#fde68a', body: '#f59e0b', trim: '#fef3c7', accent: '#b45309', badge: 'vault' },
+    park: { top: '#bbf7d0', body: '#22c55e', trim: '#dcfce7', accent: '#15803d', badge: 'balloon' },
+    patisserie: { top: '#fbcfe8', body: '#ec4899', trim: '#fce7f3', accent: '#be185d', badge: 'macaron' },
+    skycastle: { top: '#e9d5ff', body: '#a855f7', trim: '#f3e8ff', accent: '#7e22ce', badge: 'starlight' }
   };
   const pal = colors[theme] || colors.forest;
   const cid = 'ch-' + (theme || 'forest') + '-' + nextUid();
@@ -298,6 +303,40 @@ export function getStageChestSvg(theme, mood) {
         '<path d="M34 27 A14 14 0 0 1 62 27" fill="none" stroke="#f43f5e" stroke-width="2.6" stroke-linecap="round"/>' +
         '<path d="M38 27 A10 10 0 0 1 58 27" fill="none" stroke="#facc15" stroke-width="2.4" stroke-linecap="round"/>' +
         '<path d="M42 27 A6 6 0 0 1 54 27" fill="none" stroke="#38bdf8" stroke-width="2.2" stroke-linecap="round"/>'
+      );
+    }
+    if (b === 'train') {
+      return (
+        '<rect x="36" y="15" width="24" height="12" rx="4" fill="#38bdf8" stroke="#332b22" stroke-width="2"/>' +
+        '<circle cx="42" cy="14" r="3" fill="#ffffff" stroke="#332b22" stroke-width="1.5"/>' +
+        '<circle cx="53" cy="21" r="2.2" fill="#fde047"/>'
+      );
+    }
+    if (b === 'vault') {
+      return (
+        '<circle cx="48" cy="20" r="8" fill="#fef08a" stroke="#332b22" stroke-width="2.1"/>' +
+        '<line x1="48" y1="14" x2="48" y2="26" stroke="#b45309" stroke-width="2"/>' +
+        '<line x1="42" y1="20" x2="54" y2="20" stroke="#b45309" stroke-width="2"/>'
+      );
+    }
+    if (b === 'balloon') {
+      return (
+        '<ellipse cx="42" cy="18" rx="5.5" ry="7" fill="#fb7185" stroke="#332b22" stroke-width="1.9"/>' +
+        '<ellipse cx="54" cy="17" rx="5.5" ry="7" fill="#fde047" stroke="#332b22" stroke-width="1.9"/>' +
+        '<line x1="42" y1="25" x2="48" y2="29" stroke="#332b22" stroke-width="1.5"/>' +
+        '<line x1="54" y1="24" x2="48" y2="29" stroke="#332b22" stroke-width="1.5"/>'
+      );
+    }
+    if (b === 'macaron') {
+      return (
+        '<rect x="37" y="16" width="22" height="5" rx="2.5" fill="#fbcfe8" stroke="#332b22" stroke-width="1.8"/>' +
+        '<rect x="38" y="21" width="20" height="3" fill="#fef3c7"/>' +
+        '<rect x="37" y="24" width="22" height="4" rx="2" fill="#a7f3d0" stroke="#332b22" stroke-width="1.8"/>'
+      );
+    }
+    if (b === 'starlight') {
+      return (
+        '<polygon points="48,11 51,19 59,20 53,25 55,32 48,28 41,32 43,25 37,20 45,19" fill="#fde047" stroke="#332b22" stroke-width="1.8" stroke-linejoin="round"/>'
       );
     }
     return '<polygon points="36,27 40,16 48,22 56,16 60,27" fill="#fbbf24" stroke="#332b22" stroke-width="2.2" stroke-linejoin="round"/>';
@@ -574,6 +613,98 @@ export function getCharacterSvg(key, isBoss, mood) {
           buildFaceExpression(m, 39, 57, 45, 55, 3.8) +
           '</svg>'
         );
+      },
+      station: () => {
+        const gId = 'bs-sta-' + uid;
+        return (
+          '<svg viewBox="0 0 96 96">' +
+          '<defs><linearGradient id="' + gId + '" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#bae6fd"/><stop offset="100%" stop-color="#0284c7"/></linearGradient></defs>' +
+          '<ellipse cx="48" cy="86" rx="29" ry="5.5" fill="rgba(51,43,34,0.16)"/>' +
+          '<circle cx="29" cy="78" r="8" fill="#475569" stroke="#332b22" stroke-width="2.6"/><circle cx="29" cy="78" r="3" fill="#fde047"/>' +
+          '<circle cx="48" cy="79" r="8.5" fill="#475569" stroke="#332b22" stroke-width="2.6"/><circle cx="48" cy="79" r="3" fill="#fde047"/>' +
+          '<circle cx="67" cy="78" r="8" fill="#475569" stroke="#332b22" stroke-width="2.6"/><circle cx="67" cy="78" r="3" fill="#fde047"/>' +
+          '<rect x="26" y="13" width="14" height="16" rx="4" fill="#64748b" stroke="#332b22" stroke-width="2.6"/>' +
+          '<circle cx="23" cy="10" r="5" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.8"/>' +
+          '<circle cx="15" cy="7" r="3.5" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.4"/>' +
+          '<rect x="16" y="26" width="64" height="49" rx="14" fill="url(#' + gId + ')" stroke="#332b22" stroke-width="3.2"/>' +
+          '<circle cx="48" cy="48" r="18" fill="#fffbeb" stroke="#332b22" stroke-width="2.8"/>' +
+          '<line x1="48" y1="36" x2="48" y2="48" stroke="#ef4444" stroke-width="2.6" stroke-linecap="round"/>' +
+          '<line x1="48" y1="48" x2="57" y2="52" stroke="#332b22" stroke-width="2.4" stroke-linecap="round"/>' +
+          buildFaceExpression(m, 39, 57, 45, 56, 3.3) +
+          '</svg>'
+        );
+      },
+      vault: () => {
+        const gId = 'bs-vlt-' + uid;
+        return (
+          '<svg viewBox="0 0 96 96">' +
+          '<defs><linearGradient id="' + gId + '" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#fde68a"/><stop offset="100%" stop-color="#d97706"/></linearGradient></defs>' +
+          '<ellipse cx="48" cy="86" rx="28" ry="5.5" fill="rgba(51,43,34,0.16)"/>' +
+          '<polygon points="24,28 19,12 34,21" fill="#f59e0b" stroke="#332b22" stroke-width="2.8" stroke-linejoin="round"/>' +
+          '<polygon points="72,28 77,12 62,21" fill="#f59e0b" stroke="#332b22" stroke-width="2.8" stroke-linejoin="round"/>' +
+          '<ellipse cx="33" cy="79" rx="7" ry="4.5" fill="#92400e" stroke="#332b22" stroke-width="2.6"/>' +
+          '<ellipse cx="63" cy="79" rx="7" ry="4.5" fill="#92400e" stroke="#332b22" stroke-width="2.6"/>' +
+          '<rect x="17" y="24" width="62" height="53" rx="14" fill="url(#' + gId + ')" stroke="#332b22" stroke-width="3.2"/>' +
+          '<circle cx="48" cy="64" r="9" fill="#e2e8f0" stroke="#332b22" stroke-width="2.4"/>' +
+          '<polygon points="48,16 53,22 48,28 43,22" fill="#38bdf8" stroke="#332b22" stroke-width="2"/>' +
+          '<ellipse cx="31" cy="49" rx="4" ry="2.4" fill="#fb7185" opacity="0.65"/>' +
+          '<ellipse cx="65" cy="49" rx="4" ry="2.4" fill="#fb7185" opacity="0.65"/>' +
+          buildFaceExpression(m, 37, 59, 44, 52, 4) +
+          '</svg>'
+        );
+      },
+      park: () => {
+        const gId = 'bs-prk-' + uid;
+        return (
+          '<svg viewBox="0 0 96 96">' +
+          '<defs><linearGradient id="' + gId + '" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#fef08a"/><stop offset="100%" stop-color="#4ade80"/></linearGradient></defs>' +
+          '<ellipse cx="48" cy="86" rx="28" ry="5.5" fill="rgba(51,43,34,0.16)"/>' +
+          '<circle cx="24" cy="22" r="9" fill="#fb7185" stroke="#332b22" stroke-width="2.5"/>' +
+          '<circle cx="72" cy="22" r="9" fill="#60a5fa" stroke="#332b22" stroke-width="2.5"/>' +
+          '<path d="M29 28 L37 42 M67 28 L59 42" stroke="#332b22" stroke-width="2.2"/>' +
+          '<polygon points="34,26 48,10 62,26" fill="#f43f5e" stroke="#332b22" stroke-width="2.8" stroke-linejoin="round"/>' +
+          '<circle cx="48" cy="9" r="4.5" fill="#fde047" stroke="#332b22" stroke-width="2"/>' +
+          '<circle cx="48" cy="53" r="26" fill="url(#' + gId + ')" stroke="#332b22" stroke-width="3.2"/>' +
+          '<circle cx="48" cy="54" r="5" fill="#ef4444" stroke="#332b22" stroke-width="2"/>' +
+          '<ellipse cx="30" cy="54" rx="4.2" ry="2.5" fill="#fb7185" opacity="0.72"/>' +
+          '<ellipse cx="66" cy="54" rx="4.2" ry="2.5" fill="#fb7185" opacity="0.72"/>' +
+          buildFaceExpression(m, 37, 59, 47, 61, 3.9) +
+          '</svg>'
+        );
+      },
+      patisserie: () => {
+        const gId = 'bs-pat-' + uid;
+        return (
+          '<svg viewBox="0 0 96 96">' +
+          '<defs><linearGradient id="' + gId + '" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#fff1f2"/><stop offset="100%" stop-color="#f9a8d4"/></linearGradient></defs>' +
+          '<ellipse cx="48" cy="86" rx="28" ry="5.5" fill="rgba(51,43,34,0.16)"/>' +
+          '<ellipse cx="35" cy="79" rx="7" ry="4.5" fill="#f472b6" stroke="#332b22" stroke-width="2.6"/>' +
+          '<ellipse cx="61" cy="79" rx="7" ry="4.5" fill="#f472b6" stroke="#332b22" stroke-width="2.6"/>' +
+          '<path d="M18 46 H78 L73 76 H23 Z" fill="url(#' + gId + ')" stroke="#332b22" stroke-width="3.2" stroke-linejoin="round"/>' +
+          '<path d="M16 46 Q24 24 48 24 Q72 24 80 46 Q68 52 58 46 Q48 53 38 46 Q28 52 16 46 Z" fill="#fef3c7" stroke="#332b22" stroke-width="3" stroke-linejoin="round"/>' +
+          '<circle cx="48" cy="19" r="6" fill="#f43f5e" stroke="#332b22" stroke-width="2.4"/>' +
+          '<path d="M48 13 Q54 9 57 12" fill="none" stroke="#16a34a" stroke-width="2.4" stroke-linecap="round"/>' +
+          '<ellipse cx="31" cy="60" rx="4.2" ry="2.4" fill="#fb7185" opacity="0.72"/>' +
+          '<ellipse cx="65" cy="60" rx="4.2" ry="2.4" fill="#fb7185" opacity="0.72"/>' +
+          buildFaceExpression(m, 38, 58, 57, 65, 3.8) +
+          '</svg>'
+        );
+      },
+      skycastle: () => {
+        const gId = 'bs-sky-' + uid;
+        return (
+          '<svg viewBox="0 0 96 96">' +
+          '<defs><linearGradient id="' + gId + '" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#f3e8ff"/><stop offset="100%" stop-color="#7c3aed"/></linearGradient></defs>' +
+          '<ellipse cx="48" cy="86" rx="28" ry="5.5" fill="rgba(51,43,34,0.16)"/>' +
+          '<circle cx="48" cy="48" r="33" fill="none" stroke="#fde047" stroke-width="2.6" stroke-dasharray="9 6" opacity="0.85"/>' +
+          '<path d="M22 36 L11 66 Q48 75 85 66 L74 36 Z" fill="#4c1d95" stroke="#332b22" stroke-width="2.8" stroke-linejoin="round"/>' +
+          '<polygon points="26,28 32,10 42,20 48,7 54,20 64,10 70,28" fill="#fde047" stroke="#332b22" stroke-width="2.8" stroke-linejoin="round"/>' +
+          '<circle cx="48" cy="49" r="24" fill="url(#' + gId + ')" stroke="#332b22" stroke-width="3.2"/>' +
+          '<ellipse cx="32" cy="54" rx="4.2" ry="2.4" fill="#f472b6" opacity="0.7"/>' +
+          '<ellipse cx="64" cy="54" rx="4.2" ry="2.4" fill="#f472b6" opacity="0.7"/>' +
+          buildFaceExpression(m, 38, 58, 48, 57, 4) +
+          '</svg>'
+        );
       }
     };
     const fn = bossMap[key] || bossMap.forest;
@@ -810,6 +941,98 @@ export function getCharacterSvg(key, isBoss, mood) {
         '<ellipse cx="26" cy="46" rx="3.5" ry="2.1" fill="#fb7185" opacity="0.65"/>' +
         '<ellipse cx="54" cy="46" rx="3.5" ry="2.1" fill="#fb7185" opacity="0.65"/>' +
         buildFaceExpression(spMood, 31, 49, 40, 46, 2.9) +
+        '</svg>'
+      );
+    },
+    station: () => {
+      const gId = 'sp-sta-' + uid;
+      return (
+        '<svg viewBox="0 0 80 80">' +
+        '<defs><linearGradient id="' + gId + '" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#e0f2fe"/><stop offset="100%" stop-color="#7dd3fc"/></linearGradient></defs>' +
+        '<ellipse cx="40" cy="70" rx="19" ry="4.5" fill="rgba(51,43,34,0.14)"/>' +
+        buildSparkles('#38bdf8') +
+        '<circle cx="24" cy="28" r="7" fill="#bae6fd" stroke="#332b22" stroke-width="2.3"/>' +
+        '<circle cx="56" cy="28" r="7" fill="#bae6fd" stroke="#332b22" stroke-width="2.3"/>' +
+        '<ellipse cx="40" cy="46" rx="21" ry="20" fill="url(#' + gId + ')" stroke="#332b22" stroke-width="2.8"/>' +
+        '<ellipse cx="40" cy="56" rx="13" ry="8" fill="#ffffff"/>' +
+        '<rect x="26" y="16" width="28" height="10" rx="3" fill="#1e40af" stroke="#332b22" stroke-width="2.3"/>' +
+        '<rect x="22" y="23" width="36" height="4" rx="2" fill="#fde047" stroke="#332b22" stroke-width="1.8"/>' +
+        '<ellipse cx="26" cy="48" rx="3.6" ry="2.2" fill="#fb7185" opacity="0.65"/>' +
+        '<ellipse cx="54" cy="48" rx="3.6" ry="2.2" fill="#fb7185" opacity="0.65"/>' +
+        buildFaceExpression(spMood, 31, 49, 42, 49, 3) +
+        '</svg>'
+      );
+    },
+    vault: () => {
+      const gId = 'sp-vlt-' + uid;
+      return (
+        '<svg viewBox="0 0 80 80">' +
+        '<defs><linearGradient id="' + gId + '" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#fef3c7"/><stop offset="100%" stop-color="#f59e0b"/></linearGradient></defs>' +
+        '<ellipse cx="40" cy="70" rx="19" ry="4.5" fill="rgba(51,43,34,0.14)"/>' +
+        buildSparkles('#fbbf24') +
+        '<ellipse cx="21" cy="50" rx="6" ry="4" fill="#fed7aa" stroke="#332b22" stroke-width="2.2"/>' +
+        '<ellipse cx="59" cy="50" rx="6" ry="4" fill="#fed7aa" stroke="#332b22" stroke-width="2.2"/>' +
+        '<ellipse cx="40" cy="46" rx="21" ry="19" fill="url(#' + gId + ')" stroke="#332b22" stroke-width="2.8"/>' +
+        '<rect x="25" y="16" width="30" height="11" rx="5" fill="#fde047" stroke="#332b22" stroke-width="2.3"/>' +
+        '<circle cx="40" cy="21" r="4" fill="#38bdf8" stroke="#332b22" stroke-width="1.8"/>' +
+        '<ellipse cx="40" cy="53" rx="6" ry="4" fill="#fb7185" stroke="#332b22" stroke-width="1.8"/>' +
+        '<ellipse cx="26" cy="48" rx="3.6" ry="2.2" fill="#fb7185" opacity="0.65"/>' +
+        '<ellipse cx="54" cy="48" rx="3.6" ry="2.2" fill="#fb7185" opacity="0.65"/>' +
+        buildFaceExpression(spMood, 31, 49, 41, 49, 2.9) +
+        '</svg>'
+      );
+    },
+    park: () => {
+      const gId = 'sp-prk-' + uid;
+      return (
+        '<svg viewBox="0 0 80 80">' +
+        '<defs><linearGradient id="' + gId + '" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#e0f2fe"/><stop offset="100%" stop-color="#60a5fa"/></linearGradient></defs>' +
+        '<ellipse cx="40" cy="70" rx="19" ry="4.5" fill="rgba(51,43,34,0.14)"/>' +
+        buildSparkles('#4ade80') +
+        '<circle cx="64" cy="20" r="7" fill="#fb7185" stroke="#332b22" stroke-width="2.1"/>' +
+        '<line x1="60" y1="26" x2="53" y2="42" stroke="#332b22" stroke-width="1.6"/>' +
+        '<ellipse cx="40" cy="46" rx="20" ry="20" fill="url(#' + gId + ')" stroke="#332b22" stroke-width="2.8"/>' +
+        '<ellipse cx="40" cy="50" rx="14" ry="14" fill="#ffffff"/>' +
+        '<polygon points="36,44 44,44 40,50" fill="#fbbf24" stroke="#332b22" stroke-width="1.8" stroke-linejoin="round"/>' +
+        '<ellipse cx="27" cy="47" rx="3.5" ry="2.1" fill="#fb7185" opacity="0.65"/>' +
+        '<ellipse cx="53" cy="47" rx="3.5" ry="2.1" fill="#fb7185" opacity="0.65"/>' +
+        buildFaceExpression(spMood, 32, 48, 40, 46, 2.9) +
+        '</svg>'
+      );
+    },
+    patisserie: () => {
+      const gId = 'sp-pat-' + uid;
+      return (
+        '<svg viewBox="0 0 80 80">' +
+        '<defs><linearGradient id="' + gId + '" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#fef08a"/><stop offset="100%" stop-color="#fbbf24"/></linearGradient></defs>' +
+        '<ellipse cx="40" cy="70" rx="19" ry="4.5" fill="rgba(51,43,34,0.14)"/>' +
+        buildSparkles('#f472b6') +
+        '<ellipse cx="19" cy="40" rx="8" ry="5" transform="rotate(-22 19 40)" fill="#ffffff" stroke="#332b22" stroke-width="2.2"/>' +
+        '<ellipse cx="61" cy="40" rx="8" ry="5" transform="rotate(22 61 40)" fill="#ffffff" stroke="#332b22" stroke-width="2.2"/>' +
+        '<ellipse cx="40" cy="46" rx="20" ry="19" fill="url(#' + gId + ')" stroke="#332b22" stroke-width="2.8"/>' +
+        '<path d="M23 50 H57 M25 56 H55" stroke="#332b22" stroke-width="2.8" stroke-linecap="round"/>' +
+        '<path d="M35 28 Q32 19 28 21 M45 28 Q48 19 52 21" fill="none" stroke="#332b22" stroke-width="2.1" stroke-linecap="round"/>' +
+        '<ellipse cx="27" cy="45" rx="3.5" ry="2.1" fill="#fb7185" opacity="0.68"/>' +
+        '<ellipse cx="53" cy="45" rx="3.5" ry="2.1" fill="#fb7185" opacity="0.68"/>' +
+        buildFaceExpression(spMood, 32, 48, 40, 44, 2.9) +
+        '</svg>'
+      );
+    },
+    skycastle: () => {
+      const gId = 'sp-sky-' + uid;
+      return (
+        '<svg viewBox="0 0 80 80">' +
+        '<defs><linearGradient id="' + gId + '" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#ffffff"/><stop offset="100%" stop-color="#e9d5ff"/></linearGradient></defs>' +
+        '<ellipse cx="40" cy="70" rx="19" ry="4.5" fill="rgba(51,43,34,0.14)"/>' +
+        buildSparkles('#c084fc') +
+        '<path d="M20 44 C10 38 11 49 19 53" fill="#fbcfe8" stroke="#332b22" stroke-width="2.2"/>' +
+        '<path d="M60 44 C70 38 69 49 61 53" fill="#fbcfe8" stroke="#332b22" stroke-width="2.2"/>' +
+        '<polygon points="40,8 36,24 44,24" fill="#fde047" stroke="#332b22" stroke-width="2.2" stroke-linejoin="round"/>' +
+        '<path d="M27 25 Q40 20 53 25" fill="none" stroke="#f472b6" stroke-width="3.2" stroke-linecap="round"/>' +
+        '<ellipse cx="40" cy="46" rx="20" ry="20" fill="url(#' + gId + ')" stroke="#332b22" stroke-width="2.8"/>' +
+        '<ellipse cx="27" cy="47" rx="3.5" ry="2.1" fill="#fb7185" opacity="0.65"/>' +
+        '<ellipse cx="53" cy="47" rx="3.5" ry="2.1" fill="#fb7185" opacity="0.65"/>' +
+        buildFaceExpression(spMood, 31, 49, 41, 47, 2.9) +
         '</svg>'
       );
     }

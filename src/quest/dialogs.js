@@ -212,60 +212,82 @@ export function createQuestDialogs({
       ' 題），升階送星星幣！</span>' +
       '</div>';
 
-    html += '<div class="mqst-collection-grid">';
-    SKILL_CARDS.forEach(function (card) {
-      const prog = getSkillCardProgress(card.id, saveData);
-      const tm = tierMeta[prog.tier] || tierMeta.none;
-      const sampleSt = getStageById(card.sampleStageId);
-      const canPlay = sampleSt && isStageUnlocked(sampleSt.stageKey || sampleSt.id, saveData);
-      const goalTxt = prog.isMax
-        ? '🏆 已達最高金卡榮譽（共 ' + prog.count + ' 題）'
-        : '進度：' + prog.count + ' / ' + prog.nextTarget + ' 題（下一階：' + (prog.nextTier === 'bronze' ? '銅卡' : prog.nextTier === 'silver' ? '銀卡' : '金卡') + '）';
-
-      html +=
-        '<div class="mqst-collect-card mqst-skill-card ' +
-        tm.badgeCls +
-        '">' +
-        '<span class="mqst-skill-tier-pill ' +
-        tm.badgeCls +
-        '">' +
-        tm.label +
-        '</span>' +
-        '<div class="mqst-skill-ico" aria-hidden="true">' +
-        card.icon +
-        '</div>' +
-        '<div class="mqst-collect-name">' +
-        card.name +
-        '</div>' +
-        '<p class="mqst-collect-desc">' +
-        card.desc +
-        '</p>' +
-        '<div class="mqst-costume-progress-wrap">' +
-        '<div class="mqst-costume-goal-text">' +
-        goalTxt +
-        '</div>' +
-        '<div class="mqst-costume-progress-track" role="progressbar" aria-label="' +
-        card.name +
-        ' 技能進度" aria-valuenow="' +
-        prog.count +
-        '" aria-valuemin="0" aria-valuemax="' +
-        prog.nextTarget +
-        '">' +
-        '<div class="mqst-costume-progress-fill" style="width:' +
-        prog.pct +
-        '%;"></div>' +
-        '</div>' +
-        (canPlay
-          ? '<button type="button" class="mqst-sprite-equip-btn goto" data-goto-stage="' +
-            (sampleSt.stageKey || sampleSt.id) +
-            '">⚔️ 前往 ' +
-            (sampleSt.displayNum || sampleSt.id) +
-            ' 練習</button>'
-          : '') +
-        '</div>' +
-        '</div>';
-    });
     html += '</div>';
+
+    const groups = [
+      { id: 'sunny', title: '☀️ 陽光加減群島（10 張）' },
+      { id: 'mul', title: '🌲 九九乘法奇幻群島（4 張）' },
+      { id: 'cloud', title: '☁️ 雲端應用王國（9 張）' },
+      { id: 'global', title: '🆘 全域救援專精（1 張）' }
+    ];
+
+    groups.forEach(function (grp) {
+      const groupCards = SKILL_CARDS.filter((c) => c.realmId === grp.id);
+      if (groupCards.length === 0) return;
+      const unlockedInGroup = groupCards.filter((c) => getSkillCardProgress(c.id, saveData).tier !== 'none').length;
+      html +=
+        '<div class="mqst-dex-group-title">' +
+        grp.title +
+        ' · 已啟封 ' +
+        unlockedInGroup +
+        ' / ' +
+        groupCards.length +
+        '</div>';
+      html += '<div class="mqst-collection-grid">';
+      groupCards.forEach(function (card) {
+        const prog = getSkillCardProgress(card.id, saveData);
+        const tm = tierMeta[prog.tier] || tierMeta.none;
+        const sampleSt = card.sampleStageId ? getStageById(card.sampleStageId) : null;
+        const canPlay = sampleSt && isStageUnlocked(sampleSt.stageKey || sampleSt.id, saveData);
+        const goalTxt = prog.isMax
+          ? '🏆 已達最高金卡榮譽（共 ' + prog.count + ' 題）'
+          : '進度：' + prog.count + ' / ' + prog.nextTarget + ' 題（下一階：' + (prog.nextTier === 'bronze' ? '銅卡' : prog.nextTier === 'silver' ? '銀卡' : '金卡') + '）';
+
+        html +=
+          '<div class="mqst-collect-card mqst-skill-card ' +
+          tm.badgeCls +
+          '">' +
+          '<span class="mqst-skill-tier-pill ' +
+          tm.badgeCls +
+          '">' +
+          tm.label +
+          '</span>' +
+          '<div class="mqst-skill-ico" aria-hidden="true">' +
+          card.icon +
+          '</div>' +
+          '<div class="mqst-collect-name">' +
+          card.name +
+          '</div>' +
+          '<p class="mqst-collect-desc">' +
+          card.desc +
+          '</p>' +
+          '<div class="mqst-costume-progress-wrap">' +
+          '<div class="mqst-costume-goal-text">' +
+          goalTxt +
+          '</div>' +
+          '<div class="mqst-costume-progress-track" role="progressbar" aria-label="' +
+          card.name +
+          ' 技能進度" aria-valuenow="' +
+          prog.count +
+          '" aria-valuemin="0" aria-valuemax="' +
+          prog.nextTarget +
+          '">' +
+          '<div class="mqst-costume-progress-fill" style="width:' +
+          prog.pct +
+          '%;"></div>' +
+          '</div>' +
+          (canPlay
+            ? '<button type="button" class="mqst-sprite-equip-btn goto" data-goto-stage="' +
+              (sampleSt.stageKey || sampleSt.id) +
+              '">⚔️ 前往 ' +
+              (sampleSt.displayNum || sampleSt.id) +
+              ' 練習</button>'
+            : '') +
+          '</div>' +
+          '</div>';
+      });
+      html += '</div>';
+    });
     els.paneSkills.innerHTML = html;
   }
 
