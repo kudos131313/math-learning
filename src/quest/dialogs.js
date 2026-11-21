@@ -1317,68 +1317,110 @@ export function createQuestDialogs({
         return;
       }
 
+      const feedTarget = getIslandById(validSelected || unlockedIslands[0].fullId);
+      const feedBond = getPartnerBondInfo(saveData, feedTarget.fullId);
+      const feedInRoom = playmates.indexOf(feedTarget.fullId) !== -1;
+      const feedFullDisabled = !feedInRoom && playmates.length >= 3;
+
       let sHtml = '<div class="mqst-th-sprites-flex">';
-      sHtml += '<div class="mqst-th-playmate-picker mqst-th-panel-card"><div class="mqst-th-sub-label">🐣 遊樂位邀請（最多 3 隻・已邀請 ' + playmates.length + '/3）</div><div class="mqst-th-picker-list">';
+      sHtml +=
+        '<div class="mqst-th-playmate-picker mqst-th-panel-card">' +
+        '<div class="mqst-th-list-head">' +
+        '<div class="mqst-th-sub-label">🐣 守護小精靈（已收服 ' +
+        unlockedIslands.length +
+        ' 隻）</div>' +
+        '<span class="mqst-th-slot-badge' +
+        (playmates.length >= 3 ? ' is-full' : '') +
+        '">🏠 樹屋遊樂位 ' +
+        playmates.length +
+        '/3</span>' +
+        '</div>' +
+        '<div class="mqst-th-picker-grid">';
+
       unlockedIslands.forEach((isl) => {
         const inRoom = playmates.indexOf(isl.fullId) !== -1;
+        const isSelected = isl.fullId === feedTarget.fullId;
         const bond = getPartnerBondInfo(saveData, isl.fullId);
         const fullDisabled = !inRoom && playmates.length >= 3;
         sHtml +=
-          '<button type="button" class="mqst-th-sprite-chip' +
+          '<div class="mqst-th-sprite-card' +
+          (inRoom ? ' is-in' : '') +
+          (isSelected ? ' is-selected' : '') +
+          '">' +
+          '<button type="button" class="mqst-th-sprite-select" data-th-select-feed="' +
+          isl.fullId +
+          '" aria-pressed="' +
+          String(isSelected) +
+          '">' +
+          '<span class="mqst-th-chip-mini-art" aria-hidden="true">' +
+          getCharacterSvg(isl.theme, false, inRoom ? 'happy' : 'normal', { bondLevel: bond.level }) +
+          '</span>' +
+          '<span class="mqst-th-sprite-name">' +
+          isl.spriteName +
+          '</span>' +
+          '</button>' +
+          '<div class="mqst-th-sprite-foot">' +
+          '<span class="mqst-th-sprite-sub">' +
+          '<small class="mqst-th-sprite-lv">Lv.' +
+          bond.level +
+          '</small>' +
+          (bond.isMax
+            ? '<span class="mqst-th-mini-max">✨滿級</span>'
+            : '<span class="mqst-th-mini-xp" aria-hidden="true"><span class="mqst-th-mini-xp-fill" style="width:' +
+              bond.pct +
+              '%;"></span></span>') +
+          '</span>' +
+          '<button type="button" class="mqst-th-sprite-invite-pill' +
           (inRoom ? ' is-in' : '') +
           '" data-th-toggle-playmate="' +
           isl.fullId +
           '"' +
           (fullDisabled ? ' disabled title="樹屋遊樂位已滿 3 隻，請先請一隻休息"' : '') +
-          '>' +
-          '<span class="mqst-th-chip-mini-art" aria-hidden="true">' +
-          getCharacterSvg(isl.theme, false, inRoom ? 'happy' : 'normal', { bondLevel: bond.level }) +
-          '</span>' +
-          '<span class="mqst-th-chip-text">' +
+          ' aria-label="' +
           isl.spriteName +
-          ' <small>Lv.' +
-          bond.level +
-          '</small></span>' +
-          '<span class="mqst-th-chip-status">' +
-          (inRoom ? '✅ 樹屋中' : fullDisabled ? '已滿' : '＋ 邀請') +
-          '</span>' +
-          '</button>';
+          (inRoom ? ' 目前在樹屋中，點擊請牠休息' : fullDisabled ? ' 遊樂位已滿' : ' 邀請來樹屋') +
+          '">' +
+          (inRoom ? '🏠 樹屋中' : fullDisabled ? '已滿' : '＋ 邀請') +
+          '</button>' +
+          '</div>' +
+          '</div>';
       });
       sHtml += '</div></div>';
 
-      const feedTarget = getIslandById(validSelected || unlockedIslands[0].fullId);
-      const feedBond = getPartnerBondInfo(saveData, feedTarget.fullId);
       sHtml += '<div class="mqst-th-feed-box mqst-th-panel-card">';
       sHtml +=
-        '<div class="mqst-th-feed-head">' +
-        '<div class="mqst-th-sub-label">🍪 餵食點心對象：<b>' +
+        '<div class="mqst-th-feed-hero">' +
+        '<div class="mqst-th-feed-avatar" aria-hidden="true">' +
+        getCharacterSvg(feedTarget.theme, false, feedInRoom ? 'happy' : 'normal', { bondLevel: feedBond.level }) +
+        '</div>' +
+        '<div class="mqst-th-feed-info">' +
+        '<div class="mqst-th-feed-title-row">' +
+        '<strong class="mqst-th-feed-name">' +
         feedTarget.spriteName +
-        '</b>（Lv.' +
+        '</strong>' +
+        '<span class="mqst-th-feed-lv">Lv.' +
         feedBond.level +
-        '・' +
-        (feedBond.isMax ? '滿級光環✨' : feedBond.xp + '/' + feedBond.nextThreshold) +
-        '）</div>' +
+        '</span>' +
+        '<span class="mqst-th-feed-xp-text">' +
+        (feedBond.isMax ? '✨ 滿級光環' : feedBond.xp + ' / ' + feedBond.nextThreshold + ' 💖') +
+        '</span>' +
+        '</div>' +
         '<div class="mqst-th-feed-xp-track" aria-hidden="true"><div class="mqst-th-feed-xp-fill" style="width:' +
         feedBond.pct +
         '%;"></div></div>' +
+        '</div>' +
+        '<button type="button" class="mqst-th-invite-btn' +
+        (feedInRoom ? ' is-in' : '') +
+        '" data-th-toggle-playmate="' +
+        feedTarget.fullId +
+        '"' +
+        (feedFullDisabled ? ' disabled title="樹屋遊樂位已滿 3 隻，請先請一隻休息"' : '') +
+        '>' +
+        (feedInRoom ? '🏠 樹屋中 · 休息' : feedFullDisabled ? '遊樂位已滿 3/3' : '＋ 邀請來樹屋') +
+        '</button>' +
         '</div>';
-      sHtml += '<div class="mqst-th-feed-targets">';
-      unlockedIslands.forEach((isl) => {
-        const sel = isl.fullId === feedTarget.fullId;
-        sHtml +=
-          '<button type="button" class="mqst-filter-pill' +
-          (sel ? ' is-active' : '') +
-          '" data-th-select-feed="' +
-          isl.fullId +
-          '" aria-pressed="' +
-          String(sel) +
-          '">' +
-          isl.partnerProjectile +
-          ' ' +
-          isl.spriteName +
-          '</button>';
-      });
-      sHtml += '</div><div class="mqst-th-snack-btns">';
+
+      sHtml += '<div class="mqst-th-snack-btns">';
       PARTNER_SNACKS.forEach((sn) => {
         const canAfford = coins >= sn.price;
         sHtml +=
@@ -1391,13 +1433,22 @@ export function createQuestDialogs({
           '"' +
           (canAfford ? '' : ' disabled aria-disabled="true"') +
           '>' +
+          '<span class="mqst-th-snack-icon" aria-hidden="true">' +
           sn.icon +
-          ' ' +
+          '</span>' +
+          '<span class="mqst-th-snack-info">' +
+          '<span class="mqst-th-snack-top">' +
+          '<span class="mqst-th-snack-name">' +
           sn.name +
-          ' (+' +
+          '</span>' +
+          '<span class="mqst-th-snack-xp">+' +
           sn.bondXp +
-          '💖) · ' +
-          (canAfford ? '🪙 ' + sn.price : '還差 ' + (sn.price - coins) + ' 🪙') +
+          '💖</span>' +
+          '</span>' +
+          '<span class="mqst-th-snack-cost">' +
+          (canAfford ? '🪙 ' + sn.price : '🪙 ' + sn.price + '（還差 ' + (sn.price - coins) + '）') +
+          '</span>' +
+          '</span>' +
           '</button>';
       });
       sHtml += '</div></div></div>';

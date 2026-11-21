@@ -177,7 +177,21 @@ import { createQuestDialogs } from '../src/quest/dialogs.js';
     } catch(e){}
   }
 
+  function isDevEntryEnabled(){
+    try {
+      var params = new URLSearchParams(window.location.search || '');
+      return params.get('dev') === '1' || params.get('dev') === 'true';
+    } catch(e){
+      return false;
+    }
+  }
+
   var saveData = loadSave();
+  if(!isDevEntryEnabled() && saveData.devMode){
+    saveData.devMode = false;
+    saveData = normalizeSaveDataV2(saveData);
+    persistSave();
+  }
 
   /* ---------------- 狀態機 ---------------- */
   var session = {
@@ -635,6 +649,7 @@ import { createQuestDialogs } from '../src/quest/dialogs.js';
     els.shopPaneSnacks    = document.getElementById('mqst-shop-pane-snacks');
 
     els.parentDialog   = document.getElementById('mqst-parent-dialog');
+    els.devCard        = document.getElementById('mqst-dev-card');
     els.previewToggle  = document.getElementById('mqst-preview-toggle-btn');
     els.previewStatusMsg = document.getElementById('mqst-preview-status-msg');
     els.devToggle      = document.getElementById('mqst-dev-toggle-btn');
@@ -4263,6 +4278,7 @@ import { createQuestDialogs } from '../src/quest/dialogs.js';
     if(els.openParentBtn && els.parentDialog){
       var openParentSettings = function(){
         if(MathApp.sfx) MathApp.sfx('click');
+        if(els.devCard) els.devCard.hidden = !isDevEntryEnabled();
         updatePreviewToggleBtn();
         refreshParentLock();
         if(els.backupFeedback){
