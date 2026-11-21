@@ -3349,6 +3349,16 @@ import { createQuestDialogs } from '../src/quest/dialogs.js';
           renderCurrentTreehouse();
           return;
         }
+        var gotoRealmBtn = e.target.closest('[data-th-goto-realm]');
+        if(gotoRealmBtn){
+          var targetRealmId = gotoRealmBtn.getAttribute('data-th-goto-realm');
+          if(MathApp.sfx) MathApp.sfx('click');
+          showView('map');
+          if(targetRealmId){
+            switchRealm(targetRealmId, false);
+          }
+          return;
+        }
         var feedBtn = e.target.closest('[data-th-feed-snack][data-th-feed-partner]');
         if(feedBtn){
           handleFeedPartnerSnack(

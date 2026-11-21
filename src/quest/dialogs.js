@@ -1001,13 +1001,44 @@ export function createQuestDialogs({
     if (els.thPaneSprites) {
       const unlockedIslands = ISLANDS.filter((isl) => isPartnerUnlocked(saveData, isl.fullId));
       if (unlockedIslands.length === 0) {
+        let emptySnacksHtml = '';
+        PARTNER_SNACKS.forEach((sn) => {
+          emptySnacksHtml +=
+            '<button type="button" class="mqst-th-snack-btn is-short" disabled aria-disabled="true">' +
+            sn.icon +
+            ' ' +
+            sn.name +
+            ' (+' +
+            sn.bondXp +
+            '💖) · 🪙 ' +
+            sn.price +
+            '（收服後可餵食）</button>';
+        });
         els.thPaneSprites.innerHTML =
-          '<div class="mqst-th-empty-sprites">👑 尚未收服任何守護小精靈！前往陽光加減群島或九九乘法奇幻群島打敗任一島嶼魔王，就能邀請牠來樹屋玩並餵食點心喔！</div>';
+          '<div class="mqst-th-sprites-flex is-empty-state">' +
+          '<div class="mqst-th-playmate-picker mqst-th-panel-card">' +
+          '<div class="mqst-th-sub-label">🐣 遊樂位邀請（目前已收服 0 / ' + ISLANDS.length + ' 隻）</div>' +
+          '<div class="mqst-th-empty-sprites">' +
+          '<span>👑 尚未收服任何守護小精靈！前往海域挑戰各島第 3 關 <b>魔王關</b>，就能收服小精靈邀請來樹屋玩喔！</span>' +
+          '<div class="mqst-th-empty-actions">' +
+          '<button type="button" class="mqst-th-snack-btn" data-th-goto-realm="sunny">☀️ 前往陽光加減群島</button>' +
+          '<button type="button" class="mqst-th-snack-btn" data-th-goto-realm="mul">🌲 前往九九乘法群島</button>' +
+          '</div>' +
+          '</div>' +
+          '</div>' +
+          '<div class="mqst-th-feed-box mqst-th-panel-card">' +
+          '<div class="mqst-th-sub-label">🍪 精靈點心櫃預覽（Lv.1 ➔ Lv.2 需 50💖・Lv.3 解鎖閃耀光環✨）</div>' +
+          '<p class="mqst-th-empty-feed-note">收服任一隻守護小精靈後，即可在此用星星幣餵食點心、快速提升親密度等級：</p>' +
+          '<div class="mqst-th-snack-btns">' +
+          emptySnacksHtml +
+          '</div>' +
+          '</div>' +
+          '</div>';
         return;
       }
 
       let sHtml = '<div class="mqst-th-sprites-flex">';
-      sHtml += '<div class="mqst-th-playmate-picker"><div class="mqst-th-sub-label">🐣 遊樂位邀請（最多 3 隻・已邀請 ' + playmates.length + '/3）</div><div class="mqst-th-picker-list">';
+      sHtml += '<div class="mqst-th-playmate-picker mqst-th-panel-card"><div class="mqst-th-sub-label">🐣 遊樂位邀請（最多 3 隻・已邀請 ' + playmates.length + '/3）</div><div class="mqst-th-picker-list">';
       unlockedIslands.forEach((isl) => {
         const inRoom = playmates.indexOf(isl.fullId) !== -1;
         const bond = getPartnerBondInfo(saveData, isl.fullId);
@@ -1033,7 +1064,7 @@ export function createQuestDialogs({
 
       const feedTarget = getIslandById(validSelected || unlockedIslands[0].fullId);
       const feedBond = getPartnerBondInfo(saveData, feedTarget.fullId);
-      sHtml += '<div class="mqst-th-feed-box">';
+      sHtml += '<div class="mqst-th-feed-box mqst-th-panel-card">';
       sHtml +=
         '<div class="mqst-th-sub-label">🍪 餵食點心對象：<b>' +
         feedTarget.spriteName +
