@@ -46,8 +46,8 @@
     if(thousandToggleBtn){
       thousandToggleBtn.setAttribute('aria-pressed', String(enabled));
       thousandToggleBtn.innerHTML = enabled 
-        ? '<i data-lucide="box"></i><span>千位數：開啟</span>' 
-        : '<i data-lucide="box"></i><span>千位數：關閉</span>';
+        ? '<span data-lucide="box" aria-hidden="true"></span><span>千位數：開啟</span>' 
+        : '<span data-lucide="box" aria-hidden="true"></span><span>千位數：關閉</span>';
       if(MathApp.refreshIcons) MathApp.refreshIcons();
     }
     document.body.classList.toggle('thousand-mode', enabled);
@@ -107,11 +107,6 @@
     });
 
     if(MathApp.sfx) MathApp.sfx('click');
-
-    // 工具列按鈕依單元智慧適配：千位數僅在位值探索單元呈現
-    if(thousandToggleBtn){
-      thousandToggleBtn.style.display = (tab === 'learn') ? 'inline-block' : 'none';
-    }
 
     // 發布主單元切換事件
     MathApp.emit('tabChange', tab);

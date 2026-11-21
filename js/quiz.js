@@ -127,10 +127,10 @@
 
   function startSelfTestTimer(){
     stopSelfTestTimer();
-    quizEls.timerText.textContent = '⏱️ 00:00';
+    quizEls.timerText.textContent = '00:00';
     selfTestState.timerId = setInterval(function(){
       var elapsedSec = Math.floor((Date.now() - selfTestState.startTime) / 1000);
-      quizEls.timerText.textContent = '⏱️ ' + MathApp.utils.formatTime(elapsedSec);
+      quizEls.timerText.textContent = MathApp.utils.formatTime(elapsedSec);
     }, 1000);
   }
 
@@ -164,30 +164,41 @@
     quizEls.resultAccuracy.textContent = correct + ' / ' + total;
     quizEls.resultTime.textContent = MathApp.utils.formatTime(elapsedSec);
 
+    function buildStarsHtml(count, isSprout){
+      if(isSprout){
+        return '<span class="result-star-badge is-sprout"><span data-lucide="sprout" aria-hidden="true"></span></span>';
+      }
+      var s = '';
+      for(var idx = 0; idx < count; idx++){
+        s += '<span class="result-star-badge"><span data-lucide="star" aria-hidden="true"></span></span>';
+      }
+      return s;
+    }
+
     // 星等與稱號評定
     if(scorePct === 100){
-      quizEls.resultStars.textContent = '⭐⭐⭐';
+      quizEls.resultStars.innerHTML = buildStarsHtml(3, false);
       quizEls.resultTitle.textContent = '滿分達成！數學小博士！';
       quizEls.resultSubtitle.textContent = '恭喜你全數答對！你對百位、十位與個位的概念已經完全掌握！';
       MathApp.speak('滿分達成！太厲害了，恭喜你得到三顆星！');
     } else if(scorePct >= 80){
-      quizEls.resultStars.textContent = '⭐⭐';
+      quizEls.resultStars.innerHTML = buildStarsHtml(2, false);
       quizEls.resultTitle.textContent = '表現極佳！太厲害了！';
       quizEls.resultSubtitle.textContent = '只差一點點就滿分囉，多練習幾次一定能拿下滿分！';
       MathApp.speak('表現極佳！得到兩顆星，繼續加油！');
     } else if(scorePct >= 60){
-      quizEls.resultStars.textContent = '⭐';
+      quizEls.resultStars.innerHTML = buildStarsHtml(1, false);
       quizEls.resultTitle.textContent = '順利過關！再接再厲！';
       quizEls.resultSubtitle.textContent = '你已經掌握大部分的數字積木概念，多觀察積木的滿十進位喔！';
       MathApp.speak('順利過關！多練習就會越來越熟練喔！');
     } else {
-      quizEls.resultStars.textContent = '🌱';
+      quizEls.resultStars.innerHTML = buildStarsHtml(0, true);
       quizEls.resultTitle.textContent = '完成挑戰！繼續練習！';
       quizEls.resultSubtitle.textContent = '沒關係，多用上方的「數字製造機」動手操作積木，會更容易理解喔！';
       MathApp.speak('挑戰完成！多堆幾次積木，一定會更進步喔！');
     }
 
-    var reviewHtml = '<div style="font-weight:700;margin-bottom:8px;color:var(--ink);">📋 答題檢討明細：</div>';
+    var reviewHtml = '<div class="result-review-head"><span data-lucide="clipboard-check" aria-hidden="true"></span><span>答題檢討明細：</span></div>';
     selfTestState.history.forEach(function(item, idx){
       var badgeCls = item.ok ? 'pass' : 'fail';
       var badgeText = item.ok ? '✓ 答對' : '✗ 需加強';
@@ -346,8 +357,9 @@
 
     // 依模式更新資料
     if(currentMode === 'practice'){
-      quizEls.nextBtn.textContent = '下一題 →';
-      quizEls.nextBtn.style.display = 'inline-block';
+      quizEls.nextBtn.innerHTML = '<span>下一題</span><span data-lucide="arrow-right" aria-hidden="true"></span>';
+      quizEls.nextBtn.style.display = 'inline-flex';
+      if(MathApp.refreshIcons) MathApp.refreshIcons();
 
       if(allOk){
         practiceScore.correct++;
@@ -389,9 +401,9 @@
 
       var isLast = (selfTestState.index + 1) >= selfTestConfig.total;
       quizEls.nextBtn.innerHTML = isLast 
-        ? '查看測驗成果 <i data-lucide="trophy"></i>' 
-        : '下一題 <i data-lucide="arrow-right"></i>';
-      quizEls.nextBtn.style.display = 'inline-block';
+        ? '<span>查看測驗成果</span><span data-lucide="trophy" aria-hidden="true"></span>' 
+        : '<span>下一題</span><span data-lucide="arrow-right" aria-hidden="true"></span>';
+      quizEls.nextBtn.style.display = 'inline-flex';
       if(MathApp.refreshIcons) MathApp.refreshIcons();
 
       if(allOk){

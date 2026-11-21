@@ -110,7 +110,7 @@ export function getStepExplanation(d, step) {
           text: '先算個位：' + d.a_o + ' ＋ ' + d.b_o + ' ＝ <em>' + d.o_sum + '</em>。超過 9 顆了！個位放不下，必須把 <em>10 個一捆成 1 條十</em>！',
           speak: '先算個位：' + d.a_o + ' 加 ' + d.b_o + ' 等於 ' + d.o_sum + '。超過 9 個了！必須滿十進一喔！',
           showPrompt: true,
-          promptBtn: '✨ 點擊把 10 顆積木捆成 1 條十！'
+          promptBtn: '點擊把 10 顆積木捆成 1 條十'
         };
       }
       return {
@@ -127,7 +127,7 @@ export function getStepExplanation(d, step) {
         text: '先算個位：個位只有 <em>' + d.a_o + '</em> 顆，拿不走 <em>' + d.b_o + '</em> 顆！想向十位借，但<em>十位是 0 條</em>，要先向百位借 1 個百拆成 10 條十，再借 1 條給個位！',
         speak: '先算個位：個位只有 ' + d.a_o + ' 個，不夠減 ' + d.b_o + ' 個！十位是 0，要先向百位借 1 個百拆開，再借給個位！',
         showPrompt: true,
-        promptBtn: '✂️ 點擊啟動百位退位借十！',
+        promptBtn: '點擊啟動百位退位借十',
         isBorrow: true
       };
     }
@@ -137,7 +137,7 @@ export function getStepExplanation(d, step) {
         text: '先算個位：個位只有 <em>' + d.a_o + '</em> 顆，拿不走 <em>' + d.b_o + '</em> 顆！個位不夠減，要向十位<em>借 1 條十</em>來拆開幫忙！',
         speak: '先算個位：個位只有 ' + d.a_o + ' 個，不夠減 ' + d.b_o + ' 個！要向十位借一條十來拆開幫忙！',
         showPrompt: true,
-        promptBtn: '✂️ 點擊向十位借 1 條拆成 10 顆一！',
+        promptBtn: '點擊向十位借 1 條拆成 10 顆一',
         isBorrow: true
       };
     }

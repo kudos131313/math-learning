@@ -3,9 +3,13 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="description" content="數字積木屋：以立體十進位積木、跳數列車、直式加減與九九乘法互動教具，幫助國小學童動手理解數學概念。">
 <title>數字積木屋｜國小數學概念探索與運算思維教室</title>
+<link rel="preconnect" href="https://api.fontshare.com" crossorigin>
+<link href="https://api.fontshare.com/v2/css?f[]=chillax@500,600&display=swap" rel="stylesheet">
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=ZCOOL+KuaiLe&family=Baloo+2:wght@500;700;800&family=Noto+Sans+TC:wght@400;500;700;900&display=swap" rel="stylesheet">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@500;700&family=Noto+Sans+TC:wght@500;700&family=Geist+Mono:wght@500&display=swap" rel="stylesheet">
 
 <!-- iOS / iPadOS 加入主畫面 (Apple Touch Icon & Web Clip) -->
 <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
@@ -104,43 +108,46 @@
   </defs>
 </svg>
 
-<div class="wrap">
-
-  <!-- 頂部全站導航中樞卡片 (SITE HEADER HUB - 明確區隔全站中樞與下方單元舞台) -->
-  <header class="site-header-hub" id="site-header-hub">
+<!-- 頂部全站導航列 (SITE HEADER) -->
+<header class="site-header-hub" id="site-header-hub">
+  <div class="hub-inner">
     <div class="hub-brand">
-      <div class="badge" id="grade-badge">國小數學 · 視覺化概念實驗室</div>
-      <h1 id="main-title">數字積木屋：<span>動手玩</span>數學</h1>
-      <p id="main-subtitle">動手操作具體積木，看懂數學背後的原理與運算思維！</p>
-    </div>
-
-    <div class="audio-bar">
-      <button class="toggle-pill" id="toggle-sound" type="button" aria-pressed="true"><i data-lucide="volume-2"></i><span>音效</span></button>
-      <button class="toggle-pill" id="toggle-voice" type="button" aria-pressed="true"><i data-lucide="speech"></i><span>語音</span></button>
-      <button class="toggle-pill thousand-pill" id="toggle-thousand" type="button" aria-pressed="false"><i data-lucide="box"></i><span>千位數：關閉</span></button>
+      <svg class="brand-mark" viewBox="0 0 32 32" width="30" height="30" aria-hidden="true">
+        <rect class="brand-mark-h" x="3" y="10" width="15" height="15" rx="3.5" />
+        <rect class="brand-mark-t" x="15" y="4" width="7" height="16" rx="2.5" />
+        <rect class="brand-mark-o" x="19" y="18" width="10" height="10" rx="3" />
+      </svg>
+      <h1 id="main-title">數字積木屋</h1>
     </div>
 
     <!-- 主模組單元導覽列 (各學習單元入口) -->
     <nav class="main-nav-tabs" role="tablist" aria-label="學習單元切換">
       <button class="main-tab active" id="main-tab-learn" type="button" role="tab" aria-selected="true" aria-controls="panel-learn">
-        <span class="unit-badge">單元 1</span> <i data-lucide="lightbulb"></i>位值探索
+        <span data-lucide="lightbulb" aria-hidden="true"></span><span>位值探索</span>
       </button>
       <button class="main-tab" id="main-tab-seq" type="button" role="tab" aria-selected="false" aria-controls="panel-seq">
-        <span class="unit-badge">單元 2</span> <i data-lucide="sparkles"></i>數的規律與跳數
+        <span data-lucide="sparkles" aria-hidden="true"></span><span>規律與跳數</span>
       </button>
       <button class="main-tab" id="main-tab-calc" type="button" role="tab" aria-selected="false" aria-controls="panel-calc">
-        <span class="unit-badge">單元 3</span> <i data-lucide="calculator"></i>直式加減法
+        <span data-lucide="calculator" aria-hidden="true"></span><span>直式加減法</span>
       </button>
       <button class="main-tab" id="main-tab-mul" type="button" role="tab" aria-selected="false" aria-controls="panel-mul">
-        <span class="unit-badge">單元 4</span> <i data-lucide="grid"></i>九九乘法表
+        <span data-lucide="grid" aria-hidden="true"></span><span>九九乘法表</span>
       </button>
     </nav>
-  </header>
 
-  <!-- 單元視覺過渡指示線 -->
-  <div class="unit-boundary" aria-hidden="true">
-    <span class="unit-boundary-tag"><i data-lucide="sparkles"></i> 學習單元操作舞台</span>
+    <div class="audio-bar" aria-label="聲音控制">
+      <button class="toggle-pill" id="toggle-sound" type="button" aria-pressed="true" title="關閉音效">
+        <span data-lucide="volume-2" aria-hidden="true"></span><span class="toggle-label">音效</span>
+      </button>
+      <button class="toggle-pill" id="toggle-voice" type="button" aria-pressed="true" title="關閉語音">
+        <span data-lucide="speech" aria-hidden="true"></span><span class="toggle-label">語音</span>
+      </button>
+    </div>
   </div>
+</header>
+
+<div class="wrap">
 
 <!-- @include partials/panel-learn.html -->
 
@@ -156,22 +163,22 @@
     <!-- 頁尾語音狀態卡片（方便在 iPad 或行動裝置即時檢視調用語音） -->
     <div class="voice-status-card" id="voice-status-card">
       <div class="voice-status-main">
-        <span class="voice-status-pill"><i data-lucide="speech"></i> 語音引擎</span>
-        <span class="voice-status-text">目前調用語音：<strong id="voice-status-name">偵測中...</strong></span>
+        <span class="voice-status-pill"><span data-lucide="speech" aria-hidden="true"></span><span>語音引擎</span></span>
+        <span class="voice-status-text">目前調用語音：<strong id="voice-status-name">偵測中…</strong></span>
       </div>
       <div class="voice-status-actions">
         <button class="ghost-btn small voice-test-btn" id="voice-test-btn" type="button" title="點擊試聽此語音">
-          <i data-lucide="volume-2"></i> 試聽語音
+          <span data-lucide="volume-2" aria-hidden="true"></span><span>試聽語音</span>
         </button>
         <button class="ghost-btn small voice-list-btn" id="open-voice-modal-btn" type="button" title="查看可用語音清單與切換">
-          <i data-lucide="list"></i> 語音清單
+          <span data-lucide="list" aria-hidden="true"></span><span>語音清單</span>
         </button>
       </div>
     </div>
 
-    <p>用積木的方式，把數字拆開來看，數學也可以這麼好玩 ✏️</p>
+    <p>用積木的方式，把數字拆開來看，數學也可以這麼好玩。</p>
     <div class="sys-tools">
-      <button class="ghost-btn small diag-trigger-btn" id="open-diagnostics-btn" type="button"><i data-lucide="activity"></i> 系統自我檢測 (Self-Test)</button>
+      <button class="ghost-btn small diag-trigger-btn" id="open-diagnostics-btn" type="button"><span data-lucide="activity" aria-hidden="true"></span><span>系統自我檢測 (Self-Test)</span></button>
     </div>
   </footer>
 </div>

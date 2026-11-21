@@ -3,15 +3,15 @@
   <div class="modal-dialog">
     <div class="modal-head">
       <div class="modal-title-group">
-        <span class="diag-icon"><i data-lucide="activity"></i></span>
+        <span class="diag-icon"><span data-lucide="activity" aria-hidden="true"></span></span>
         <h3 id="diag-title">系統功能自我檢測 (System Diagnostics)</h3>
       </div>
       <button class="close-modal-btn" id="close-diagnostics-btn" type="button" aria-label="關閉檢測視窗">✕</button>
     </div>
 
     <div class="modal-body">
-      <p class="diag-desc">自動測試位值進借位計算、中文數字轉譯、題庫生成演算法、答案檢驗器及 Web Audio / 語音支援度。</p>
-      
+      <p class="diag-desc">自動測試位值進借位計算、中文數字轉譯、題庫生成演算法、答案檢驗器及 Web Audio 與語音支援度。</p>
+
       <div class="diag-list" id="diag-list">
         <!-- 檢測項目動態注入 -->
       </div>
@@ -22,7 +22,7 @@
     </div>
 
     <div class="modal-foot">
-      <button class="primary-btn" id="run-diagnostics-btn" type="button"><i data-lucide="play"></i> 執行自檢測試</button>
+      <button class="primary-btn" id="run-diagnostics-btn" type="button"><span data-lucide="play" aria-hidden="true"></span><span>執行自檢測試</span></button>
       <button class="ghost-btn" id="dismiss-diagnostics-btn" type="button">關閉</button>
     </div>
   </div>
@@ -33,22 +33,22 @@
   <div class="modal-dialog modal-dialog-wide">
     <div class="modal-head">
       <div class="modal-title-group">
-        <span class="diag-icon"><i data-lucide="speech"></i></span>
+        <span class="diag-icon"><span data-lucide="speech" aria-hidden="true"></span></span>
         <h3 id="voice-modal-title">系統可用語音清單</h3>
       </div>
       <button class="close-modal-btn" id="close-voice-modal-btn" type="button" aria-label="關閉語音面板">✕</button>
     </div>
 
     <div class="modal-body">
-      <p class="diag-desc">此清單由您目前裝置（iPad / 電腦 / 手機）的瀏覽器語音引擎提供。您可以試聽並指定偏好的朗讀聲音：</p>
-      
+      <p class="diag-desc">此清單由您目前裝置（iPad、電腦或手機）的瀏覽器語音引擎提供。您可以試聽並指定偏好的朗讀聲音：</p>
+
       <div class="voice-modal-toolbar">
         <div class="voice-filter-group" role="tablist" aria-label="語音語言篩選">
           <button type="button" class="voice-filter-btn active" id="filter-voice-zh">中文語音</button>
           <button type="button" class="voice-filter-btn" id="filter-voice-all">全部語音</button>
         </div>
         <button type="button" class="ghost-btn small" id="rescan-voices-btn" title="重新載入裝置語音資料庫">
-          <i data-lucide="rotate-cw"></i> 重新掃描
+          <span data-lucide="rotate-cw" aria-hidden="true"></span><span>重新掃描</span>
         </button>
       </div>
 
@@ -59,7 +59,7 @@
 
     <div class="modal-foot">
       <button class="ghost-btn small" id="reset-voice-pref-btn" type="button" title="清除自訂設定，恢復系統自動最佳推薦">
-        <i data-lucide="sparkles"></i> 恢復系統最佳推薦
+        <span data-lucide="sparkles" aria-hidden="true"></span><span>恢復系統最佳推薦</span>
       </button>
       <button class="primary-btn" id="dismiss-voice-modal-btn" type="button">完成</button>
     </div>

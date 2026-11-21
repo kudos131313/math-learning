@@ -2,43 +2,84 @@
 /* ==========================================================================
    2. 擬真 3D 積木樣式與分組結構 (BLOCKS & VISUAL SCAFFOLDING)
    ========================================================================== */
-/* ---------- legend / bundling strip ---------- */
-.legend{
-  display:grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 14px;
-  margin: 30px 0 8px;
-}
-.legend-card{
-  background: var(--card);
-  border: 2px solid var(--ink);
-  border-radius: 18px;
-  padding: 14px 12px;
-  text-align:center;
-  box-shadow: 4px 4px 0 var(--shadow-ink);
-}
-.legend-card .shape{ margin: 0 auto 8px; }
-.legend-card b{ display:block; font-size:15px; margin-bottom:2px;}
-.legend-card span{ font-size:12.5px; color: var(--ink-soft); }
 
-.bundle-strip{
-  background: var(--card);
-  border: 2px dashed var(--ink);
-  border-radius: 18px;
-  padding: 14px 18px;
-  margin: 18px 0 40px;
-  display:flex;
-  flex-wrap:wrap;
-  gap: 18px;
-  align-items:center;
-  justify-content: center;
-  font-size: 14.5px;
+/* ---------- 位值積木圖例 (Card Stock) ---------- */
+.legend {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--space-md);
+  margin: var(--space-lg) 0 var(--space-xs);
 }
-.bundle-row{ display:flex; align-items:center; gap:8px; flex-wrap:wrap; justify-content:center;}
-.bundle-row .arrow{ font-size:18px; color: var(--ink-soft); }
+
+.legend-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background-color: var(--color-card);
+  background-image: var(--grain), var(--fibre);
+  border: 1px solid var(--color-rule);
+  border-radius: var(--radius-stock);
+  padding: var(--space-md) var(--space-sm);
+  text-align: center;
+  box-shadow: var(--shadow-stock-sm);
+}
+
+.legend-card .shape {
+  min-height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto var(--space-xs);
+}
+
+.legend-card b {
+  display: block;
+  font-size: var(--text-md);
+  color: var(--color-ink);
+  margin-bottom: var(--space-3xs);
+}
+
+.legend-card span {
+  font-size: var(--text-xs);
+  color: var(--color-muted);
+}
+
+/* ---------- 滿十進一換算提示凹槽 (Paper Well) ---------- */
+.bundle-strip {
+  background-color: var(--color-paper-2);
+  border: 1.5px dashed var(--color-rule-strong);
+  border-radius: var(--radius-stock);
+  padding: var(--space-sm) var(--space-md);
+  margin: var(--space-md) 0 var(--space-lg);
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-md);
+  align-items: center;
+  justify-content: center;
+  font-size: var(--text-sm);
+  color: var(--color-ink-2);
+}
+
+.bundle-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.bundle-row .arrow {
+  font-size: var(--text-lg);
+  color: var(--color-muted);
+}
+
+.bundle-note-muted {
+  font-size: var(--text-xs);
+  color: var(--color-muted);
+}
 
 /* ---------- block glyphs & SVG 向量渲染 ---------- */
-.blk{
+.blk {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -46,130 +87,142 @@
   vertical-align: middle;
   position: relative;
 }
-.svg-blk{
+
+.svg-blk {
   width: 100%;
   height: 100%;
   display: block;
   pointer-events: none;
   overflow: visible;
-  filter: drop-shadow(0 1px 2px rgba(0,0,0,0.18));
+  filter: var(--shadow-svg-blk);
 }
+
 /* 向量填色降級與跨分頁防護 */
-.svg-blk-o circle{ fill: url(#svg-grad-o); }
-.svg-blk-o polygon:nth-of-type(1){ fill: url(#svg-grad-o-top); }
-.svg-blk-o polygon:nth-of-type(2){ fill: url(#svg-grad-o-side); }
-.svg-blk-o polygon:nth-of-type(3){ fill: url(#svg-grad-o-front); }
+.svg-blk-o circle { fill: url(#svg-grad-o); }
+.svg-blk-o polygon:nth-of-type(1) { fill: url(#svg-grad-o-top); }
+.svg-blk-o polygon:nth-of-type(2) { fill: url(#svg-grad-o-side); }
+.svg-blk-o polygon:nth-of-type(3) { fill: url(#svg-grad-o-front); }
 
-.svg-blk-t polygon:nth-of-type(1){ fill: url(#svg-grad-t-top); }
-.svg-blk-t polygon:nth-of-type(2){ fill: url(#svg-grad-t-side); }
-.svg-blk-t polygon:nth-of-type(3){ fill: url(#svg-grad-t-front); }
-.svg-blk-t rect:first-of-type{ fill: url(#svg-grad-t-front); }
+.svg-blk-t polygon:nth-of-type(1) { fill: url(#svg-grad-t-top); }
+.svg-blk-t polygon:nth-of-type(2) { fill: url(#svg-grad-t-side); }
+.svg-blk-t polygon:nth-of-type(3) { fill: url(#svg-grad-t-front); }
+.svg-blk-t rect:first-of-type { fill: url(#svg-grad-t-front); }
 
-.svg-blk-h polygon:nth-of-type(1){ fill: url(#svg-grad-h-top); }
-.svg-blk-h polygon:nth-of-type(2){ fill: url(#svg-grad-h-side); }
-.svg-blk-h polygon:nth-of-type(3){ fill: url(#svg-grad-h-front); }
-.svg-blk-h rect:first-of-type{ fill: url(#svg-grad-h-front); }
+.svg-blk-h polygon:nth-of-type(1) { fill: url(#svg-grad-h-top); }
+.svg-blk-h polygon:nth-of-type(2) { fill: url(#svg-grad-h-side); }
+.svg-blk-h polygon:nth-of-type(3) { fill: url(#svg-grad-h-front); }
+.svg-blk-h rect:first-of-type { fill: url(#svg-grad-h-front); }
 
-.svg-blk-th polygon:nth-of-type(1){ fill: url(#svg-grad-th-top); }
-.svg-blk-th polygon:nth-of-type(2){ fill: url(#svg-grad-th-left); }
-.svg-blk-th polygon:nth-of-type(3){ fill: url(#svg-grad-th-right); }
+.svg-blk-th polygon:nth-of-type(1) { fill: url(#svg-grad-th-top); }
+.svg-blk-th polygon:nth-of-type(2) { fill: url(#svg-grad-th-left); }
+.svg-blk-th polygon:nth-of-type(3) { fill: url(#svg-grad-th-right); }
 
-.blk-th{
-  width: 34px; height: 34px;
-}
-.blk-h{
-  width: 33px; height: 34px;
-}
-.blk-t{
-  width: 54px; height: 14px;
-}
-.blk-o{
-  width: 16px; height: 16px;
-}
+.blk-th { width: 34px; height: 34px; }
+.blk-h { width: 33px; height: 34px; }
+.blk-t { width: 54px; height: 14px; }
+.blk-o { width: 16px; height: 16px; }
 
 /* 圖例大卡片中的放大尺寸 */
-.legend-card .blk-th{ width: 46px; height: 46px; }
-.legend-card .blk-h{ width: 44px; height: 46px; }
-.legend-card .blk-t{ width: 68px; height: 17px; }
-.legend-card .blk-o{ width: 20px; height: 20px; }
+.legend-card .blk-th { width: 46px; height: 46px; }
+.legend-card .blk-h { width: 44px; height: 46px; }
+.legend-card .blk-t { width: 68px; height: 17px; }
+.legend-card .blk-o { width: 20px; height: 20px; }
 
 /* 5 個一組積木群組容器 (5-Grouping Layout) */
-.blk-group-5{
+.blk-group-5 {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 5px;
-  padding: 4px 6px;
-  background: rgba(51,43,34,.03);
-  border-radius: 10px;
-  border: 1.5px dashed rgba(51,43,34,.16);
-  margin: 2px 4px;
+  gap: var(--space-2xs);
+  padding: var(--space-2xs) var(--space-xs);
+  background-color: var(--color-paper-2);
+  border-radius: var(--radius-input);
+  border: 1px dashed var(--color-rule-strong);
+  margin: var(--space-3xs) var(--space-2xs);
   flex-wrap: wrap;
-  transition: all .2s ease;
+  transition: background-color var(--dur-short) var(--ease-snap), border-color var(--dur-short) var(--ease-snap);
 }
 
-.quiz-blocks .grp .row{
+.quiz-blocks .grp .row {
   display: flex;
   flex-wrap: wrap;
-  gap: 6px;
+  gap: var(--space-2xs);
   justify-content: center;
   max-width: 280px;
 }
 
-
-/* 進位提示強化：攀升脈衝圓圈（多色三層波紋） */
-.carry-burst{
+/* 進位提示強化：攀升脈衝圓圈 */
+.carry-burst {
   position: fixed;
-  border-radius: 50%;
-  border: 3px solid #2b6ef2;
+  border-radius: var(--radius-pill);
+  border: 3px solid var(--color-accent-2);
   pointer-events: none;
-  z-index: 9997;
+  z-index: var(--z-tooltip);
   transform-origin: center;
-  animation: carryBurstAnim .65s cubic-bezier(.2,.8,.4,1) forwards;
+  animation: carryBurstAnim 0.65s var(--ease-out) forwards;
 }
-@keyframes carryBurstAnim{
-  0%  { transform: translate(-50%,-50%) scale(.2); opacity: 1; }
-  60% { opacity: .7; }
-  100%{ transform: translate(-50%,-50%) scale(3.2); opacity: 0; }
+
+@keyframes carryBurstAnim {
+  0% { transform: translate(-50%, -50%) scale(0.2); opacity: 1; }
+  60% { opacity: 0.7; }
+  100% { transform: translate(-50%, -50%) scale(3.2); opacity: 0; }
 }
 
 /* 落地閃光：積木抵達目標欄的光暈爆破 */
-.land-burst{
+.land-burst {
   position: fixed;
   width: 18px;
   height: 18px;
-  border-radius: 50%;
+  border-radius: var(--radius-pill);
   pointer-events: none;
-  z-index: 9998;
+  z-index: var(--z-tooltip);
   transform: translate(-50%, -50%) scale(0);
-  animation: landBurstAnim .45s ease-out forwards;
+  animation: landBurstAnim 0.45s var(--ease-out) forwards;
 }
-@keyframes landBurstAnim{
-  0%  { transform: translate(-50%,-50%) scale(0);   opacity: 1; }
-  50% { transform: translate(-50%,-50%) scale(2.8); opacity: .7; }
-  100%{ transform: translate(-50%,-50%) scale(4.5); opacity: 0; }
+
+@keyframes landBurstAnim {
+  0% { transform: translate(-50%, -50%) scale(0); opacity: 1; }
+  50% { transform: translate(-50%, -50%) scale(2.8); opacity: 0.7; }
+  100% { transform: translate(-50%, -50%) scale(4.5); opacity: 0; }
 }
 
 /* 粒子噴射：四方向小圓點 */
-.carry-particle{
+.carry-particle {
   position: fixed;
   width: 8px;
   height: 8px;
-  border-radius: 50%;
-  background: #f59e0b;
+  border-radius: var(--radius-pill);
+  background-color: var(--color-accent-deep);
   pointer-events: none;
-  z-index: 9998;
+  z-index: var(--z-tooltip);
   transform: translate(-50%, -50%);
 }
 
 /* 欄位震動：來源欄在進位時短暫搖動 */
-.col-shake{
-  animation: colShakeAnim .32s ease;
+.col-shake {
+  animation: colShakeAnim 0.32s var(--ease-snap);
 }
-@keyframes colShakeAnim{
-  0%   { transform: translateX(0); }
-  20%  { transform: translateX(-4px) rotate(-1.5deg); }
-  50%  { transform: translateX(3px) rotate(1deg); }
-  80%  { transform: translateX(-2px); }
+
+@keyframes colShakeAnim {
+  0% { transform: translateX(0); }
+  20% { transform: translateX(-4px) rotate(-1.5deg); }
+  50% { transform: translateX(3px) rotate(1deg); }
+  80% { transform: translateX(-2px); }
   100% { transform: translateX(0); }
+}
+
+@media (max-width: 520px) {
+  .legend {
+    gap: var(--space-xs);
+  }
+  .legend-card {
+    padding: var(--space-sm) var(--space-xs);
+  }
+  .legend-card .shape {
+    min-height: 40px;
+  }
+  .legend-card .blk-th { width: 36px; height: 36px; }
+  .legend-card .blk-h { width: 34px; height: 36px; }
+  .legend-card .blk-t { width: 52px; height: 13px; }
+  .legend-card .blk-o { width: 16px; height: 16px; }
 }

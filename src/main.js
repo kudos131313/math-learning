@@ -2,7 +2,9 @@
  * 數字積木屋 - Vite 應用程式主入口
  */
 
-// 1. 樣式表（維持原始載入順序，避免覆寫優先權變動）
+// 1. 樣式表（tokens 與 base 最先載入，建立 Hum 系統底座並維持既有單元優先權）
+import '../css/tokens.css';
+import '../css/base.css';
 import '../css/variables.css';
 import '../css/blocks.css';
 import '../css/learn.css';

@@ -124,14 +124,14 @@
       var badgeHtml = '';
       if(cross){
         if(val >= 1000) {
-          badgeHtml = '<span class="cross-badge">👑 跨千大關！</span>';
+          badgeHtml = '<span class="cross-badge">跨千大關</span>';
         } else if(step === 10 || step === -10){
-          if(val >= 200 && val <= 209) badgeHtml = '<span class="cross-badge">🌟 跨百關鍵！</span>';
-          else if(val >= 190 && val <= 199) badgeHtml = '<span class="cross-badge">⚡ 滿十準備！</span>';
-          else if(val >= 100 && val <= 109) badgeHtml = '<span class="cross-badge">🚀 進入三位數！</span>';
+          if(val >= 200 && val <= 209) badgeHtml = '<span class="cross-badge">跨百關鍵</span>';
+          else if(val >= 190 && val <= 199) badgeHtml = '<span class="cross-badge">滿十準備</span>';
+          else if(val >= 100 && val <= 109) badgeHtml = '<span class="cross-badge">進入三位數</span>';
         } else if(step === 1 || step === -1){
-          if(val === 200 || val === 199) badgeHtml = '<span class="cross-badge">🌟 整百交界！</span>';
-          else if(val === 190 || val === 189) badgeHtml = '<span class="cross-badge">⚡ 整十交界！</span>';
+          if(val === 200 || val === 199) badgeHtml = '<span class="cross-badge">整百交界</span>';
+          else if(val === 190 || val === 189) badgeHtml = '<span class="cross-badge">整十交界</span>';
         }
       }
 
@@ -174,33 +174,33 @@
     var curO = Math.max(0, num) % 10;
 
     if(num >= 1000){
-      title = '👑 晉升四位數：跨過一千大關！';
+      title = '晉升四位數：跨過一千大關';
       body = '三位數滿千了！10 個百合成了 1 個大立方體千格方塊，百位、十位與個位都歸零，寫作 <b>' + num + '</b>！';
     } else if(absStep === 10){
       if(isForward){
         // 加 10 跨百經典 (如 199 -> 209, 189 -> 199)
         if(prevT === 9 && curT === 0){
-          title = '💥 超級關鍵：十位滿十進一變成百！';
+          title = '超級關鍵：十位滿十進一變成百';
           body = '從 <b>' + prev + '</b> 加上 10 時，十位的 <b class="t-highlight">9 個十</b> 加上 1 個十變成 10 個十，' +
                  '正好可以合成 <b class="h-highlight">1 片百格板</b>！所以百位從 ' + prevH + ' 變成 ' + curH + '，' +
                  '十位歸零變成 0，而個位的 <b class="o-highlight">' + curO + '</b> 穩穩不動，所以是 <b>' + num + '</b>！';
         } else if(prev < 100 && num >= 100){
-          title = '🚀 晉升三位數：從二位數跨過一百！';
+          title = '晉升三位數：從二位數跨過一百';
           body = '從 <b>' + prev + '</b> 加 10，十位 9+1=10 滿十進百，百位誕生了 <b class="h-highlight">1 個百</b>，' +
                  '十位變成 0，個位依然是 <b class="o-highlight">' + curO + '</b>，寫作 <b>' + num + '</b>！';
         } else {
-          title = '💡 10 個 10 個數：只有「十位」在跳步！';
+          title = '10 個 10 個數：只有「十位」在跳步';
           body = '觀察看看：每次加 10，個位永遠是 <b class="o-highlight">' + curO + '</b> 一動也不動，' +
                  '只有十位從 <b class="t-highlight">' + prevT + ' 個十</b> 變成 <b class="t-highlight">' + curT + ' 個十</b> 喔！';
         }
       } else {
         // 減 10 跨百倒數 (如 205 -> 195)
         if(prevT === 0 && curT === 9){
-          title = '⚡ 跨百退位減十：百位借出當十個十！';
+          title = '跨百退位減十：百位借出當十個十';
           body = '從 <b>' + prev + '</b> 倒數減 10，十位是 0 不夠減，向百位借 <b class="h-highlight">1 個百</b> 當作 10 個十，' +
                  '減去 1 個十後剩下 <b class="t-highlight">9 個十</b>，百位退為 ' + curH + '，個位 <b class="o-highlight">' + curO + '</b> 不動，所以是 <b>' + num + '</b>！';
         } else {
-          title = '💡 10 個 10 個倒數：十位每次少 1！';
+          title = '10 個 10 個倒數：十位每次少 1';
           body = '倒數減 10 時，個位保持 <b class="o-highlight">' + curO + '</b> 不變，十位從 ' + prevT + ' 減少到 ' + curT + '！';
         }
       }
@@ -208,37 +208,37 @@
       if(!isForward){
         // 減 1 跨百 (如 200 -> 199)
         if(prev % 100 === 0){
-          title = '🌟 整百倒數：二百的前一個是誰？';
+          title = '整百倒數：二百的前一個是誰？';
           body = '很多小朋友會卡在 <b>' + prev + '</b> 的前一個是誰！請記住：' + prev + ' 拿走 1 個顆粒，' +
                  '百位借出變成 1 個百，十位有 9 個十，個位有 9 個一，就是 <b class="h-highlight">1</b><b class="t-highlight">9</b><b class="o-highlight">9</b>！';
         } else if(prev % 10 === 0){
-          title = '⚡ 整十退位倒數：十位少 1，個位變 9！';
+          title = '整十退位倒數：十位少 1，個位變 9';
           body = '從 <b>' + prev + '</b> 倒退 1 個，十位退成 <b class="t-highlight">' + curT + '</b>，個位變成滿格的 <b class="o-highlight">9</b>，所以是 <b>' + num + '</b>！';
         } else {
-          title = '💡 1 個 1 個倒數：個位每次減 1！';
+          title = '1 個 1 個倒數：個位每次減 1';
           body = '倒數時，個位由 ' + prevO + ' 變成 ' + curO + '，百位與十位都不動喔！';
         }
       } else {
         if(num % 100 === 0){
-          title = '🌟 滿百晉級：' + prev + ' 的下一個是整百！';
+          title = '滿百晉級：' + prev + ' 的下一個是整百';
           body = '<b>' + prev + '</b> 再加 1 個顆粒，個位滿十、十位又滿十，雙重進位變成整整 <b class="h-highlight">' + curH + ' 百</b>！';
         } else {
-          title = '💡 1 個 1 個數：個位每次加 1！';
+          title = '1 個 1 個數：個位每次加 1';
           body = '就像排隊點名一樣，每次多 1 個顆粒，由 ' + prev + ' 前進到 ' + num + '！';
         }
       }
     } else if(absStep === 5){
-      title = '⏱️ 5 個 5 個數：鐘面分針與 5 元硬幣節奏！';
+      title = '5 個 5 個數：鐘面分針與 5 元硬幣節奏';
       body = '觀察個位：每次跳 5，個位只會在「0」和「5」之間規律交替喔！';
     } else if(absStep === 2){
-      title = '👣 2 個 2 個數：雙數與單數的步伐！';
+      title = '2 個 2 個數：雙數與單數的步伐';
       body = '每次跳 2，個位每次加 2（2、4、6、8、0），十位只有在個位滿十時才進一步！';
     } else if(absStep === 100){
-      title = '💯 百數大跳躍：只有「百位」大步跨！';
+      title = '百數大跳躍：只有「百位」大步跨';
       body = '每次跳 100，十位與個位完全不動，只有百位從 ' + prevH + ' 變成 ' + curH + '！';
     } else {
       var dirText = curStep > 0 ? '每次增加 ' + curStep : '每次倒退減少 ' + Math.abs(curStep);
-      title = '🎯 自訂跳數規律：步長為 ' + (curStep > 0 ? '+' : '') + curStep;
+      title = '自訂跳數規律：步長為 ' + (curStep > 0 ? '+' : '') + curStep;
       body = '自訂跳數規律：' + dirText + '！觀察前後車廂的數字變化，看看個位、十位或百位有什麼節奏！';
     }
 
@@ -284,7 +284,7 @@
       if(isCurrent) cls += ' cell-current';
       else if(isTrail) cls += ' cell-trail';
 
-      var displayContent = isCurrent ? ('🚂 ' + val) : String(val);
+      var displayContent = String(val);
       html += '<div class="' + cls + '" data-val="' + val + '" role="button" tabindex="0" title="點擊讓列車開往 ' + val + '">' + displayContent + '</div>';
     }
 
@@ -366,7 +366,7 @@
     isPlaying = !isPlaying;
     if(isPlaying){
       if(playBtnEl){
-        playBtnEl.innerHTML = '<i data-lucide="pause"></i><span>暫停播放</span>';
+        playBtnEl.innerHTML = '<span data-lucide="pause" aria-hidden="true"></span><span>暫停播放</span>';
         if(MathApp.refreshIcons) MathApp.refreshIcons();
       }
       playTimer = setInterval(function(){
@@ -380,7 +380,7 @@
       if(playTimer) clearInterval(playTimer);
       playTimer = null;
       if(playBtnEl){
-        playBtnEl.innerHTML = '<i data-lucide="play"></i><span>自動播放</span>';
+        playBtnEl.innerHTML = '<span data-lucide="play" aria-hidden="true"></span><span>自動播放</span>';
         if(MathApp.refreshIcons) MathApp.refreshIcons();
       }
     }
@@ -475,9 +475,9 @@
         if(chartToggleText){
           chartToggleText.textContent = isChartCollapsed ? '展開地圖' : '收合地圖';
         }
-        var icon = chartToggleBtn.querySelector('i');
-        if(icon){
-          icon.setAttribute('data-lucide', isChartCollapsed ? 'chevron-down' : 'chevron-up');
+        var iconHost = document.getElementById('chart-toggle-icon');
+        if(iconHost){
+          iconHost.innerHTML = '<span data-lucide="' + (isChartCollapsed ? 'chevron-down' : 'chevron-up') + '" aria-hidden="true"></span>';
           if(MathApp.refreshIcons) MathApp.refreshIcons();
         }
       });

@@ -543,7 +543,7 @@
     var best = pickBestVoice();
     if(best){
       var isCustom = _userCustomVoiceURI && ((best.voiceURI && best.voiceURI === _userCustomVoiceURI) || best.name === _userCustomVoiceURI);
-      var customTag = isCustom ? ' <span style="font-size:11px;background:#e0e7ff;color:#3730a3;padding:1px 6px;border-radius:999px;font-weight:bold;">自訂指定</span>' : '';
+      var customTag = isCustom ? ' <span class="voice-custom-badge">自訂指定</span>' : '';
       voiceStatusNameEl.innerHTML = best.name + (best.lang ? ' (' + best.lang + ')' : '') + customTag;
     } else {
       voiceStatusNameEl.textContent = '系統預設語音 (預設輸出)';
@@ -607,9 +607,10 @@
     soundOn = Boolean(enabled);
     if(soundToggleBtn){
       soundToggleBtn.setAttribute('aria-pressed', String(soundOn));
+      soundToggleBtn.setAttribute('title', soundOn ? '關閉音效' : '開啟音效');
       soundToggleBtn.innerHTML = soundOn
-        ? '<i data-lucide="volume-2"></i><span>音效</span>'
-        : '<i data-lucide="volume-x"></i><span>音效（關）</span>';
+        ? '<span data-lucide="volume-2" aria-hidden="true"></span><span class="toggle-label">音效</span>'
+        : '<span data-lucide="volume-x" aria-hidden="true"></span><span class="toggle-label">音效</span>';
       if(MathApp.refreshIcons) MathApp.refreshIcons();
     }
     if(soundOn) sfx('click');
@@ -620,9 +621,10 @@
     voiceOn = Boolean(enabled);
     if(voiceToggleBtn){
       voiceToggleBtn.setAttribute('aria-pressed', String(voiceOn));
+      voiceToggleBtn.setAttribute('title', voiceOn ? '關閉語音' : '開啟語音');
       voiceToggleBtn.innerHTML = voiceOn
-        ? '<i data-lucide="speech"></i><span>語音</span>'
-        : '<i data-lucide="message-square-off"></i><span>語音（關）</span>';
+        ? '<span data-lucide="speech" aria-hidden="true"></span><span class="toggle-label">語音</span>'
+        : '<span data-lucide="message-square-off" aria-hidden="true"></span><span class="toggle-label">語音</span>';
       if(MathApp.refreshIcons) MathApp.refreshIcons();
     }
     if(!voiceOn && 'speechSynthesis' in window){
@@ -721,9 +723,10 @@
     var allVoices = window.speechSynthesis.getVoices() || [];
     if(allVoices.length === 0){
       voiceItemListEl.innerHTML = '<div class="voice-empty-tip">' +
-        '<p style="margin-bottom:8px;">⚠️ 語音清單尚未載入或為空</p>' +
-        '<p style="font-size:12.5px;">在 iPad 或行動裝置上，請點擊上方「重新掃描」按鈕以喚醒語音資料庫。</p>' +
+        '<p><span data-lucide="alert-triangle" aria-hidden="true"></span> 語音清單尚未載入或為空</p>' +
+        '<p>在 iPad 或行動裝置上，請點擊上方「重新掃描」按鈕以喚醒語音資料庫。</p>' +
         '</div>';
+      if(MathApp.refreshIcons) MathApp.refreshIcons();
       return;
     }
 
@@ -785,14 +788,14 @@
       if(isCurrent){
         var curTag = document.createElement('span');
         curTag.className = 'voice-card-tag current';
-        curTag.textContent = '✓ 目前使用中';
+        curTag.textContent = '目前使用中';
         titleRow.appendChild(curTag);
       }
 
       if(isPref){
         var prefTag = document.createElement('span');
         prefTag.className = 'voice-card-tag pref';
-        prefTag.textContent = '★ 推薦語音';
+        prefTag.textContent = '推薦語音';
         titleRow.appendChild(prefTag);
       }
 

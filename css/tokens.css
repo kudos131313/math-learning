@@ -1,0 +1,204 @@
+/* Hallmark · shape: app screen · genre: playful · theme: Hum (by request) · redesign: restyle
+ * nav: kept · footer: kept · signature: tactile base-10 place-value card-stock machine · states: default, hover, focus-visible, active, disabled, error, success, active-selection
+ * axes: light/rounded-sans/chromatic-yellow · posture: full-palette · contrast: pass · v2.0.0 */
+/* Hallmark · pre-emit critique: P5 H5 E4 S5 R4 V4 · weakest: E, legacy stylesheets held 350+ literal hex colours and 27 transition:all rules; unified all surfaces, spacing and Grade-2 place-value semantics into tokens.css */
+@charset "UTF-8";
+
+:root {
+  color-scheme: light;
+
+  /* ---------------- 空間與尺度階梯 (SPACING & SCALE) ---------------- */
+  --space-3xs: 2px;
+  --space-2xs: 4px;
+  --space-xs: 8px;
+  --space-sm: 12px;
+  --space-md: 16px;
+  --space-lg: 24px;
+  --space-xl: 40px;
+  --space-2xl: 64px;
+  --space-3xl: 96px;
+  --space-4xl: 144px;
+
+  --text-xs: 0.75rem;
+  --text-sm: 0.875rem;
+  --text-md: 1rem;
+  --text-lg: 1.2rem;
+  --text-xl: 1.44rem;
+  --text-2xl: 1.728rem;
+  --text-3xl: 2.074rem;
+  --text-display-s: 1.44rem;
+  --text-display: 1.728rem;
+  --text-section: 1.2rem;
+  --text-title: 1rem;
+  --text-lead: 1rem;
+
+  --container: 1180px;
+  --gutter: 24px;
+  --gap-columns: 24px;
+  --section-gap-s: 48px;
+  --section-gap: 64px;
+  --section-gap-l: 96px;
+
+  --z-base: 1;
+  --z-raised: 10;
+  --z-dropdown: 100;
+  --z-sticky: 200;
+  --z-sticky-nav: 300;
+  --z-modal: 400;
+  --z-toast: 500;
+  --z-tooltip: 600;
+
+  /* ---------------- Hum 手作剪紙與厚磅卡紙色票 (OKLCH) ---------------- */
+  --color-paper: oklch(97% 0.012 95);
+  --color-paper-2: oklch(94.5% 0.018 95);
+  --color-paper-3: oklch(91% 0.022 95);
+  --color-card: oklch(98.8% 0.007 95);
+  --color-fringe: oklch(99.2% 0.006 95);
+  --color-edge: oklch(83% 0.04 88);
+  --color-rule: oklch(87% 0.016 95);
+  --color-rule-strong: oklch(76% 0.024 88);
+
+  --color-ink: oklch(20% 0.014 255);
+  --color-ink-2: oklch(29% 0.014 255);
+  --color-muted: oklch(47% 0.014 255);
+
+  /* 三組互不混色的強調色 + 成長薄荷綠 */
+  --color-accent: oklch(87% 0.175 96);       /* 梨黃：主要操作、螢光筆高光 */
+  --color-accent-deep: oklch(72% 0.16 92);   /* 梨黃卡紙厚邊 */
+  --color-accent-soft: oklch(94.5% 0.075 96);
+  --color-accent-ink: oklch(20% 0.014 255);
+
+  --color-accent-2: oklch(50% 0.17 250);     /* 藍：焦點外框、連結與關鍵提示 */
+  --color-accent-2-deep: oklch(40% 0.16 250);
+  --color-accent-2-soft: oklch(94% 0.035 250);
+
+  --color-accent-3: oklch(64% 0.19 22);      /* 珊瑚紅：醒目強提示、扣減、警戒 */
+  --color-accent-3-deep: oklch(46% 0.18 22);
+  --color-accent-3-soft: oklch(95% 0.04 22);
+
+  --color-mint: oklch(82% 0.15 152);         /* 薄荷綠：成長、通過、確認 */
+  --color-mint-deep: oklch(46% 0.12 155);
+  --color-mint-soft: oklch(94% 0.045 152);
+
+  --color-focus: oklch(50% 0.17 250);
+  --color-error: oklch(52% 0.19 27);
+  --color-success: oklch(46% 0.12 155);
+
+  /* 輔助材質色：牛皮紙、沙黃、藍糖紙與遠山草綠 */
+  --color-kraft: oklch(63% 0.085 62);
+  --color-kraft-soft: oklch(93% 0.025 75);
+  --color-sand: oklch(77% 0.1 76);
+  --color-sugar: oklch(89% 0.035 236);
+  --color-hill-1: oklch(94.5% 0.03 118);
+  --color-hill-2: oklch(91.5% 0.045 135);
+  --color-leaf: oklch(64% 0.15 150);
+
+  /* ---------------- 雙層 SVG 紙張顆粒與纖維紋理 ---------------- */
+  --grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.82' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0.22 0 0 0 0 0.19 0 0 0 0 0.16 0 0 0 0.14 -0.05'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23g)'/%3E%3C/svg%3E");
+  --fibre: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='240'%3E%3Cfilter id='f'%3E%3CfeTurbulence type='turbulence' baseFrequency='0.02 0.22' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0.48 0 0 0 0 0.42 0 0 0 0 0.30 0 0 0 0.07 -0.02'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23f)'/%3E%3C/svg%3E");
+
+  /* ---------------- 字型系統 (Chillax + Zen Maru Gothic + Geist Mono) ---------------- */
+  --font-display: "Chillax", "Zen Maru Gothic", "Noto Sans TC", ui-rounded, ui-sans-serif, sans-serif;
+  --font-body: var(--font-display);
+  --font-num: var(--font-display);
+  --font-outlier: "Geist Mono", ui-monospace, monospace;
+  --tracking-display: -0.02em;
+  --display-weight: 700;
+
+  /* ---------------- 圓角、陰影與動態曲線 ---------------- */
+  --radius-card: 24px;
+  --radius-stock: 16px;
+  --radius-input: 14px;
+  --radius-pill: 999px;
+  --rule-hair: 1px;
+
+  --shadow-card: 0 1px 2px oklch(20% 0.014 255 / 0.06), 0 10px 24px -12px oklch(20% 0.014 255 / 0.18);
+  --shadow-stock: inset 0 1px 0 var(--color-fringe), 0 5px 0 0 var(--color-edge), 0 8px 16px -6px oklch(20% 0.014 255 / 0.14);
+  --shadow-stock-sm: inset 0 1px 0 var(--color-fringe), 0 3px 0 0 var(--color-edge);
+  --shadow-paper: drop-shadow(0 0 0.6px oklch(20% 0.014 255 / 0.28)) drop-shadow(1.5px 2.5px 1.5px oklch(20% 0.014 255 / 0.09)) drop-shadow(6px 12px 14px oklch(20% 0.014 255 / 0.11));
+  --shadow-focus: 0 0 0 4px oklch(50% 0.17 250 / 0.22);
+  --shadow-hard: var(--shadow-card);
+
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-in: cubic-bezier(0.7, 0, 0.84, 0);
+  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --ease-snap: cubic-bezier(0.22, 1, 0.36, 1);
+  --dur-micro: 120ms;
+  --dur-short: 220ms;
+  --dur-long: 420ms;
+
+  /* ---------------- 國小課本位值教具專屬語意色 (BLOCKS & PLACE-VALUES) ---------------- */
+  /* 千位（紫立方體） */
+  --th-color: oklch(50% 0.21 295);
+  --th-color-dark: oklch(40% 0.19 295);
+  --th-soft: oklch(94% 0.035 295);
+  --th-border: oklch(78% 0.1 295);
+
+  /* 百位（水藍百格板） */
+  --h-color: oklch(52% 0.19 258);
+  --h-color-dark: oklch(42% 0.17 258);
+  --h-soft: oklch(94% 0.038 250);
+  --h-border: oklch(76% 0.1 255);
+
+  /* 十位（暖橘十格棒） */
+  --t-color: oklch(61% 0.19 42);
+  --t-color-dark: oklch(48% 0.16 40);
+  --t-soft: oklch(94.5% 0.045 55);
+  --t-border: oklch(78% 0.11 52);
+
+  /* 個位（小白方塊／石板灰） */
+  --o-color: oklch(47% 0.025 250);
+  --o-color-dark: oklch(30% 0.024 252);
+  --o-soft: oklch(93.5% 0.012 95);
+  --o-border: oklch(76% 0.02 92);
+
+  /* ---------------- 向下相容與單元共用語意擴展層 ---------------- */
+  --bg: var(--color-paper);
+  --card: var(--color-card);
+  --surface: var(--color-card);
+  --surface-dim: var(--color-paper-2);
+  --surface-well: var(--color-paper-3);
+  --ink: var(--color-ink);
+  --ink-soft: var(--color-muted);
+  --line: var(--color-rule);
+  --line-strong: var(--color-rule-strong);
+  --border: var(--color-rule);
+  --shadow-ink: var(--color-edge);
+
+  --brand-coral: var(--color-accent-3);
+  --brand-coral-deep: var(--color-accent-3-deep);
+  --brand-coral-soft: var(--color-accent-3-soft);
+  --brand-amber: var(--color-accent);
+  --brand-amber-dark: oklch(52% 0.14 78);
+  --brand-amber-soft: var(--color-accent-soft);
+
+  --good: var(--color-mint-deep);
+  --good-bg: var(--color-mint-soft);
+  --good-border: oklch(70% 0.13 152);
+  --bad: var(--color-accent-3-deep);
+  --bad-bg: var(--color-accent-3-soft);
+  --bad-border: oklch(76% 0.11 22);
+  --info: var(--color-accent-2);
+  --info-bg: var(--color-accent-2-soft);
+  --info-border: oklch(76% 0.1 250);
+  --warn-bg: oklch(96% 0.06 94);
+  --warn-border: var(--color-accent-deep);
+  --warn-ink: oklch(42% 0.12 72);
+
+  --paper-grid-line: oklch(86% 0.018 95);
+  --overlay-scrim: oklch(20% 0.014 255 / 0.52);
+  --shadow-ghost: 0 2px 6px oklch(20% 0.014 255 / 0.06);
+  --shadow-ink-16: 0 4px 10px oklch(20% 0.014 255 / 0.16);
+  --shadow-svg-blk: drop-shadow(0 1px 2px oklch(20% 0.014 255 / 0.18));
+  --shadow-drag: 0 8px 20px oklch(20% 0.014 255 / 0.18);
+  --shadow-carry: 0 0 0 4px oklch(87% 0.175 96 / 0.42), 0 8px 20px -4px oklch(72% 0.16 92 / 0.28);
+  --shadow-focus-blue: 0 0 0 3px oklch(50% 0.17 250 / 0.25);
+  --shadow-focus-amber: 0 0 0 3px oklch(87% 0.175 96 / 0.45);
+  --shadow-focus-bad: 0 0 0 3px oklch(64% 0.19 22 / 0.28);
+  --glow-digit-strong: 0 0 0 0 oklch(50% 0.17 250 / 0.55);
+  --glow-digit-soft: 0 0 0 7px oklch(50% 0.17 250 / 0.18);
+  --glow-digit-end: 0 0 0 0 oklch(50% 0.17 250 / 0);
+
+  --radius-card-inner: 16px;
+}

@@ -83,7 +83,7 @@ import { PAPER_EXAMS } from '../src/domain/sequence-exams.js';
       step = stepChoices[Math.floor(Math.random() * stepChoices.length)];
       var baseM = 100 + Math.floor(Math.random() * 15) * 10;
       start = step < 0 ? baseM + 60 : baseM;
-      title = '🕵️ 盲猜步長神探題（先猜規則，再解密！）';
+      title = '盲猜步長神探題（先猜規則，再解密）';
       ruleDesc = '仔細觀察第 1 格與第 2 格的差距，推理出隱藏的跳數步長！';
 
       // 候選選項生成（包含正確答案與干擾項）
@@ -144,7 +144,7 @@ import { PAPER_EXAMS } from '../src/domain/sequence-exams.js';
     userInputs = {};
     activeSlotIdx = null;
 
-    if(titleEl) titleEl.innerHTML = '<i data-lucide="award"></i> ' + q.title;
+    if(titleEl) titleEl.innerHTML = '<span data-lucide="award" aria-hidden="true"></span><span>' + q.title + '</span>';
 
     // 關閉提示框
     if(detectiveCardEl) detectiveCardEl.style.display = 'none';
@@ -155,7 +155,7 @@ import { PAPER_EXAMS } from '../src/domain/sequence-exams.js';
         isMysteryStepSolved = false;
         mysteryCardEl.style.display = 'flex';
         if(mysteryTitleEl){
-          mysteryTitleEl.innerHTML = '🕵️ <b>步驟 1</b>：請觀察前兩格（' + q.numbers[0] + ' ➔ ' + q.numbers[1] + '），猜猜看跳數規則是？';
+          mysteryTitleEl.innerHTML = '<b>步驟 1</b>：請觀察前兩格（' + q.numbers[0] + ' ➔ ' + q.numbers[1] + '），猜猜看跳數規則是？';
         }
         if(mysteryOptionsEl){
           var optsHtml = '';
@@ -172,15 +172,15 @@ import { PAPER_EXAMS } from '../src/domain/sequence-exams.js';
               if(chosen === q.step){
                 isMysteryStepSolved = true;
                 btn.classList.add('selected');
-                mysteryTitleEl.innerHTML = '🎉 <b>太神了！猜對了！</b> 規則就是每次「' + (q.step > 0 ? '增加 ' : '減少 ') + Math.abs(q.step) + '」，請填入空格吧！';
+                mysteryTitleEl.innerHTML = '<b>猜對了！</b> 規則就是每次「' + (q.step > 0 ? '增加 ' : '減少 ') + Math.abs(q.step) + '」，請填入空格吧！';
                 if(MathApp.sfx) MathApp.sfx('chime');
                 if(MathApp.utils && MathApp.utils.showToast){
-                  MathApp.utils.showToast('🎯 識破規律！現在請在下方填入空格答案！');
+                  MathApp.utils.showToast('識破規律！現在請在下方填入空格答案。');
                 }
               } else {
                 if(MathApp.sfx) MathApp.sfx('wrong');
                 if(MathApp.utils && MathApp.utils.showToast){
-                  MathApp.utils.showToast('💡 差一點點！用 ' + q.numbers[1] + ' 減去 ' + q.numbers[0] + ' 算算看相差多少？');
+                  MathApp.utils.showToast('差一點點！用 ' + q.numbers[1] + ' 減去 ' + q.numbers[0] + ' 算算看相差多少？');
                 }
               }
             });
@@ -298,7 +298,7 @@ import { PAPER_EXAMS } from '../src/domain/sequence-exams.js';
     // P4: 盲猜題目防呆：若尚未猜中步長，提醒先猜步長
     if(currentQuestion.isMystery && !isMysteryStepSolved){
       if(MathApp.utils && MathApp.utils.showToast){
-        MathApp.utils.showToast('🕵️ 請先點擊上方步驟 1，猜出跳數規律步長喔！');
+        MathApp.utils.showToast('請先點擊上方步驟 1，猜出跳數規律步長喔！');
       }
       if(MathApp.sfx) MathApp.sfx('wrong');
       return;
@@ -351,7 +351,7 @@ import { PAPER_EXAMS } from '../src/domain/sequence-exams.js';
       var praise = (MathApp.utils && MathApp.utils.pickRandomPraise) ? MathApp.utils.pickRandomPraise() : '答對了，太厲害了！';
       if(MathApp.speak) MathApp.speak(praise);
       if(MathApp.utils && MathApp.utils.showToast){
-        MathApp.utils.showToast('🎉 ' + praise);
+        MathApp.utils.showToast(praise);
       }
 
       // 若在考卷真題模式，自動提示可以前往下一題
@@ -368,7 +368,7 @@ import { PAPER_EXAMS } from '../src/domain/sequence-exams.js';
       var encourage = (MathApp.utils && MathApp.utils.pickRandomEncouragement) ? MathApp.utils.pickRandomEncouragement() : '差一點點，再檢查看看！';
       if(MathApp.speak) MathApp.speak(encourage);
       if(MathApp.utils && MathApp.utils.showToast){
-        MathApp.utils.showToast('💡 有些格子算錯囉，點擊「偵探找規律」看看提示吧！');
+        MathApp.utils.showToast('有些格子算錯囉，點擊「偵探找規律提示」看看提示吧！');
       }
     }
   }
@@ -428,12 +428,13 @@ import { PAPER_EXAMS } from '../src/domain/sequence-exams.js';
     // P4: 若首格為空格，額外提供反推逆運算口訣
     if(currentQuestion.blanks && currentQuestion.blanks.indexOf(0) !== -1){
       var revText = step > 0 ? ('倒退減去 ' + absStep) : ('反向加上 ' + absStep);
-      tipText += '<br/><span style="color:#b45309; font-weight:800;">🧭 反推指針：第 1 格最左邊也是空格！往右是「' + dirText + '」，那麼往左反推回前一個數字時，就必須「' + revText + '」喔！</span>';
+      tipText += '<br/><span class="detective-rev-tip"><span data-lucide="compass" aria-hidden="true"></span><span>反推指針：第 1 格最左邊也是空格！往右是「' + dirText + '」，那麼往左反推回前一個數字時，就必須「' + revText + '」喔！</span></span>';
     }
 
-    if(detectiveTitleEl) detectiveTitleEl.textContent = '🕵️ 規律神探分析報告：' + dirText;
+    if(detectiveTitleEl) detectiveTitleEl.textContent = '規律神探分析報告：' + dirText;
     if(detectiveBodyEl) detectiveBodyEl.innerHTML = tipText;
     detectiveCardEl.style.display = 'flex';
+    if(MathApp.refreshIcons) MathApp.refreshIcons();
 
     if(MathApp.sfx) MathApp.sfx('chime');
   }
@@ -450,19 +451,19 @@ import { PAPER_EXAMS } from '../src/domain/sequence-exams.js';
     var modalTitle = document.getElementById('seq-helper-title');
     var modalBody = document.getElementById('seq-helper-body');
 
-    if(modalTitle) modalTitle.textContent = '🧱 積木小幫手：這格的前一個是 ' + prevNum;
+    if(modalTitle) modalTitle.textContent = '積木小幫手：這格的前一個是 ' + prevNum;
     if(modalBody && MathApp.renderGroupedBlocksHtml){
       var h = Math.floor(prevNum / 100);
       var t = Math.floor((prevNum % 100) / 10);
       var o = prevNum % 10;
 
-      var html = '<p style="margin-bottom:12px; font-weight:700; color:#334155;">先看看前一個數字 <b>' + prevNum + '</b> 的積木樣子：</p>';
-      html += '<div style="display:flex; gap:12px; justify-content:center; flex-wrap:wrap; margin-bottom:16px;">';
-      html += '<div style="background:#f1f5f9; padding:8px 12px; border-radius:10px; text-align:center;"><b>百格板 (' + h + ')</b><br/>' + MathApp.renderGroupedBlocksHtml('h', h) + '</div>';
-      html += '<div style="background:#f1f5f9; padding:8px 12px; border-radius:10px; text-align:center;"><b>十格條 (' + t + ')</b><br/>' + MathApp.renderGroupedBlocksHtml('t', t) + '</div>';
-      html += '<div style="background:#f1f5f9; padding:8px 12px; border-radius:10px; text-align:center;"><b>小積木 (' + o + ')</b><br/>' + MathApp.renderGroupedBlocksHtml('o', o) + '</div>';
+      var html = '<p class="seq-helper-intro">先看看前一個數字 <b>' + prevNum + '</b> 的積木樣子：</p>';
+      html += '<div class="seq-helper-grid">';
+      html += '<div class="seq-helper-col"><b>百格板 (' + h + ')</b><br/>' + MathApp.renderGroupedBlocksHtml('h', h) + '</div>';
+      html += '<div class="seq-helper-col"><b>十格條 (' + t + ')</b><br/>' + MathApp.renderGroupedBlocksHtml('t', t) + '</div>';
+      html += '<div class="seq-helper-col"><b>小積木 (' + o + ')</b><br/>' + MathApp.renderGroupedBlocksHtml('o', o) + '</div>';
       html += '</div>';
-      html += '<p style="font-size:14px; color:#0f766e; font-weight:800; text-align:center;">規則是「' + (currentQuestion.step > 0 ? '加 ' : '減 ') + Math.abs(currentQuestion.step) + '」，算算看這格應該填多少？</p>';
+      html += '<p class="seq-helper-rule">規則是「' + (currentQuestion.step > 0 ? '加 ' : '減 ') + Math.abs(currentQuestion.step) + '」，算算看這格應該填多少？</p>';
       modalBody.innerHTML = html;
     }
 

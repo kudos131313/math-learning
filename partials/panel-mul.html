@@ -3,9 +3,9 @@
     <!-- 單元內部子分頁切換列 -->
     <div class="unit-sub-nav">
       <div class="unit-sub-tabs" role="tablist" aria-label="九九乘法表單元子分頁">
-        <button class="unit-sub-tab active" id="subtab-mul-learn" type="button" role="tab" aria-selected="true" aria-controls="subpanel-mul-learn"><i data-lucide="layout-grid"></i>九九乘法探索台</button>
-        <button class="unit-sub-tab" id="subtab-mul-quiz" type="button" role="tab" aria-selected="false" aria-controls="subpanel-mul-quiz"><i data-lucide="trophy"></i>乘法挑戰測驗</button>
-        <button class="unit-sub-tab" id="subtab-mul-quest" type="button" role="tab" aria-selected="false" aria-controls="subpanel-mul-quest"><i data-lucide="map"></i>乘法冒險闖關</button>
+        <button class="unit-sub-tab active" id="subtab-mul-learn" type="button" role="tab" aria-selected="true" aria-controls="subpanel-mul-learn"><span data-lucide="layout-grid" aria-hidden="true"></span><span>九九乘法探索台</span></button>
+        <button class="unit-sub-tab" id="subtab-mul-quiz" type="button" role="tab" aria-selected="false" aria-controls="subpanel-mul-quiz"><span data-lucide="trophy" aria-hidden="true"></span><span>乘法挑戰測驗</span></button>
+        <button class="unit-sub-tab" id="subtab-mul-quest" type="button" role="tab" aria-selected="false" aria-controls="subpanel-mul-quest"><span data-lucide="map" aria-hidden="true"></span><span>乘法冒險闖關</span></button>
       </div>
     </div>
 
@@ -14,7 +14,7 @@
       <section class="mul-section" id="mul-section">
         <div class="mul-header">
           <h2>九九乘法探索實驗室</h2>
-          <p class="sub">從「幾個幾」分組連加與 9×9 方陣面積，看懂九九乘法口訣與十進位合成！</p>
+          <p class="sub">從「幾個幾」分組連加與 9×9 方陣面積，看懂九九乘法口訣與十進位合成。</p>
 
           <!-- 1~9 段別快選列 -->
           <div class="mul-row-selector-bar">
@@ -35,16 +35,16 @@
           <!-- 探索台功能操作列 -->
           <div class="mul-toolbar">
             <button type="button" class="mul-tool-btn" id="mul-play-row-btn">
-              <i data-lucide="volume-2"></i><span>整段口訣連播</span>
+              <span data-lucide="volume-2" aria-hidden="true"></span><span>整段口訣連播</span>
             </button>
             <button type="button" class="mul-tool-btn" id="mul-swap-btn">
-              <i data-lucide="arrow-left-right"></i><span>交換律對照 (a×b ⇄ b×a)</span>
+              <span data-lucide="arrow-left-right" aria-hidden="true"></span><span>交換律對照 (a×b ⇄ b×a)</span>
             </button>
             <button type="button" class="mul-tool-btn" id="mul-mask-toggle-btn" aria-pressed="false">
-              <i data-lucide="eye-off"></i><span>遮蓋背誦模式</span>
+              <span data-lucide="eye-off" aria-hidden="true"></span><span>遮蓋背誦模式</span>
             </button>
             <button type="button" class="mul-tool-btn" id="mul-mask-reset-btn" style="display: none;">
-              <i data-lucide="rotate-ccw"></i><span>重新遮蓋全部</span>
+              <span data-lucide="rotate-ccw" aria-hidden="true"></span><span>重新遮蓋全部</span>
             </button>
           </div>
         </div>
@@ -52,9 +52,9 @@
         <!-- 雙欄主舞台：左側 9x9 互動百寶矩陣 + 右側具體積木與口訣解析 -->
         <div class="mul-dual-stage">
           <!-- 左側：9x9 九九乘法百寶矩陣 -->
-          <div class="mul-stage-card">
+          <div class="mul-stage-pane">
             <div class="mul-card-head">
-              <span class="mul-card-title">🔢 9×9 九九乘法百寶表</span>
+              <span class="mul-card-title"><span data-lucide="grid-3x3" aria-hidden="true"></span><span>9×9 九九乘法百寶表</span></span>
               <span class="stage-badge badge-concrete">點擊格子或調整按鈕</span>
             </div>
 
@@ -64,7 +64,7 @@
                 <span class="mul-factor-tag tag-a">被乘數 a（每組幾個）</span>
                 <div class="mul-factor-btns">
                   <button type="button" class="mul-step-btn" id="mul-minus-a" aria-label="減少被乘數">−</button>
-                  <span class="mul-factor-val val-a" id="mul-val-a">3</span>
+                  <span class="mul-factor-val val-a num-font" id="mul-val-a">3</span>
                   <button type="button" class="mul-step-btn" id="mul-plus-a" aria-label="增加被乘數">+</button>
                 </div>
               </div>
@@ -75,7 +75,7 @@
                 <span class="mul-factor-tag tag-b">乘數 b（共有幾組）</span>
                 <div class="mul-factor-btns">
                   <button type="button" class="mul-step-btn" id="mul-minus-b" aria-label="減少乘數">−</button>
-                  <span class="mul-factor-val val-b" id="mul-val-b">4</span>
+                  <span class="mul-factor-val val-b num-font" id="mul-val-b">4</span>
                   <button type="button" class="mul-step-btn" id="mul-plus-b" aria-label="增加乘數">+</button>
                 </div>
               </div>
@@ -89,24 +89,24 @@
             </div>
 
             <div class="mul-grid-legend">
-              <span id="mul-area-note">💡 表格左上角黃色區域正好框出 <b>3 列 × 4 行 ＝ 12 格</b>！</span>
+              <span class="mul-area-note-wrap" id="mul-area-note"><span data-lucide="lightbulb" aria-hidden="true"></span><span>表格左上角梨黃區域正好框出 <b>3 列 × 4 行 ＝ 12 格</b></span></span>
               <span class="mul-legend-item">
-                <span class="mul-legend-swatch" style="background:#fef3c7;border-color:#f59e0b;"></span>a×b 方陣面積
+                <span class="mul-legend-swatch" aria-hidden="true"></span><span>a×b 方陣面積</span>
               </span>
             </div>
           </div>
 
           <!-- 右側：口訣英雄卡與雙模式具體表徵 -->
-          <div class="mul-stage-card">
+          <div class="mul-stage-pane">
             <div class="mul-card-head">
-              <span class="mul-card-title">🧱 具體操作與口訣圖解</span>
+              <span class="mul-card-title"><span data-lucide="blocks" aria-hidden="true"></span><span>具體操作與口訣圖解</span></span>
               <span class="stage-badge badge-abstract">具體 ➔ 視覺 ➔ 符號</span>
             </div>
 
-            <!-- 口訣與算式英雄卡 -->
+            <!-- 口訣與算式英雄條 -->
             <div class="mul-hero-banner">
               <div class="mul-hero-main">
-                <div class="mul-equation-big" id="mul-equation-big">
+                <div class="mul-equation-big num-font" id="mul-equation-big">
                   <span class="mul-eq-a">3</span><span>×</span><span class="mul-eq-b">4</span><span>＝</span><span class="mul-eq-ans">12</span>
                 </div>
                 <div class="mul-mantra-row">
@@ -115,14 +115,14 @@
                 </div>
               </div>
               <button class="speaker-btn" id="mul-speak-current-btn" type="button" aria-label="朗讀目前乘法口訣與解說">
-                <i data-lucide="volume-2"></i>
+                <span data-lucide="volume-2" aria-hidden="true"></span>
               </button>
             </div>
 
             <!-- 視覺表徵 1：「幾個幾」分組連加積木盒 -->
             <div class="mul-visual-box">
               <div class="mul-box-header">
-                <span class="mul-box-title">📦 視角 1：分組連加積木（幾個幾）</span>
+                <span class="mul-box-title"><span data-lucide="package" aria-hidden="true"></span><span>視角 1：分組連加積木（幾個幾）</span></span>
                 <span class="mul-box-sub" id="mul-groups-box-sub">每盤裝 3 個小白積木，共有 4 盤</span>
               </div>
               <div class="mul-groups-container" id="mul-groups-container">
@@ -136,7 +136,7 @@
             <!-- 視覺表徵 2：方陣跳數點陣 ＋ 十進位積木合成對照 -->
             <div class="mul-visual-box">
               <div class="mul-box-header">
-                <span class="mul-box-title">🟦 視角 2：方陣跳數累加 ＆ 十進位積木合成</span>
+                <span class="mul-box-title"><span data-lucide="calculator" aria-hidden="true"></span><span>視角 2：方陣跳數累加與十進位合成</span></span>
                 <span class="mul-box-sub">滿 10 個一自動換成 1 條十位橘色積木</span>
               </div>
               <div class="mul-array-base10-split">
@@ -157,12 +157,12 @@
     <div class="sub-panel" id="subpanel-mul-quiz" role="tabpanel" aria-labelledby="subtab-mul-quiz">
       <section class="quiz mul-quiz-section" id="mul-quiz">
         <h2>九九乘法挑戰測驗</h2>
-        <p class="sub">結合標準乘法、逆向填空與「幾個幾」倍數概念題，挑戰成為九九乘法大師！</p>
+        <p class="sub">結合標準乘法、逆向填空與「幾個幾」倍數概念題，練習乘法口訣應用</p>
 
         <!-- 模式切換器 (自由練習 vs 自我測驗) -->
         <div class="mode-tabs" role="tablist" aria-label="乘法挑戰模式切換">
-          <button class="mode-tab active" id="mq-tab-practice" type="button" role="tab" aria-selected="true"><i data-lucide="book-open"></i>自由練習</button>
-          <button class="mode-tab" id="mq-tab-selftest" type="button" role="tab" aria-selected="false"><i data-lucide="file-text"></i>自我測驗</button>
+          <button class="mode-tab active" id="mq-tab-practice" type="button" role="tab" aria-selected="true"><span data-lucide="book-open" aria-hidden="true"></span><span>自由練習</span></button>
+          <button class="mode-tab" id="mq-tab-selftest" type="button" role="tab" aria-selected="false"><span data-lucide="file-text" aria-hidden="true"></span><span>自我測驗</span></button>
         </div>
 
         <!-- 關卡與單段自選篩選面板 (自由練習專用) -->
@@ -170,11 +170,11 @@
           <div class="mq-filter-row">
             <span class="mq-filter-label">課綱分階關卡：</span>
             <div class="mq-level-chips" id="mq-level-chips" role="group" aria-label="乘法關卡難度選擇">
-              <button type="button" class="mq-chip active" data-level="all">🎲 1～9 全範圍混合</button>
-              <button type="button" class="mq-chip" data-level="basic">🌱 入門段 (1·2·5)</button>
-              <button type="button" class="mq-chip" data-level="mid">🌟 進階段 (3·4·6)</button>
-              <button type="button" class="mq-chip" data-level="hard">🚀 挑戰段 (7·8·9)</button>
-              <button type="button" class="mq-chip" data-level="concept">🔄 逆向與概念特訓</button>
+              <button type="button" class="mq-chip active" data-level="all"><span data-lucide="dices" aria-hidden="true"></span><span>1～9 全範圍混合</span></button>
+              <button type="button" class="mq-chip" data-level="basic"><span data-lucide="sprout" aria-hidden="true"></span><span>入門段 (1·2·5)</span></button>
+              <button type="button" class="mq-chip" data-level="mid"><span data-lucide="sparkles" aria-hidden="true"></span><span>進階段 (3·4·6)</span></button>
+              <button type="button" class="mq-chip" data-level="hard"><span data-lucide="flame" aria-hidden="true"></span><span>挑戰段 (7·8·9)</span></button>
+              <button type="button" class="mq-chip" data-level="concept"><span data-lucide="repeat" aria-hidden="true"></span><span>逆向與概念特訓</span></button>
             </div>
           </div>
           <div class="mq-filter-row">
@@ -196,31 +196,31 @@
 
         <!-- 自由練習計分列 -->
         <div class="score-row" id="mq-practice-score-row">
-          <div class="score-pill">答對 <em id="mq-score-correct">0</em> 題</div>
-          <div class="score-pill">連續答對 <em id="mq-score-streak">0</em> 次</div>
+          <div class="score-pill">答對 <em id="mq-score-correct" class="num-font">0</em> 題</div>
+          <div class="score-pill">連續答對 <em id="mq-score-streak" class="num-font">0</em> 次</div>
         </div>
 
         <!-- 自我測驗設定卡片 -->
         <div class="selftest-panel" id="mq-selftest-setup-panel" style="display: none;">
           <div class="selftest-setup-card">
-            <div class="setup-icon"><i data-lucide="trophy"></i></div>
+            <div class="setup-icon"><span data-lucide="trophy" aria-hidden="true"></span></div>
             <h3>九九乘法自我評量挑戰</h3>
-            <p>涵蓋 1～9 的乘法口訣、逆向未知數填空與「幾個幾」倍數概念題，檢測你的乘法熟練度！</p>
+            <p>涵蓋 1～9 的乘法口訣、逆向未知數填空與「幾個幾」倍數概念題，檢測你的乘法熟練度。</p>
             <div class="selftest-options">
               <span class="opt-label">測驗題數：</span>
               <button type="button" class="chip active" data-count="5">5 題速測</button>
               <button type="button" class="chip" data-count="10">10 題完整測驗</button>
             </div>
-            <button class="primary-btn pulse-glow" id="mq-start-selftest-btn" type="button"><i data-lucide="play"></i> 開始乘法測驗</button>
+            <button class="primary-btn" id="mq-start-selftest-btn" type="button"><span data-lucide="play" aria-hidden="true"></span><span>開始乘法測驗</span></button>
           </div>
         </div>
 
         <!-- 自我測驗進度列 -->
         <div class="selftest-progress-row" id="mq-selftest-progress-row" style="display: none;">
           <div class="progress-meta">
-            <span class="badge-tag">📝 乘法測驗中</span>
+            <span class="badge-tag"><span data-lucide="clipboard-list" aria-hidden="true"></span><span>乘法測驗中</span></span>
             <span class="progress-q" id="mq-selftest-progress-text">第 1 / 5 題</span>
-            <span class="timer-tag" id="mq-selftest-timer">⏱️ 00:00</span>
+            <span class="timer-tag"><span data-lucide="timer" aria-hidden="true"></span><span id="mq-selftest-timer" class="num-font">00:00</span></span>
           </div>
           <div class="progress-track" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100">
             <div class="progress-fill" id="mq-selftest-progress-fill" style="width: 0%;"></div>
@@ -232,12 +232,12 @@
           <div class="cq-prompt-row">
             <span class="cq-badge" id="mq-type-badge">九九乘法練習</span>
             <span class="cq-hint-text" id="mq-prompt-text">想一想乘法口訣，填入正確答案！</span>
-            <button class="ghost-btn small" id="mq-speak-btn" type="button"><i data-lucide="volume-2"></i> 朗讀題目</button>
+            <button class="ghost-btn small" id="mq-speak-btn" type="button"><span data-lucide="volume-2" aria-hidden="true"></span><span>朗讀題目</span></button>
           </div>
 
           <div class="mq-question-stage">
             <div class="mq-story-banner" id="mq-story-banner" style="display: none;"></div>
-            <div class="mq-equation-row" id="mq-equation-row">
+            <div class="mq-equation-row num-font" id="mq-equation-row">
               <!-- 由 js/mul-quiz.js 動態渲染算式與輸入框 -->
             </div>
           </div>
@@ -247,15 +247,15 @@
 
           <!-- 操作按鈕 -->
           <div class="quiz-actions">
-            <button class="ghost-btn" id="mq-helper-toggle-btn" type="button"><i data-lucide="blocks"></i> 展開積木小幫手</button>
-            <button class="primary-btn" id="mq-check-btn" type="button"><i data-lucide="check-circle-2"></i> 確認答案</button>
-            <button class="ghost-btn" id="mq-next-btn" style="display:none;" type="button">下一題 <i data-lucide="arrow-right"></i></button>
+            <button class="ghost-btn" id="mq-helper-toggle-btn" type="button"><span data-lucide="blocks" aria-hidden="true"></span><span>展開積木小幫手</span></button>
+            <button class="primary-btn" id="mq-check-btn" type="button"><span data-lucide="check-circle-2" aria-hidden="true"></span><span>確認答案</span></button>
+            <button class="ghost-btn" id="mq-next-btn" style="display:none;" type="button"><span>下一題</span><span data-lucide="arrow-right" aria-hidden="true"></span></button>
           </div>
 
           <!-- 積木小幫手抽屜 -->
           <div class="cq-helper-wrap">
             <div class="cq-helper-drawer" id="mq-helper-drawer">
-              <div class="cq-helper-title">🧱 積木小幫手：數數看每組有幾個、合起來是多少！</div>
+              <div class="cq-helper-title"><span data-lucide="blocks" aria-hidden="true"></span><span>積木小幫手：數數看每組有幾個、合起來是多少</span></div>
               <div class="cq-helper-blocks" id="mq-helper-blocks-stage">
                 <!-- 動態注入分組積木與跳數提示 -->
               </div>
@@ -270,7 +270,7 @@
         <!-- 自我測驗成果結算卡片 -->
         <div class="selftest-result-card" id="mq-selftest-result-card" style="display: none;">
           <div class="result-header">
-            <div class="result-stars" id="mq-result-stars">⭐⭐⭐</div>
+            <div class="result-stars" id="mq-result-stars" aria-label="獲得星等"></div>
             <h3 id="mq-result-title">乘法測驗完成！太厲害了！</h3>
             <p id="mq-result-subtitle">你已經熟練掌握九九乘法與倍數概念！</p>
           </div>
@@ -293,8 +293,8 @@
           <div class="result-review" id="mq-result-review"></div>
 
           <div class="result-actions">
-            <button class="primary-btn" id="mq-restart-selftest-btn" type="button"><i data-lucide="rotate-ccw"></i> 再測驗一次</button>
-            <button class="ghost-btn" id="mq-back-practice-btn" type="button"><i data-lucide="book-open"></i> 回到自由練習</button>
+            <button class="primary-btn" id="mq-restart-selftest-btn" type="button"><span data-lucide="rotate-ccw" aria-hidden="true"></span><span>再測驗一次</span></button>
+            <button class="ghost-btn" id="mq-back-practice-btn" type="button"><span data-lucide="book-open" aria-hidden="true"></span><span>回到自由練習</span></button>
           </div>
         </div>
       </section>

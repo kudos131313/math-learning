@@ -140,7 +140,10 @@ import { createCalcStageRenderer } from '../src/calc/stage-renderer.js';
     // 按鈕狀態
     calcEls.stepPrevBtn.disabled = (step === 0);
     calcEls.stepNextBtn.disabled = (step >= 4);
-    calcEls.stepNextBtn.textContent = (step >= 4) ? '已完成 🎉' : '下一步 ▶';
+    calcEls.stepNextBtn.innerHTML = (step >= 4)
+      ? '<span data-lucide="check" aria-hidden="true"></span><span>已完成</span>'
+      : '<span>下一步</span><span data-lucide="arrow-right" aria-hidden="true"></span>';
+    if(MathApp.refreshIcons) MathApp.refreshIcons();
 
     // 互動提示 (選項 A)
     if(info.showPrompt && calcEls.interactivePrompt && calcEls.promptContent){
@@ -233,7 +236,7 @@ import { createCalcStageRenderer } from '../src/calc/stage-renderer.js';
     }
     calcState.isAutoPlaying = false;
     if(calcEls.stepAutoBtn){
-      calcEls.stepAutoBtn.innerHTML = '<i data-lucide="play-circle"></i> 自動演示';
+      calcEls.stepAutoBtn.innerHTML = '<span data-lucide="play-circle" aria-hidden="true"></span><span>自動演示</span>';
       if(MathApp.refreshIcons) MathApp.refreshIcons();
     }
   }
@@ -242,7 +245,7 @@ import { createCalcStageRenderer } from '../src/calc/stage-renderer.js';
       stopAutoPlay();
     } else {
       calcState.isAutoPlaying = true;
-      calcEls.stepAutoBtn.innerHTML = '<i data-lucide="pause-circle"></i> 暫停演示';
+      calcEls.stepAutoBtn.innerHTML = '<span data-lucide="pause-circle" aria-hidden="true"></span><span>暫停演示</span>';
       if(MathApp.refreshIcons) MathApp.refreshIcons();
       if(calcState.step >= 4){
         calcState.step = 0;
@@ -337,7 +340,7 @@ import { createCalcStageRenderer } from '../src/calc/stage-renderer.js';
     if(calcState.op === 'add'){
       if(!isNaN(a) && !isNaN(b) && a + b > 999){
         warningEl.style.display = 'inline-flex';
-        warningEl.innerHTML = '<i data-lucide="alert-circle"></i> 加法總和不得超出 999（' + a + ' ＋ ' + b + ' ＝ ' + (a + b) + '）';
+        warningEl.innerHTML = '<span data-lucide="alert-circle" aria-hidden="true"></span><span>加法總和不得超出 999（' + a + ' ＋ ' + b + ' ＝ ' + (a + b) + '）</span>';
         if(MathApp.refreshIcons) MathApp.refreshIcons();
       } else {
         warningEl.style.display = 'none';
@@ -345,7 +348,7 @@ import { createCalcStageRenderer } from '../src/calc/stage-renderer.js';
     } else {
       if(!isNaN(a) && !isNaN(b) && a < b){
         warningEl.style.display = 'inline-flex';
-        warningEl.innerHTML = '<i data-lucide="alert-circle"></i> 減法不得算出負值（' + a + ' − ' + b + ' ＜ 0）';
+        warningEl.innerHTML = '<span data-lucide="alert-circle" aria-hidden="true"></span><span>減法不得算出負值（' + a + ' − ' + b + ' ＜ 0）</span>';
         if(MathApp.refreshIcons) MathApp.refreshIcons();
       } else {
         warningEl.style.display = 'none';

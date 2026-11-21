@@ -497,9 +497,9 @@
     var isAdd = (q.op === 'add');
     var d = q.decomp;
 
-    // 建立單一數值積木卡片
+    // 建立單一數值積木組塊
     function makeNumCardHtml(title, num, h, t, o){
-      var cardHtml = '<div class="cq-helper-num-card">';
+      var cardHtml = '<div class="cq-helper-num-box">';
       cardHtml += '  <div class="cq-helper-num-title">' + title + ' <span class="cq-helper-num-val">(' + num + ')</span></div>';
       cardHtml += '  <div class="cq-helper-num-cols">';
       if(q.needHundred || h > 0){
@@ -543,25 +543,25 @@
       var carryT = (tSum >= 10);
 
       if(carryO){
-        actionTitle = '✨ 滿十進位魔法：10 個一 ➔ 捆成 1 條十！';
+        actionTitle = '<span data-lucide="sparkles" aria-hidden="true"></span><span>滿十進位：10 個一 ➔ 捆成 1 條十</span>';
         actionBody = '先看個位：' + d.a_o + ' + ' + d.b_o + ' = <b>' + oSum + '</b> 顆（滿十囉！）。將 10 個一捆成 1 條十送給十位，個位剩下 <b>' + remO + '</b> 顆。十位記得要加上進位過來的 1 條十（' + d.a_t + ' + ' + d.b_t + ' + 1 = <b>' + tSum + '</b>）！';
         actionVisual = '<div class="cq-helper-action-visual">' +
-          '<div style="display:flex;align-items:center;gap:4px;">' + MathApp.renderGroupedBlocksHtml('o', 10) + '</div>' +
+          '<div class="cq-helper-row-inline">' + MathApp.renderGroupedBlocksHtml('o', 10) + '</div>' +
           '<span class="cq-helper-transform-arrow">➔ 捆成 ➔</span>' +
-          '<div style="display:flex;align-items:center;gap:4px;">' + MathApp.utils.blockGlyph('t') + '<b style="color:var(--t-color-dark);">1 條十</b></div>' +
-          '<span style="font-size:12.5px;color:var(--ink-soft);margin-left:4px;">（進到十位註記 +1）</span>' +
+          '<div class="cq-helper-row-inline">' + MathApp.utils.blockGlyph('t') + '<b class="cq-helper-label-t">1 條十</b></div>' +
+          '<span class="cq-helper-note">（進到十位註記 +1）</span>' +
           '</div>';
       } else if(carryT){
-        actionTitle = '✨ 十位進百位魔法：10 條十 ➔ 捆成 1 片百！';
+        actionTitle = '<span data-lucide="sparkles" aria-hidden="true"></span><span>十位進百位：10 條十 ➔ 捆成 1 片百</span>';
         actionBody = '個位直接相加：' + d.a_o + ' + ' + d.b_o + ' = <b>' + oSum + '</b> 顆。十位相加滿十（' + d.a_t + ' + ' + d.b_t + ' = <b>' + tSum + '</b>），10 條十可捆成 1 片百格板進到百位！';
         actionVisual = '<div class="cq-helper-action-visual">' +
-          '<div style="display:flex;align-items:center;gap:4px;">' + MathApp.renderGroupedBlocksHtml('t', 10) + '</div>' +
+          '<div class="cq-helper-row-inline">' + MathApp.renderGroupedBlocksHtml('t', 10) + '</div>' +
           '<span class="cq-helper-transform-arrow">➔ 捆成 ➔</span>' +
-          '<div style="display:flex;align-items:center;gap:4px;">' + MathApp.utils.blockGlyph('h') + '<b style="color:var(--h-color-dark);">1 片百</b></div>' +
-          '<span style="font-size:12.5px;color:var(--ink-soft);margin-left:4px;">（進到百位）</span>' +
+          '<div class="cq-helper-row-inline">' + MathApp.utils.blockGlyph('h') + '<b class="cq-helper-label-h">1 片百</b></div>' +
+          '<span class="cq-helper-note">（進到百位）</span>' +
           '</div>';
       } else {
-        actionTitle = '💡 分位相加觀察：分位直接計算即可！';
+        actionTitle = '<span data-lucide="lightbulb" aria-hidden="true"></span><span>分位相加觀察：直接計算即可</span>';
         actionBody = '先算個位：' + d.a_o + ' + ' + d.b_o + ' = <b>' + oSum + '</b> 顆（沒有滿十，不需進位）；再算十位：' + d.a_t + ' + ' + d.b_t + ' = <b>' + tSum + '</b> 條，直接在直式中填寫！';
       }
     } else {
@@ -573,47 +573,48 @@
       var subO = effO - d.b_o;
 
       if(isAcrossZero){
-        actionTitle = '✂️ 百位退位借十魔法：十位是 0 ➔ 向百位借 1 片百！';
+        actionTitle = '<span data-lucide="scissors" aria-hidden="true"></span><span>百位退位借十：十位是 0 ➔ 向百位借 1 片百</span>';
         actionBody = '先看個位：只有 ' + d.a_o + ' 顆拿不走 ' + d.b_o + ' 顆（不夠減）！想向十位借，但<b>十位是 0 條</b>沒得借！' +
           '必須先向百位借 1 片百拆成 10 條十，借 1 條給個位後<b>十位剩下 9 條</b>，個位變成 10 + ' + d.a_o + ' = <b>' + effO + '</b> 顆，' +
           '減掉 ' + d.b_o + ' 剩下 <b>' + subO + '</b> 顆！再算十位時就是 <b>9 − ' + d.b_t + ' ＝ ' + (9 - d.b_t) + '</b>！';
         actionVisual = '<div class="cq-helper-action-visual">' +
-          '<div style="display:flex;align-items:center;gap:4px;">' + MathApp.utils.blockGlyph('h') + '<b style="color:var(--h-color-dark);">百位借 1</b></div>' +
+          '<div class="cq-helper-row-inline">' + MathApp.utils.blockGlyph('h') + '<b class="cq-helper-label-h">百位借 1</b></div>' +
           '<span class="cq-helper-transform-arrow">➔ 拆成 ➔</span>' +
-          '<div style="display:flex;align-items:center;gap:4px;">' + MathApp.renderGroupedBlocksHtml('t', 9) + '<b style="font-size:12px;color:var(--t-color-dark);">(十位留 9 條)</b></div>' +
+          '<div class="cq-helper-row-inline">' + MathApp.renderGroupedBlocksHtml('t', 9) + '<b class="cq-helper-label-t">(十位留 9 條)</b></div>' +
           '<span class="cq-helper-transform-arrow">＋ 借 10 顆 ➔</span>' +
-          '<div style="display:flex;align-items:center;gap:4px;">' + MathApp.renderGroupedBlocksHtml('o', 10) + '<b style="font-size:12px;color:var(--o-color-dark);">(個位得 10 顆)</b></div>' +
+          '<div class="cq-helper-row-inline">' + MathApp.renderGroupedBlocksHtml('o', 10) + '<b class="cq-helper-label-o">(個位得 10 顆)</b></div>' +
           '</div>';
       } else if(needBorrowO){
-        actionTitle = '✂️ 借一拆十魔法：1 條十 ➔ 拆成 10 個一！';
+        actionTitle = '<span data-lucide="scissors" aria-hidden="true"></span><span>借一拆十：1 條十 ➔ 拆成 10 個一</span>';
         actionBody = '先看個位：只有 ' + d.a_o + ' 顆，拿不走 ' + d.b_o + ' 顆（不夠減）！向十位借 1 條十拆成 10 顆一，個位現在有 10 + ' + d.a_o + ' = <b>' + effO + '</b> 顆，減掉 ' + d.b_o + ' 剩下 <b>' + subO + '</b> 顆！十位被借走 1 條剩下 <b>' + remT + '</b> 條。';
         actionVisual = '<div class="cq-helper-action-visual">' +
-          '<div style="display:flex;align-items:center;gap:4px;">' + MathApp.utils.blockGlyph('t') + '<b style="color:var(--t-color-dark);">借 1 條十</b></div>' +
+          '<div class="cq-helper-row-inline">' + MathApp.utils.blockGlyph('t') + '<b class="cq-helper-label-t">借 1 條十</b></div>' +
           '<span class="cq-helper-transform-arrow">➔ 拆成 ➔</span>' +
-          '<div style="display:flex;align-items:center;gap:4px;">' + MathApp.renderGroupedBlocksHtml('o', 10) + '</div>' +
-          '<span style="font-size:12.5px;color:var(--ink-soft);margin-left:4px;">（個位增加 10 個一）</span>' +
+          '<div class="cq-helper-row-inline">' + MathApp.renderGroupedBlocksHtml('o', 10) + '</div>' +
+          '<span class="cq-helper-note">（個位增加 10 個一）</span>' +
           '</div>';
       } else if(remT < d.b_t && d.a_h > 0){
-        actionTitle = '✂️ 百位退位魔法：1 片百 ➔ 拆成 10 條十！';
+        actionTitle = '<span data-lucide="scissors" aria-hidden="true"></span><span>百位退位：1 片百 ➔ 拆成 10 條十</span>';
         actionBody = '個位夠減（' + d.a_o + ' − ' + d.b_o + ' = <b>' + subO + '</b>）。十位 ' + remT + ' 不夠減 ' + d.b_t + '，向百位借 1 片百拆成 10 條十來減！';
         actionVisual = '<div class="cq-helper-action-visual">' +
-          '<div style="display:flex;align-items:center;gap:4px;">' + MathApp.utils.blockGlyph('h') + '<b style="color:var(--h-color-dark);">借 1 片百</b></div>' +
+          '<div class="cq-helper-row-inline">' + MathApp.utils.blockGlyph('h') + '<b class="cq-helper-label-h">借 1 片百</b></div>' +
           '<span class="cq-helper-transform-arrow">➔ 拆成 ➔</span>' +
-          '<div style="display:flex;align-items:center;gap:4px;">' + MathApp.renderGroupedBlocksHtml('t', 10) + '</div>' +
+          '<div class="cq-helper-row-inline">' + MathApp.renderGroupedBlocksHtml('t', 10) + '</div>' +
           '</div>';
       } else {
-        actionTitle = '💡 分位相減觀察：夠減不用借位！';
+        actionTitle = '<span data-lucide="lightbulb" aria-hidden="true"></span><span>分位相減觀察：夠減不用借位</span>';
         actionBody = '個位夠減：' + d.a_o + ' − ' + d.b_o + ' = <b>' + subO + '</b> 顆；十位夠減：' + remT + ' − ' + d.b_t + ' = <b>' + (remT - d.b_t) + '</b> 條。直接直式相減即可！';
       }
     }
 
-    html += '<div class="cq-helper-action-card">';
+    html += '<div class="cq-helper-action-well">';
     html += '  <div class="cq-helper-action-header">' + actionTitle + '</div>';
     if(actionVisual) html += actionVisual;
     html += '  <div class="cq-helper-action-body">' + actionBody + '</div>';
     html += '</div>';
 
     cqEls.helperBlocksStage.innerHTML = html;
+    if(MathApp.refreshIcons) MathApp.refreshIcons();
   }
 
   /* 虛擬鍵盤與實體鍵盤事件處理 */
@@ -739,9 +740,9 @@
       cqEls.checkBtn.style.display = 'none';
       var isLastQ = currentMode === 'selftest' && (selfTestState.index + 1) >= selfTestConfig.total;
       cqEls.nextBtn.innerHTML = isLastQ 
-        ? '查看測驗成果 <i data-lucide="trophy"></i>' 
-        : '下一題 <i data-lucide="arrow-right"></i>';
-      cqEls.nextBtn.style.display = 'inline-block';
+        ? '<span>查看測驗成果</span><span data-lucide="trophy" aria-hidden="true"></span>' 
+        : '<span>下一題</span><span data-lucide="arrow-right" aria-hidden="true"></span>';
+      cqEls.nextBtn.style.display = 'inline-flex';
       if(MathApp.refreshIcons) MathApp.refreshIcons();
 
       if(MathApp.sfx) MathApp.sfx('correct');
@@ -786,7 +787,7 @@
             errorMsg = '十位相加加上進位應該是 ' + d.a_t + ' + ' + d.b_t + (carry1 ? ' + 1 = ' : ' = ') + tSum + ' 喔！';
           }
         }
-        detailExplanation = '💡 <b>算則小叮嚀：</b>先算個位：' + d.a_o + ' + ' + d.b_o + ' = ' + oSum + '（寫 ' + realO + (carry1 ? '，十位進 1' : '') + '）；再算十位：' + d.a_t + ' + ' + d.b_t + (carry1 ? ' + 1' : '') + ' = ' + tSum + '。';
+        detailExplanation = '<span data-lucide="lightbulb" aria-hidden="true"></span><b>算則小叮嚀：</b>先算個位：' + d.a_o + ' + ' + d.b_o + ' = ' + oSum + '（寫 ' + realO + (carry1 ? '，十位進 1' : '') + '）；再算十位：' + d.a_t + ' + ' + d.b_t + (carry1 ? ' + 1' : '') + ' = ' + tSum + '。';
       } else {
         // 減法
         var needBorrowO = (d.a_o < d.b_o);
@@ -824,15 +825,15 @@
 
         var detailMsg = '';
         if(isAcrossZero){
-          detailMsg = '💡 <b>算則小叮嚀：</b>個位不夠減向十位借，十位是 0 先向百位借 1 片百；十位留 9 條，個位得到 10 顆。個位算 15 − ' + d.b_o + ' = ' + realSubO + '，十位算 9 − ' + d.b_t + ' = ' + realSubT + '。';
+          detailMsg = '<span data-lucide="lightbulb" aria-hidden="true"></span><b>算則小叮嚀：</b>個位不夠減向十位借，十位是 0 先向百位借 1 片百；十位留 9 條，個位得到 10 顆。個位算 ' + (10 + d.a_o) + ' − ' + d.b_o + ' = ' + realSubO + '，十位算 9 − ' + d.b_t + ' = ' + realSubT + '。';
         } else if(needBorrowT && !needBorrowO){
-          detailMsg = '💡 <b>算則小叮嚀：</b>個位夠減（' + d.a_o + ' − ' + d.b_o + ' = ' + realSubO + '）；十位只有 ' + d.a_t + ' 條不夠減 ' + d.b_t + ' 條，向百位借 1 片百拆成 10 條十，十位變成 10 + ' + d.a_t + ' = ' + effectiveT + ' 條，' + effectiveT + ' − ' + d.b_t + ' = ' + realSubT + '。';
+          detailMsg = '<span data-lucide="lightbulb" aria-hidden="true"></span><b>算則小叮嚀：</b>個位夠減（' + d.a_o + ' − ' + d.b_o + ' = ' + realSubO + '）；十位只有 ' + d.a_t + ' 條不夠減 ' + d.b_t + ' 條，向百位借 1 片百拆成 10 條十，十位變成 10 + ' + d.a_t + ' = ' + effectiveT + ' 條，' + effectiveT + ' − ' + d.b_t + ' = ' + realSubT + '。';
         } else if(needBorrowT && needBorrowO){
-          detailMsg = '💡 <b>算則小叮嚀：</b>個位向十位借 1 當 10（' + (10 + d.a_o) + ' − ' + d.b_o + ' = ' + realSubO + '）；十位剩 ' + tempT + ' 條不夠減，向百位借 1 片百變成 ' + effectiveT + ' 條，' + effectiveT + ' − ' + d.b_t + ' = ' + realSubT + '。';
+          detailMsg = '<span data-lucide="lightbulb" aria-hidden="true"></span><b>算則小叮嚀：</b>個位向十位借 1 當 10（' + (10 + d.a_o) + ' − ' + d.b_o + ' = ' + realSubO + '）；十位剩 ' + tempT + ' 條不夠減，向百位借 1 片百變成 ' + effectiveT + ' 條，' + effectiveT + ' − ' + d.b_t + ' = ' + realSubT + '。';
         } else if(needBorrowO){
-          detailMsg = '💡 <b>算則小叮嚀：</b>個位不夠減向十位借 1 當 10，十位剩下 ' + effectiveT + '，個位變成 10 + ' + d.a_o + ' = ' + (10 + d.a_o) + '。';
+          detailMsg = '<span data-lucide="lightbulb" aria-hidden="true"></span><b>算則小叮嚀：</b>個位不夠減向十位借 1 當 10，十位剩下 ' + effectiveT + '，個位變成 10 + ' + d.a_o + ' = ' + (10 + d.a_o) + '。';
         } else {
-          detailMsg = '💡 <b>算則小叮嚀：</b>直接分位相減即可。';
+          detailMsg = '<span data-lucide="lightbulb" aria-hidden="true"></span><b>算則小叮嚀：</b>直接分位相減即可。';
         }
         detailExplanation = detailMsg;
       }
@@ -841,6 +842,7 @@
       cqEls.feedback.className = 'feedback wrong';
       cqEls.explanationBox.innerHTML = detailExplanation;
       cqEls.explanationBox.style.display = 'block';
+      if(MathApp.refreshIcons) MathApp.refreshIcons();
 
       if(MathApp.sfx) MathApp.sfx('wrong');
       if(MathApp.speak) MathApp.speak(errorMsg);
@@ -853,9 +855,9 @@
         cqEls.checkBtn.style.display = 'none';
         var isLastQErr = (selfTestState.index + 1) >= selfTestConfig.total;
         cqEls.nextBtn.innerHTML = isLastQErr 
-          ? '查看測驗成果 <i data-lucide="trophy"></i>' 
-          : '下一題 <i data-lucide="arrow-right"></i>';
-        cqEls.nextBtn.style.display = 'inline-block';
+          ? '<span>查看測驗成果</span><span data-lucide="trophy" aria-hidden="true"></span>' 
+          : '<span>下一題</span><span data-lucide="arrow-right" aria-hidden="true"></span>';
+        cqEls.nextBtn.style.display = 'inline-flex';
         if(MathApp.refreshIcons) MathApp.refreshIcons();
         selfTestState.history.push({
           summary: currentQ.a + (op === 'add' ? ' + ' : ' − ') + currentQ.b + ' = ' + userTotal + '（正確為 ' + correctTotal + '）',
@@ -962,10 +964,10 @@
 
   function startSelfTestTimer(){
     stopSelfTestTimer();
-    cqEls.timerText.textContent = '⏱️ 00:00';
+    cqEls.timerText.textContent = '00:00';
     selfTestState.timerId = setInterval(function(){
       var elapsedSec = Math.floor((Date.now() - selfTestState.startTime) / 1000);
-      cqEls.timerText.textContent = '⏱️ ' + (MathApp.utils ? MathApp.utils.formatTime(elapsedSec) : elapsedSec + 's');
+      cqEls.timerText.textContent = (MathApp.utils ? MathApp.utils.formatTime(elapsedSec) : elapsedSec + 's');
     }, 1000);
   }
 
@@ -998,29 +1000,40 @@
     cqEls.resultAccuracy.textContent = correct + ' / ' + total;
     cqEls.resultTime.textContent = MathApp.utils ? MathApp.utils.formatTime(elapsedSec) : elapsedSec + 's';
 
+    function buildStarsHtml(count, isSprout){
+      if(isSprout){
+        return '<span class="result-star-badge is-sprout"><span data-lucide="sprout" aria-hidden="true"></span></span>';
+      }
+      var s = '';
+      for(var idx = 0; idx < count; idx++){
+        s += '<span class="result-star-badge"><span data-lucide="star" aria-hidden="true"></span></span>';
+      }
+      return s;
+    }
+
     if(scorePct === 100){
-      cqEls.resultStars.textContent = '⭐⭐⭐';
+      cqEls.resultStars.innerHTML = buildStarsHtml(3, false);
       cqEls.resultTitle.textContent = '滿分達成！直式神算手！';
       cqEls.resultSubtitle.textContent = '恭喜你全數答對！你對進位與退位的直式算則已掌握得非常精熟！';
       if(MathApp.speak) MathApp.speak('滿分達成！太厲害了，直式算則全數答對！');
     } else if(scorePct >= 80){
-      cqEls.resultStars.textContent = '⭐⭐';
+      cqEls.resultStars.innerHTML = buildStarsHtml(2, false);
       cqEls.resultTitle.textContent = '表現極佳！太厲害了！';
       cqEls.resultSubtitle.textContent = '只差一點點就滿分囉，注意借位與進位的細節就能拿下滿分！';
       if(MathApp.speak) MathApp.speak('表現極佳！得到兩顆星，繼續加油！');
     } else if(scorePct >= 60){
-      cqEls.resultStars.textContent = '⭐';
+      cqEls.resultStars.innerHTML = buildStarsHtml(1, false);
       cqEls.resultTitle.textContent = '順利過關！再接再厲！';
       cqEls.resultSubtitle.textContent = '已經掌握基本算則，多練習「退位借一當十」就會更得心應手！';
       if(MathApp.speak) MathApp.speak('順利過關！多算幾次就會越來越快喔！');
     } else {
-      cqEls.resultStars.textContent = '🌱';
+      cqEls.resultStars.innerHTML = buildStarsHtml(0, true);
       cqEls.resultTitle.textContent = '完成挑戰！繼續練習！';
       cqEls.resultSubtitle.textContent = '別氣餒，先切換到「算則操作台」看看積木演示，會更容易理解直式進退位喔！';
       if(MathApp.speak) MathApp.speak('完成挑戰！多操作積木，一定會更進步喔！');
     }
 
-    var reviewHtml = '<div style="font-weight:700;margin-bottom:8px;color:var(--ink);">📋 答題檢討明細：</div>';
+    var reviewHtml = '<div class="result-review-head"><span data-lucide="clipboard-check" aria-hidden="true"></span><span>答題檢討明細：</span></div>';
     selfTestState.history.forEach(function(item, idx){
       var badgeCls = item.ok ? 'pass' : 'fail';
       var badgeText = item.ok ? '✓ 答對' : '✗ 需加強';
@@ -1098,8 +1111,8 @@
       cqEls.helperToggleBtn.addEventListener('click', function(){
         var isOpen = cqEls.helperDrawer.classList.toggle('open');
         cqEls.helperToggleBtn.innerHTML = isOpen 
-          ? '<i data-lucide="chevron-up"></i> 收合積木小幫手' 
-          : '<i data-lucide="blocks"></i> 展開積木小幫手';
+          ? '<span data-lucide="chevron-up" aria-hidden="true"></span><span>收合積木小幫手</span>' 
+          : '<span data-lucide="blocks" aria-hidden="true"></span><span>展開積木小幫手</span>';
         if(MathApp.refreshIcons) MathApp.refreshIcons();
         if(MathApp.sfx) MathApp.sfx('click');
       });

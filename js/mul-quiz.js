@@ -182,23 +182,23 @@ import {
     var html = '';
     if(q.qType === 'standard'){
       html =
-        '<span class="mq-num-box" style="color:var(--h-color-dark);background:#dbeafe;">' + q.a + '</span>' +
+        '<span class="mq-num-box is-a">' + q.a + '</span>' +
         '<span>×</span>' +
-        '<span class="mq-num-box" style="color:var(--t-color-dark);background:#ffedd5;">' + q.b + '</span>' +
+        '<span class="mq-num-box is-b">' + q.b + '</span>' +
         '<span>＝</span>' +
         '<input type="text" class="mq-input-slot" data-slot-id="ans" maxlength="2" inputmode="none" readonly aria-label="輸入乘積答案" placeholder="?">';
     } else if(q.qType === 'commutative'){
       html =
-        '<span class="mq-num-box" style="color:var(--t-color-dark);background:#ffedd5;">' + q.b + '</span>' +
+        '<span class="mq-num-box is-b">' + q.b + '</span>' +
         '<span>×</span>' +
-        '<span class="mq-num-box" style="color:var(--h-color-dark);background:#dbeafe;">' + q.a + '</span>' +
+        '<span class="mq-num-box is-a">' + q.a + '</span>' +
         '<span>＝</span>' +
-        '<span class="mq-num-box" style="color:var(--h-color-dark);background:#dbeafe;">' + q.a + '</span>' +
+        '<span class="mq-num-box is-a">' + q.a + '</span>' +
         '<span>×</span>' +
         '<input type="text" class="mq-input-slot" data-slot-id="ans" maxlength="1" inputmode="none" readonly aria-label="輸入交換後的乘數" placeholder="?">';
     } else if(q.qType === 'missing_b'){
       html =
-        '<span class="mq-num-box" style="color:var(--h-color-dark);background:#dbeafe;">' + q.a + '</span>' +
+        '<span class="mq-num-box is-a">' + q.a + '</span>' +
         '<span>×</span>' +
         '<input type="text" class="mq-input-slot" data-slot-id="ans" maxlength="1" inputmode="none" readonly aria-label="輸入未知的乘數" placeholder="?">' +
         '<span>＝</span>' +
@@ -207,13 +207,13 @@ import {
       html =
         '<input type="text" class="mq-input-slot" data-slot-id="ans" maxlength="1" inputmode="none" readonly aria-label="輸入未知的被乘數" placeholder="?">' +
         '<span>×</span>' +
-        '<span class="mq-num-box" style="color:var(--t-color-dark);background:#ffedd5;">' + q.b + '</span>' +
+        '<span class="mq-num-box is-b">' + q.b + '</span>' +
         '<span>＝</span>' +
         '<span class="mq-num-box">' + q.product + '</span>';
     } else {
       // concept: a × [?] = [?]
       html =
-        '<span class="mq-num-box" style="color:var(--h-color-dark);background:#dbeafe;">' + q.a + '</span>' +
+        '<span class="mq-num-box is-a">' + q.a + '</span>' +
         '<span>×</span>' +
         '<input type="text" class="mq-input-slot" data-slot-id="slot_b" maxlength="1" inputmode="none" readonly aria-label="輸入共有幾組（乘數）" placeholder="?">' +
         '<span>＝</span>' +
@@ -246,8 +246,8 @@ import {
     var productCn = (MathApp.utils && MathApp.utils.numberToChinese) ? MathApp.utils.numberToChinese(q.product) : String(q.product);
 
     if(q.qType === 'missing_b'){
-      var mbHtml = '<div style="margin-bottom:8px;font-size:13.5px;font-weight:800;color:var(--ink);">' +
-        '📦 <b>每組有 ' + a + ' 個，一直數到 ' + q.product + ' 個</b>（數數看一共排了幾組？）：' +
+      var mbHtml = '<div class="mul-helper-lead">' +
+        '<span data-lucide="package" aria-hidden="true"></span><span><b>每組有 ' + a + ' 個，一直數到 ' + q.product + ' 個</b>（數數看一共排了幾組？）</span>' +
         '</div>';
       mbHtml += '<div class="mul-groups-container">';
       for(var mg = 1; mg <= b; mg++){
@@ -266,16 +266,16 @@ import {
         mbSteps.push(String(a * ms));
       }
       var mbSuffix = q.product < 10 ? ('得' + productCn) : (q.product === 10 ? '得十' : productCn);
-      mbHtml += '<div class="mul-repeated-add-bar" style="margin-top:8px;">' +
-        '<span>🐇 <b>跳數累加：</b>' + mbSteps.join(' ➔ ') + '</span>' +
-        '<span>💡 <b>口訣提示：</b>' + cnDigits[a] + '（？）' + mbSuffix + '</span>' +
+      mbHtml += '<div class="mul-repeated-add-bar mul-repeated-add-bar-top">' +
+        '<span class="mul-bar-item"><span data-lucide="footprints" aria-hidden="true"></span><b>跳數累加：</b><span>' + mbSteps.join(' ➔ ') + '</span></span>' +
+        '<span class="mul-bar-item"><span data-lucide="lightbulb" aria-hidden="true"></span><b>口訣提示：</b><span>' + cnDigits[a] + '（？）' + mbSuffix + '</span></span>' +
         '</div>';
       return mbHtml;
     }
 
     if(q.qType === 'missing_a'){
-      var maHtml = '<div style="margin-bottom:8px;font-size:13.5px;font-weight:800;color:var(--ink);">' +
-        '📦 <b>一共有 ' + q.product + ' 個積木，平分排進 ' + b + ' 組</b>（數數看每一組裡面有幾個？）：' +
+      var maHtml = '<div class="mul-helper-lead">' +
+        '<span data-lucide="package" aria-hidden="true"></span><span><b>一共有 ' + q.product + ' 個積木，平分排進 ' + b + ' 組</b>（數數看每一組裡面有幾個？）</span>' +
         '</div>';
       maHtml += '<div class="mul-groups-container">';
       for(var ag = 1; ag <= b; ag++){
@@ -290,34 +290,34 @@ import {
       }
       maHtml += '</div>';
       var maSuffix = q.product < 10 ? ('得' + productCn) : (q.product === 10 ? '得十' : productCn);
-      maHtml += '<div class="mul-repeated-add-bar" style="margin-top:8px;">' +
-        '<span>🔍 <b>數數看：</b>每一盤裡面各有幾個小白積木？</span>' +
-        '<span>💡 <b>口訣提示：</b>（？）' + cnDigits[b] + maSuffix + '</span>' +
+      maHtml += '<div class="mul-repeated-add-bar mul-repeated-add-bar-top">' +
+        '<span class="mul-bar-item"><span data-lucide="search" aria-hidden="true"></span><b>數數看：</b><span>每一盤裡面各有幾個小白積木？</span></span>' +
+        '<span class="mul-bar-item"><span data-lucide="lightbulb" aria-hidden="true"></span><b>口訣提示：</b><span>（？）' + cnDigits[b] + maSuffix + '</span></span>' +
         '</div>';
       return maHtml;
     }
 
     if(q.qType === 'commutative'){
-      var cmHtml = '<div style="margin-bottom:8px;font-size:13.5px;font-weight:800;color:var(--ink);">' +
-        '🔄 <b>交換律魔法對照：</b>換個方向排排看，總積木數不變！每一直行有 <b>' + a + '</b> 個，數數看有幾行？' +
+      var cmHtml = '<div class="mul-helper-lead">' +
+        '<span data-lucide="repeat" aria-hidden="true"></span><span><b>交換律魔法對照：</b>換個方向排排看，總積木數不變！每一直行有 <b>' + a + '</b> 個，數數看有幾行？</span>' +
         '</div>';
-      cmHtml += '<div class="mul-mini-array" style="max-width:340px;margin:0 auto;">';
+      cmHtml += '<div class="mul-mini-array mul-mini-array-centered">';
       for(var cr = 1; cr <= a; cr++){
-        cmHtml += '<div class="mul-array-row" style="justify-content:center;">';
+        cmHtml += '<div class="mul-array-row">';
         for(var cd = 1; cd <= b; cd++){
           cmHtml += '<span class="mul-array-dot"></span>';
         }
         cmHtml += '</div>';
       }
       cmHtml += '</div>';
-      cmHtml += '<div class="mul-repeated-add-bar" style="margin-top:8px;">' +
-        '<span>✨ <b>觀察點陣：</b>橫著數有 ' + a + ' 排，直著數一排有 ' + a + ' 個、共有 <b>？</b> 行！</span>' +
+      cmHtml += '<div class="mul-repeated-add-bar mul-repeated-add-bar-top">' +
+        '<span class="mul-bar-item"><span data-lucide="sparkles" aria-hidden="true"></span><b>觀察點陣：</b><span>橫著數有 ' + a + ' 排，直著數一排有 ' + a + ' 個、共有 <b>？</b> 行</span></span>' +
         '</div>';
       return cmHtml;
     }
 
-    var html = '<div style="margin-bottom:8px;font-size:13.5px;font-weight:800;color:var(--ink);">' +
-      '📦 <b>每組有 ' + a + ' 個，共有 ' + b + ' 組</b>（一起數數看合起來有幾個）：' +
+    var html = '<div class="mul-helper-lead">' +
+      '<span data-lucide="package" aria-hidden="true"></span><span><b>每組有 ' + a + ' 個，共有 ' + b + ' 組</b>（一起數數看合起來有幾個）</span>' +
       '</div>';
 
     html += '<div class="mul-groups-container">';
@@ -337,9 +337,9 @@ import {
     for(var s = 1; s <= b; s++){
       stepSums.push(s === b ? '?' : String(a * s));
     }
-    html += '<div class="mul-repeated-add-bar" style="margin-top:8px;">' +
-      '<span>🐇 <b>跳數累加：</b>' + stepSums.join(' ➔ ') + '</span>' +
-      '<span>💡 <b>口訣提示：</b>' + cnDigits[a] + cnDigits[b] + '…</span>' +
+    html += '<div class="mul-repeated-add-bar mul-repeated-add-bar-top">' +
+      '<span class="mul-bar-item"><span data-lucide="footprints" aria-hidden="true"></span><b>跳數累加：</b><span>' + stepSums.join(' ➔ ') + '</span></span>' +
+      '<span class="mul-bar-item"><span data-lucide="lightbulb" aria-hidden="true"></span><b>口訣提示：</b><span>' + cnDigits[a] + cnDigits[b] + '…</span></span>' +
       '</div>';
 
     return html;
@@ -371,7 +371,7 @@ import {
       mqEls.helperDrawer.classList.remove('open');
     }
     if(mqEls.helperToggleBtn){
-      mqEls.helperToggleBtn.innerHTML = '<i data-lucide="blocks"></i> 展開積木小幫手';
+      mqEls.helperToggleBtn.innerHTML = '<span data-lucide="blocks" aria-hidden="true"></span><span>展開積木小幫手</span>';
     }
     if(mqEls.checkBtn) mqEls.checkBtn.style.display = 'inline-flex';
     if(mqEls.nextBtn)  mqEls.nextBtn.style.display = 'none';
@@ -400,7 +400,7 @@ import {
 
     if(hasEmpty){
       if(MathApp.sfx) MathApp.sfx('wrong');
-      mqEls.feedback.textContent = '⚠️ 請先把空格填滿再確認答案喔！';
+      mqEls.feedback.textContent = '請先把空格填滿再確認答案喔！';
       mqEls.feedback.className = 'feedback bad';
       // 聚焦第一個空白框
       for(var j = 0; j < inputs.length; j++){
@@ -435,11 +435,11 @@ import {
 
       if(allCorrect){
         if(MathApp.sfx) MathApp.sfx('correct');
-        mqEls.feedback.textContent = '✅ 答對了！口訣：「' + currentQ.mantra + '」！';
+        mqEls.feedback.textContent = '答對了！口訣：「' + currentQ.mantra + '」';
         mqEls.feedback.className = 'feedback good';
       } else {
         if(MathApp.sfx) MathApp.sfx('wrong');
-        mqEls.feedback.textContent = '❌ 正確算式是 ' + currentQ.a + ' × ' + currentQ.b + ' ＝ ' + currentQ.product + '（口訣：' + currentQ.mantra + '）';
+        mqEls.feedback.textContent = '正確算式是 ' + currentQ.a + ' × ' + currentQ.b + ' ＝ ' + currentQ.product + '（口訣：' + currentQ.mantra + '）';
         mqEls.feedback.className = 'feedback bad';
       }
 
@@ -469,14 +469,15 @@ import {
       }
 
       var praise = (MathApp.utils && MathApp.utils.pickRandomPraise) ? MathApp.utils.pickRandomPraise() : '答對了！';
-      mqEls.feedback.textContent = '🎉 ' + praise + ' 口訣：「' + currentQ.mantra + '」';
+      mqEls.feedback.textContent = praise + ' 口訣：「' + currentQ.mantra + '」';
       mqEls.feedback.className = 'feedback good';
 
       if(mqEls.explanationBox){
         mqEls.explanationBox.style.display = 'block';
         mqEls.explanationBox.innerHTML =
-          '✨ <b>算式解析：</b><b>' + currentQ.a + ' × ' + currentQ.b + ' ＝ ' + currentQ.product + '</b>' +
+          '<span data-lucide="sparkles" aria-hidden="true"></span><b>算式解析：</b><b>' + currentQ.a + ' × ' + currentQ.b + ' ＝ ' + currentQ.product + '</b>' +
           '（口訣：<b>' + currentQ.mantra + '</b>，代表每組 ' + currentQ.a + ' 個，共 ' + currentQ.b + ' 組，合起來是 ' + currentQ.product + ' 個）。';
+        if(MathApp.refreshIcons) MathApp.refreshIcons();
       }
 
       if(MathApp.speak){
@@ -491,14 +492,14 @@ import {
       if(MathApp.sfx) MathApp.sfx('wrong');
 
       var enc = (MathApp.utils && MathApp.utils.pickRandomEncouragement) ? MathApp.utils.pickRandomEncouragement() : '再想想看！';
-      mqEls.feedback.textContent = '💡 ' + enc + ' 已為你展開下方「積木小幫手」，數數看再修改紅色格子吧！';
+      mqEls.feedback.textContent = enc + ' 已為你展開下方「積木小幫手」，數數看再修改紅色格子吧！';
       mqEls.feedback.className = 'feedback bad';
 
       // 自動展開積木小幫手協助學生訂正
       if(mqEls.helperDrawer && !mqEls.helperDrawer.classList.contains('open')){
         mqEls.helperDrawer.classList.add('open');
         if(mqEls.helperToggleBtn){
-          mqEls.helperToggleBtn.innerHTML = '<i data-lucide="chevron-up"></i> 收合積木小幫手';
+          mqEls.helperToggleBtn.innerHTML = '<span data-lucide="chevron-up" aria-hidden="true"></span><span>收合積木小幫手</span>';
           if(MathApp.refreshIcons) MathApp.refreshIcons();
         }
       }
@@ -573,10 +574,10 @@ import {
 
   function startSelfTestTimer(){
     stopSelfTestTimer();
-    if(mqEls.timerText) mqEls.timerText.textContent = '⏱️ 00:00';
+    if(mqEls.timerText) mqEls.timerText.textContent = '00:00';
     selfTestState.timerId = setInterval(function(){
       var sec = Math.floor((Date.now() - selfTestState.startTime) / 1000);
-      if(mqEls.timerText) mqEls.timerText.textContent = '⏱️ ' + MathApp.utils.formatTime(sec);
+      if(mqEls.timerText) mqEls.timerText.textContent = MathApp.utils.formatTime(sec);
     }, 1000);
   }
 
@@ -622,35 +623,45 @@ import {
     if(mqEls.resultAccuracy) mqEls.resultAccuracy.textContent = correct + ' / ' + total;
     if(mqEls.resultTime)     mqEls.resultTime.textContent = MathApp.utils.formatTime(elapsedSec);
 
+    function buildStarsHtml(count){
+      var s = '';
+      for(var idx = 0; idx < count; idx++){
+        s += '<span class="result-star-badge"><span data-lucide="star" aria-hidden="true"></span></span>';
+      }
+      return s;
+    }
+
     if(score === 100){
-      mqEls.resultStars.textContent = '⭐⭐⭐';
+      mqEls.resultStars.innerHTML = buildStarsHtml(3);
       mqEls.resultTitle.textContent = '滿分九九乘法大師！太強了！';
       mqEls.resultSubtitle.textContent = '每一題的乘法口訣與倍數概念都難不倒你！';
       if(MathApp.utils && MathApp.utils.launchConfetti) MathApp.utils.launchConfetti(true);
     } else if(score >= 80){
-      mqEls.resultStars.textContent = '⭐⭐';
+      mqEls.resultStars.innerHTML = buildStarsHtml(2);
       mqEls.resultTitle.textContent = '表現非常棒！就差一點點滿分！';
       mqEls.resultSubtitle.textContent = '已經掌握大部分的九九乘法口訣囉！';
       if(MathApp.utils && MathApp.utils.launchConfetti) MathApp.utils.launchConfetti(false);
     } else {
-      mqEls.resultStars.textContent = '⭐';
+      mqEls.resultStars.innerHTML = buildStarsHtml(1);
       mqEls.resultTitle.textContent = '完成測驗！繼續練習會更熟練喔！';
       mqEls.resultSubtitle.textContent = '可以回到九九乘法探索台多聽幾次口訣與積木分組！';
     }
 
     if(mqEls.resultReview){
-      var revHtml = '<div style="text-align:left;margin-top:12px;">';
+      var revHtml = '<div class="mul-rev-list">';
       selfTestState.history.forEach(function(item, idx){
         var q = item.q;
-        var badge = item.ok ? '✅' : '❌';
-        revHtml += '<div style="padding:7px 10px;border-bottom:1px solid rgba(0,0,0,0.08);font-size:14px;display:flex;justify-content:space-between;align-items:center;">' +
-          '<span>' + badge + ' 第 ' + (idx + 1) + ' 題：<b>' + q.a + ' × ' + q.b + ' ＝ ' + q.product + '</b></span>' +
-          '<span style="font-weight:800;color:var(--ink-soft);">口訣：' + q.mantra + '</span>' +
+        var badgeIcon = item.ok ? 'check-circle-2' : 'x-circle';
+        var badgeCls = item.ok ? 'is-ok' : 'is-err';
+        revHtml += '<div class="mul-rev-row">' +
+          '<span class="mul-rev-left"><span class="mul-rev-icon ' + badgeCls + '" data-lucide="' + badgeIcon + '" aria-hidden="true"></span><span>第 ' + (idx + 1) + ' 題：<b>' + q.a + ' × ' + q.b + ' ＝ ' + q.product + '</b></span></span>' +
+          '<span class="mul-rev-mantra">口訣：' + q.mantra + '</span>' +
           '</div>';
       });
       revHtml += '</div>';
       mqEls.resultReview.innerHTML = revHtml;
     }
+    if(MathApp.refreshIcons) MathApp.refreshIcons();
   }
 
   function switchMode(mode){
@@ -786,8 +797,8 @@ import {
         if(MathApp.sfx) MathApp.sfx('click');
         var isOpen = mqEls.helperDrawer.classList.toggle('open');
         mqEls.helperToggleBtn.innerHTML = isOpen
-          ? '<i data-lucide="chevron-up"></i> 收合積木小幫手'
-          : '<i data-lucide="blocks"></i> 展開積木小幫手';
+          ? '<span data-lucide="chevron-up" aria-hidden="true"></span><span>收合積木小幫手</span>'
+          : '<span data-lucide="blocks" aria-hidden="true"></span><span>展開積木小幫手</span>';
         if(MathApp.refreshIcons) MathApp.refreshIcons();
       });
     }

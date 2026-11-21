@@ -59,7 +59,7 @@ import { CN_DIGITS, getMantra, getSpokenExplanation } from '../src/domain/multip
     state.isPlayingRow = false;
     if(els.playRowBtn){
       els.playRowBtn.classList.remove('playing');
-      els.playRowBtn.innerHTML = '<i data-lucide="volume-2"></i><span>整段口訣連播</span>';
+      els.playRowBtn.innerHTML = '<span data-lucide="volume-2" aria-hidden="true"></span><span>整段口訣連播</span>';
       if(MathApp.refreshIcons) MathApp.refreshIcons();
     }
   }
@@ -76,7 +76,7 @@ import { CN_DIGITS, getMantra, getSpokenExplanation } from '../src/domain/multip
 
     if(els.playRowBtn){
       els.playRowBtn.classList.add('playing');
-      els.playRowBtn.innerHTML = '<i data-lucide="square"></i><span>停止連播 (' + targetA + '段)</span>';
+      els.playRowBtn.innerHTML = '<span data-lucide="square" aria-hidden="true"></span><span>停止連播 (' + targetA + '段)</span>';
       if(MathApp.refreshIcons) MathApp.refreshIcons();
     }
 
@@ -105,8 +105,8 @@ import { CN_DIGITS, getMantra, getSpokenExplanation } from '../src/domain/multip
     }
     var t = Math.floor(product / 10);
     var o = product % 10;
-    return '<span class="digit-t" style="color:var(--t-color-dark);">' + t + '</span>' +
-           '<span class="digit-o" style="color:var(--o-color-dark);">' + o + '</span>';
+    return '<span class="digit-t mul-digit-t">' + t + '</span>' +
+           '<span class="digit-o mul-digit-o">' + o + '</span>';
   }
 
   /* 渲染 9x9 九九乘法百寶矩陣 */
@@ -181,7 +181,7 @@ import { CN_DIGITS, getMantra, getSpokenExplanation } from '../src/domain/multip
 
     // 更新面積說明小字
     if(els.areaNote){
-      els.areaNote.innerHTML = '💡 表格左上角黃色區域正好框出 <b>' + a + ' 列 × ' + b + ' 行 ＝ ' + (isCurrentHidden ? '?' : p) + ' 格</b>！';
+      els.areaNote.innerHTML = '<span data-lucide="lightbulb" aria-hidden="true"></span><span>表格左上角梨黃區域正好框出 <b>' + a + ' 列 × ' + b + ' 行 ＝ ' + (isCurrentHidden ? '?' : p) + ' 格</b></span>';
     }
 
     // 更新英雄算式與口訣卡
@@ -191,12 +191,12 @@ import { CN_DIGITS, getMantra, getSpokenExplanation } from '../src/domain/multip
         '<span>×</span>' +
         '<span class="mul-eq-b" title="乘數（共有幾組）">' + b + '</span>' +
         '<span>＝</span>' +
-        '<span class="mul-eq-ans" title="乘積">' + (isCurrentHidden ? '<span style="color:var(--brand-amber-dark);">?</span>' : formatProductPlaceHtml(p)) + '</span>';
+        '<span class="mul-eq-ans" title="乘積">' + (isCurrentHidden ? '<span class="mul-eq-hidden-q">?</span>' : formatProductPlaceHtml(p)) + '</span>';
     }
 
     if(els.mantraPill){
       els.mantraPill.textContent = isCurrentHidden
-        ? ('口訣：' + cnDigits[a] + cnDigits[b] + ' ❓（點擊格子揭曉）')
+        ? ('口訣：' + cnDigits[a] + cnDigits[b] + ' ？（點擊格子揭曉）')
         : ('口訣：' + mantra);
     }
 
@@ -231,8 +231,8 @@ import { CN_DIGITS, getMantra, getSpokenExplanation } from '../src/domain/multip
       }
       var addFormula = addTerms.join(' ＋ ');
       els.repeatedAddBar.innerHTML =
-        '<span>➕ <b>連加算式：</b>' + addFormula + ' ＝ <b style="color:var(--brand-coral);">' + (isCurrentHidden ? '?' : p) + '</b></span>' +
-        '<span style="color:var(--ink-soft);">（' + b + ' 個 ' + a + ' 相加）</span>';
+        '<span class="mul-bar-item"><span data-lucide="plus-circle" aria-hidden="true"></span><b>連加算式：</b><span>' + addFormula + ' ＝ <b class="mul-repeated-add-ans">' + (isCurrentHidden ? '?' : p) + '</b></span></span>' +
+        '<span class="mul-repeated-add-sub">（' + b + ' 個 ' + a + ' 相加）</span>';
     }
 
     // 2. 渲染方陣跳數點陣與十進位積木合成
@@ -255,9 +255,9 @@ import { CN_DIGITS, getMantra, getSpokenExplanation } from '../src/domain/multip
       var ones = p % 10;
       if(isCurrentHidden){
         els.base10Stage.innerHTML =
-          '<div style="font-size:13.5px;color:var(--ink-soft);font-weight:700;padding:8px 0;">🫣 目前為遮蓋背誦模式，點擊左側表格的「?」格即可揭曉十進位積木合成結果！</div>';
+          '<div class="mul-mask-tip">目前為遮蓋背誦模式，點擊左側表格的「?」格即可揭曉十進位積木合成結果。</div>';
       } else {
-        var b10Html = '<div style="font-size:12.5px;font-weight:800;color:var(--ink-soft);margin-bottom:4px;">' +
+        var b10Html = '<div class="mul-b10-lead">' +
           '共 <b>' + p + '</b> 個一 ➔ 每滿 10 個一自動捆成 1 條十：' +
           '</div>';
         b10Html += '<div class="mul-base10-blocks">';
@@ -269,12 +269,13 @@ import { CN_DIGITS, getMantra, getSpokenExplanation } from '../src/domain/multip
         }
         b10Html += '<div class="mul-base10-col">' +
           '<span class="mul-base10-tag o-tag">個位 (' + ones + ' 個一 = ' + ones + ')</span>' +
-          '<div>' + (ones > 0 ? MathApp.renderGroupedBlocksHtml('o', ones) : '<span style="font-size:13px;color:var(--ink-soft);font-weight:800;">0 個一</span>') + '</div>' +
+          '<div>' + (ones > 0 ? MathApp.renderGroupedBlocksHtml('o', ones) : '<span class="mul-b10-zero">0 個一</span>') + '</div>' +
           '</div>';
         b10Html += '</div>';
         els.base10Stage.innerHTML = b10Html;
       }
     }
+    if(MathApp.refreshIcons) MathApp.refreshIcons();
   }
 
   /* 設定被乘數 a 與乘數 b */
@@ -340,8 +341,8 @@ import { CN_DIGITS, getMantra, getSpokenExplanation } from '../src/domain/multip
       els.maskToggleBtn.classList.toggle('active-mode', state.maskMode);
       els.maskToggleBtn.setAttribute('aria-pressed', String(state.maskMode));
       els.maskToggleBtn.innerHTML = state.maskMode
-        ? '<i data-lucide="eye"></i><span>遮蓋背誦：開啟中（點格子翻牌）</span>'
-        : '<i data-lucide="eye-off"></i><span>遮蓋背誦模式</span>';
+        ? '<span data-lucide="eye" aria-hidden="true"></span><span>遮蓋背誦：開啟中（點格子翻牌）</span>'
+        : '<span data-lucide="eye-off" aria-hidden="true"></span><span>遮蓋背誦模式</span>';
     }
     if(els.maskResetBtn){
       els.maskResetBtn.style.display = state.maskMode ? 'inline-flex' : 'none';
