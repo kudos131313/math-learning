@@ -1344,3 +1344,139 @@ export function getProjectileSvg(boltTheme = 'star') {
     '</svg>'
   );
 }
+
+/**
+ * 繪製 Phase 4 生活故事收集冊專屬立體繪本貼紙 SVG（厚深褐描邊 #332b22，雙層白底紙感）
+ * @param {string} storyId
+ * @param {{ unlocked?: boolean }} [options]
+ */
+export function getStoryStickerSvg(storyId, { unlocked = true } = {}) {
+  const lockedStyle = unlocked ? '' : ' style="filter:grayscale(0.85) opacity(0.55);"';
+  const wrap = (body, bg = '#fff7e8', border = '#f6d594') => (
+    `<svg viewBox="0 0 88 88" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"${lockedStyle}>` +
+    `<circle cx="44" cy="45" r="39" fill="#ffffff" stroke="${border}" stroke-width="3.5"/>` +
+    `<circle cx="44" cy="45" r="34" fill="${bg}"/>` +
+    body +
+    '</svg>'
+  );
+
+  switch (storyId) {
+    case 'bakery_morning':
+      return wrap(
+        '<path d="M22 50 C22 33 66 33 66 50 C66 59 58 62 44 62 C30 62 22 59 22 50 Z" fill="#f5b864" stroke="#332b22" stroke-width="3" stroke-linejoin="round"/>' +
+        '<path d="M32 39 L36 52 M44 37 L44 53 M56 39 L52 52" stroke="#b45309" stroke-width="2.5" stroke-linecap="round"/>' +
+        '<path d="M34 27 Q36 22 34 18 M44 25 Q46 20 44 16 M54 27 Q56 22 54 18" fill="none" stroke="#f97316" stroke-width="2.2" stroke-linecap="round"/>' +
+        '<circle cx="38" cy="48" r="2" fill="#332b22"/><circle cx="50" cy="48" r="2" fill="#332b22"/>',
+        '#fff3dc',
+        '#fcd34d'
+      );
+    case 'candy_shopping':
+      return wrap(
+        '<rect x="28" y="30" width="32" height="36" rx="8" fill="#ffe4ec" stroke="#332b22" stroke-width="3"/>' +
+        '<rect x="26" y="23" width="36" height="9" rx="4" fill="#f472b6" stroke="#332b22" stroke-width="2.8"/>' +
+        '<circle cx="38" cy="46" r="6" fill="#fb7185" stroke="#332b22" stroke-width="2.2"/>' +
+        '<circle cx="50" cy="44" r="6" fill="#facc15" stroke="#332b22" stroke-width="2.2"/>' +
+        '<circle cx="44" cy="56" r="6" fill="#38bdf8" stroke="#332b22" stroke-width="2.2"/>',
+        '#fff1f5',
+        '#fbcfe8'
+      );
+    case 'bay_change_shop':
+      return wrap(
+        '<path d="M22 54 C20 34 32 24 44 24 C56 24 68 34 66 54 L56 62 L32 62 Z" fill="#fef3c7" stroke="#332b22" stroke-width="3" stroke-linejoin="round"/>' +
+        '<path d="M35 28 L38 58 M44 25 L44 59 M53 28 L50 58" stroke="#f59e0b" stroke-width="2.3" stroke-linecap="round"/>' +
+        '<circle cx="58" cy="56" r="10" fill="#fde047" stroke="#332b22" stroke-width="2.6"/>' +
+        '<text x="58" y="60" text-anchor="middle" font-size="11" font-weight="900" fill="#92400e">10</text>',
+        '#ecfeff',
+        '#99f6e4'
+      );
+    case 'bay_compare_scale':
+      return wrap(
+        '<line x1="44" y1="22" x2="44" y2="62" stroke="#332b22" stroke-width="3.2" stroke-linecap="round"/>' +
+        '<line x1="29" y1="62" x2="59" y2="62" stroke="#332b22" stroke-width="3.5" stroke-linecap="round"/>' +
+        '<line x1="24" y1="33" x2="64" y2="27" stroke="#332b22" stroke-width="3" stroke-linecap="round"/>' +
+        '<path d="M18 46 Q24 54 30 46 Z" fill="#60a5fa" stroke="#332b22" stroke-width="2.4"/>' +
+        '<path d="M58 40 Q64 48 70 40 Z" fill="#fb923c" stroke="#332b22" stroke-width="2.4"/>' +
+        '<circle cx="44" cy="30" r="4" fill="#facc15" stroke="#332b22" stroke-width="2"/>',
+        '#eff6ff',
+        '#93c5fd'
+      );
+    case 'market_big_gift':
+      return wrap(
+        '<rect x="26" y="34" width="36" height="30" rx="6" fill="#fef08a" stroke="#332b22" stroke-width="3"/>' +
+        '<rect x="23" y="28" width="42" height="10" rx="4" fill="#f97316" stroke="#332b22" stroke-width="3"/>' +
+        '<line x1="44" y1="28" x2="44" y2="64" stroke="#ef4444" stroke-width="4.5"/>' +
+        '<path d="M44 28 C37 18 28 22 33 28 M44 28 C51 18 60 22 55 28" fill="#fb7185" stroke="#332b22" stroke-width="2.4"/>',
+        '#fff7ed',
+        '#fdba74'
+      );
+    case 'forest_snack_groups':
+      return wrap(
+        '<ellipse cx="44" cy="56" rx="25" ry="9" fill="#bbf7d0" stroke="#332b22" stroke-width="2.8"/>' +
+        '<circle cx="33" cy="46" r="8" fill="#ef4444" stroke="#332b22" stroke-width="2.6"/>' +
+        '<circle cx="44" cy="42" r="8" fill="#f97316" stroke="#332b22" stroke-width="2.6"/>' +
+        '<circle cx="55" cy="46" r="8" fill="#ef4444" stroke="#332b22" stroke-width="2.6"/>' +
+        '<path d="M44 33 L47 26" stroke="#16a34a" stroke-width="3" stroke-linecap="round"/>',
+        '#f0fdf4',
+        '#86efac'
+      );
+    case 'workshop_wheels_legs':
+      return wrap(
+        '<rect x="23" y="39" width="18" height="18" rx="4" fill="#60a5fa" stroke="#332b22" stroke-width="2.6"/>' +
+        '<rect x="47" y="39" width="18" height="18" rx="4" fill="#facc15" stroke="#332b22" stroke-width="2.6"/>' +
+        '<rect x="35" y="23" width="18" height="18" rx="4" fill="#fb7185" stroke="#332b22" stroke-width="2.6"/>' +
+        '<circle cx="32" cy="48" r="3" fill="#ffffff"/><circle cx="56" cy="48" r="3" fill="#ffffff"/>',
+        '#fefce8',
+        '#fde047'
+      );
+    case 'garden_flower_symmetry':
+      return wrap(
+        '<path d="M44 45 C30 24 18 32 24 45 C18 56 32 62 44 45 Z" fill="#f472b6" stroke="#332b22" stroke-width="2.6"/>' +
+        '<path d="M44 45 C58 24 70 32 64 45 C70 56 56 62 44 45 Z" fill="#a78bfa" stroke="#332b22" stroke-width="2.6"/>' +
+        '<rect x="42" y="28" width="4" height="32" rx="2" fill="#332b22"/>' +
+        '<path d="M42 29 L37 22 M46 29 L51 22" stroke="#332b22" stroke-width="2.2" stroke-linecap="round"/>',
+        '#fdf4ff',
+        '#e9d5ff'
+      );
+    case 'station_cloud_train':
+      return wrap(
+        '<rect x="22" y="36" width="44" height="22" rx="6" fill="#38bdf8" stroke="#332b22" stroke-width="3"/>' +
+        '<rect x="44" y="25" width="18" height="14" rx="4" fill="#fef08a" stroke="#332b22" stroke-width="2.6"/>' +
+        '<rect x="26" y="26" width="8" height="10" rx="2" fill="#f97316" stroke="#332b22" stroke-width="2.4"/>' +
+        '<circle cx="32" cy="60" r="6" fill="#332b22"/><circle cx="48" cy="60" r="6" fill="#332b22"/>' +
+        '<circle cx="29" cy="19" r="4" fill="#ffffff" stroke="#93c5fd" stroke-width="2"/>',
+        '#f0f9ff',
+        '#7dd3fc'
+      );
+    case 'vault_gold_blocks':
+      return wrap(
+        '<polygon points="44,18 65,30 44,42 23,30" fill="#fde047" stroke="#332b22" stroke-width="2.8" stroke-linejoin="round"/>' +
+        '<polygon points="23,30 44,42 44,65 23,53" fill="#f59e0b" stroke="#332b22" stroke-width="2.8" stroke-linejoin="round"/>' +
+        '<polygon points="65,30 44,42 44,65 65,53" fill="#fbbf24" stroke="#332b22" stroke-width="2.8" stroke-linejoin="round"/>' +
+        '<text x="44" y="34" text-anchor="middle" font-size="11" font-weight="900" fill="#78350f">1000</text>',
+        '#fefce8',
+        '#fcd34d'
+      );
+    case 'park_ferris_popcorn':
+      return wrap(
+        '<circle cx="44" cy="42" r="18" fill="none" stroke="#a855f7" stroke-width="3.5"/>' +
+        '<line x1="44" y1="24" x2="44" y2="60" stroke="#7e22ce" stroke-width="2"/>' +
+        '<line x1="26" y1="42" x2="62" y2="42" stroke="#7e22ce" stroke-width="2"/>' +
+        '<circle cx="44" cy="24" r="5" fill="#fb7185" stroke="#332b22" stroke-width="2"/>' +
+        '<circle cx="62" cy="42" r="5" fill="#38bdf8" stroke="#332b22" stroke-width="2"/>' +
+        '<circle cx="26" cy="42" r="5" fill="#facc15" stroke="#332b22" stroke-width="2"/>' +
+        '<path d="M35 63 L44 43 L53 63" fill="none" stroke="#332b22" stroke-width="3" stroke-linecap="round"/>',
+        '#faf5ff',
+        '#d8b4fe'
+      );
+    case 'patisserie_sweet_change':
+    default:
+      return wrap(
+        '<path d="M27 46 L61 46 L56 64 L32 64 Z" fill="#f59e0b" stroke="#332b22" stroke-width="2.8" stroke-linejoin="round"/>' +
+        '<path d="M25 46 C25 34 36 28 44 28 C52 28 63 34 63 46 Z" fill="#fbcfe8" stroke="#332b22" stroke-width="2.8"/>' +
+        '<circle cx="44" cy="23" r="5" fill="#ef4444" stroke="#332b22" stroke-width="2.2"/>' +
+        '<path d="M38 46 L39 63 M50 46 L49 63" stroke="#b45309" stroke-width="2"/>',
+        '#fff1f2',
+        '#fda4af'
+      );
+  }
+}

@@ -326,6 +326,9 @@
     renderHundredChart();
   }
 
+  var seqExploreOps = 0;
+  var lastSeqEmitAt = 0;
+
   /* 設定目前數字 */
   function setNumber(newVal, playVoice, silent){
     var bounded = Math.max(0, Math.min(9999, newVal));
@@ -339,6 +342,13 @@
         if(MathApp.sfx) MathApp.sfx('chime');
       } else {
         if(MathApp.sfx) MathApp.sfx('tick');
+      }
+      seqExploreOps++;
+      var now = Date.now();
+      if(seqExploreOps >= 2 && now - lastSeqEmitAt >= 1500){
+        seqExploreOps = 0;
+        lastSeqEmitAt = now;
+        if(MathApp.emit) MathApp.emit('classroomPractice', { unit: 'seq', action: 'explore', count: 1 });
       }
     }
 
@@ -537,10 +547,22 @@
     console.log('🚂 數的規律與跳數列車模組 (seq.js) 升級版已就緒！');
   }
 
+  function loadSequence(startNum, stepVal){
+    var targetStep = Number(stepVal);
+    if(Number.isFinite(targetStep) && targetStep !== 0){
+      setStep(Math.floor(targetStep));
+    }
+    var targetStart = Number(startNum);
+    if(Number.isFinite(targetStart)){
+      setNumber(Math.floor(targetStart), false, true);
+    }
+  }
+
   MathApp.seq = {
     init: init,
     setNumber: setNumber,
     setStep: setStep,
+    loadSequence: loadSequence,
     stepForward: stepForward,
     stepBackward: stepBackward,
     getCurrentNum: function(){ return currentNum; },

@@ -1266,3 +1266,180 @@ export function getSnackById(id) {
   }
   return null;
 }
+
+/* ---------------- Phase 4：魔王與故事收集冊（15 位魔王 ＋ 12 個生活故事） ---------------- */
+const BOSS_BIOS = {
+  'sunny:bakery': '每天清晨五點就起床烤可頌的呆萌麵包怪，最喜歡把沒進位的加減算得剛剛好！',
+  'sunny:candy': '用草莓糖霜和方糖積木組裝起來的小機器人，只要個位滿十就會發出叮咚進位聲！',
+  'sunny:bay': '八隻觸手各拿一個貝殼和零錢包的友善章魚王，專門出「比多比少」與找零小測驗！',
+  'sunny:market': '全身掛滿彩色算盤珠的市集大管家，守護著三位數百格板和市集採買秩序！',
+  'sunny:lighthouse': '披著小烏雲斗篷的彩虹燈塔守護神，只有看穿跨零借位秘密的孩子才能點亮它！',
+  'mul:forest': '住在啟程森林入口的年輪樹樁精怪，喜歡用 1、2、5 的葉子排隊考驗旅行者！',
+  'mul:workshop': '會喀啦喀啦轉動的黃銅發條積木人，最得意的是把 3 和 4 的積木排成整齊矩形！',
+  'mul:garden': '躲在玫瑰花叢裡玩左右交換魔術的調皮花瓣怪，其實超佩服懂交換律的孩子！',
+  'mul:valley': '會吐出彩色大泡泡的圓滾滾噴火龍，專門守護最容易搞混的 7、8、9 大口訣！',
+  'mul:castle': '戴著黃金皇冠的積木城堡總司令，只要通過牠的綜合試煉就是九九乘法大師！',
+  'cloud:station': '冒著棉花糖白煙的時鐘蒸汽小火車，準時帶著乘客穿越跨百車站的數字軌道！',
+  'cloud:vault': '頭頂閃亮藍寶石的黃金金庫守門龍，對缺十位或個位補零的密碼非常講究！',
+  'cloud:park': '戴著彩色氣球帽的摩天輪馬戲團團長，喜歡把買門票和爆米花的價格編成兩步驟考題！',
+  'cloud:patisserie': '頂著一顆紅櫻桃的軟綿綿舒芙蕾甜點師，每次找完零錢都會開心地跳起舞來！',
+  'cloud:skycastle': '雲端王國星象塔的星穹守護者，守護著集合全二年級課綱精華的終極試煉！'
+};
+
+export const BOSS_ALBUM_ENTRIES = ISLANDS.map((isl) => {
+  const bossStage = getStageById(isl.bossStageId);
+  const bossObj = (bossStage && bossStage.boss) || {};
+  return {
+    id: isl.fullId,
+    islandId: isl.id,
+    realmId: isl.realmId,
+    order: isl.order,
+    bossStageId: isl.bossStageId,
+    svgKey: bossObj.svgKey || isl.theme,
+    name: bossObj.name || isl.spriteName,
+    islandTitle: isl.title,
+    mathTopic: isl.rangeText,
+    spriteName: isl.spriteName,
+    tauntStart: bossObj.tauntStart || '',
+    tauntWin: bossObj.tauntWin || '',
+    bio: BOSS_BIOS[isl.fullId] || isl.spriteDesc
+  };
+});
+
+export const STORY_ALBUM_ENTRIES = [
+  {
+    id: 'bakery_morning',
+    realmId: 'sunny',
+    icon: '🥐',
+    title: '奶油麵包村・可頌出爐記',
+    sceneTag: '早午合併與盤點減法',
+    storyText: '清晨剛出爐的可頌與牛奶餐包香氣四溢！把早上與下午烤出的麵包數合起來，就能幫忙算清今天的小小營業額。',
+    mathLesson: '二位數無進退位加減與生活盤點',
+    sampleStageId: 'sunny:1-2'
+  },
+  {
+    id: 'candy_shopping',
+    realmId: 'sunny',
+    icon: '🍭',
+    title: '草莓糖果鎮・糖果罐採購日',
+    sceneTag: '滿十進位大合體',
+    storyText: '玻璃罐裡的橘子軟糖和硬糖越裝越滿，只要個位數滿十顆，就會神奇地捆成一條甜滋滋的十格棒！',
+    mathLesson: '二位數進位加法與購物合併',
+    sampleStageId: 'sunny:2-2'
+  },
+  {
+    id: 'bay_change_shop',
+    realmId: 'sunny',
+    icon: '🐚',
+    title: '泡泡海灣・貝殼找錢小舖',
+    sceneTag: '生活面額付錢找零',
+    storyText: '帶著 50 元或 100 元硬幣去海邊小店買貝殼風鈴，從付出的錢扣掉價格，就能準確接回剛好的零錢！',
+    mathLesson: '二位數退位減法與真實找零',
+    sampleStageId: 'sunny:3-2'
+  },
+  {
+    id: 'bay_compare_scale',
+    realmId: 'sunny',
+    icon: '⚖️',
+    title: '泡泡海灣・誰比誰多天平',
+    sceneTag: '語意比較線段對照',
+    storyText: '小兔和熊熊在海邊比賽撿閃亮貝殼！不只要看「多」或「少」，更要看清楚究竟是誰比較多再決定加減。',
+    mathLesson: '正向與逆向比較型生活應用題',
+    sampleStageId: 'sunny:3-2'
+  },
+  {
+    id: 'market_big_gift',
+    realmId: 'sunny',
+    icon: '🏮',
+    title: '積木大市集・百元大禮採買',
+    sceneTag: '三位數大額加減與找零',
+    storyText: '積木大市集掛滿暖黃小燈籠，積木盒與彩虹小夜燈都是三位數價格，靠著百格板就能輕鬆算清大禮花費！',
+    mathLesson: '三位數進退位加減與大額找錢',
+    sampleStageId: 'sunny:4-2'
+  },
+  {
+    id: 'forest_snack_groups',
+    realmId: 'mul',
+    icon: '🍎',
+    title: '啟程森林・野餐點心排隊分組',
+    sceneTag: '幾個幾生活乘法',
+    storyText: '野餐墊上每盤放 5 顆紅蘋果，共有 4 盤；只要用乘法「5 × 4」一次就能數出所有人分到的點心！',
+    mathLesson: '1·2·5 的乘法與生活分組題',
+    sampleStageId: '1-2'
+  },
+  {
+    id: 'workshop_wheels_legs',
+    realmId: 'mul',
+    icon: '🧱',
+    title: '積木工坊・幾個幾積木工廠',
+    sceneTag: '連加轉化為乘法算式',
+    storyText: '方塊小工匠把輪子和小花瓣整整齊齊地裝進每一盒，把「3 + 3 + 3 + 3」濃縮成「3 × 4」超省時！',
+    mathLesson: '3·4 的乘法與幾個幾倍數概念',
+    sampleStageId: '2-3'
+  },
+  {
+    id: 'garden_flower_symmetry',
+    realmId: 'mul',
+    icon: '🦋',
+    title: '魔法花園・花田交換律魔法',
+    sceneTag: '橫排直行一樣多',
+    storyText: '轉個身換個角度數數魔法花園的花盆：4 排每排 6 朵，和 6 排每排 4 朵，總數原來是一模一樣的！',
+    mathLesson: '6 的乘法與 a × b ＝ b × a 交換律',
+    sampleStageId: '3-2'
+  },
+  {
+    id: 'station_cloud_train',
+    realmId: 'cloud',
+    icon: '🚂',
+    title: '跳數雲朵車站・跨百時鐘列車',
+    sceneTag: '跨百跳數與時間錢幣',
+    storyText: '白煙飄飄的列車駛過 189、199 跨上 209 號雲朵站！配合 5 元硬幣與鐘面每大格 5 分鐘，抓出跳數密碼。',
+    mathLesson: '跨百 ±1/±10 與 +2/+5 跳數規律',
+    sampleStageId: 'cloud:1-1'
+  },
+  {
+    id: 'vault_gold_blocks',
+    realmId: 'cloud',
+    icon: '💎',
+    title: '積木金庫港・千位補零金庫',
+    sceneTag: '百十個位值與 10 百換千',
+    storyText: '沒有十格條的位置必須填上「0」佔位，3 個百和 5 個一合起來是 305！10 片百格板更能換成 1000 大方塊！',
+    mathLesson: '千以內位值補零、排最大最小數',
+    sampleStageId: 'cloud:2-1'
+  },
+  {
+    id: 'park_ferris_popcorn',
+    realmId: 'cloud',
+    icon: '🎡',
+    title: '森林遊樂園・摩天輪與爆米花',
+    sceneTag: '兩步驟先乘後加小計',
+    storyText: '先乘出幾張摩天輪門票的小計，再加上香噴噴的爆米花，兩步驟把遊樂園一整天的花費算得清清楚楚！',
+    mathLesson: '兩步驟先乘後加（a × b ＋ c）',
+    sampleStageId: 'cloud:3-1'
+  },
+  {
+    id: 'patisserie_sweet_change',
+    realmId: 'cloud',
+    icon: '🧁',
+    title: '魔法點心店・舒芙蕾找零帳房',
+    sceneTag: '兩步驟先乘後減找零與剩餘',
+    storyText: '買好幾顆彩色馬卡龍付出一張百元鈔，或是盒裝餅乾分給好朋友吃掉幾片後，都能先乘再減算出結果！',
+    mathLesson: '兩步驟先乘後減（paid − a×b / a×b − c）',
+    sampleStageId: 'cloud:4-1'
+  }
+];
+
+export function getBossAlbumEntries() {
+  return BOSS_ALBUM_ENTRIES.slice();
+}
+
+export function getStoryAlbumEntries() {
+  return STORY_ALBUM_ENTRIES.slice();
+}
+
+export function getStoryEntryById(id) {
+  for (let i = 0; i < STORY_ALBUM_ENTRIES.length; i++) {
+    if (STORY_ALBUM_ENTRIES[i].id === id) return STORY_ALBUM_ENTRIES[i];
+  }
+  return null;
+}

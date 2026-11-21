@@ -344,6 +344,9 @@ import { PAPER_EXAMS } from '../src/domain/sequence-exams.js';
     if(allCorrect){
       correctCount++;
       updateStats();
+      if(!isRevealing && MathApp.emit){
+        MathApp.emit('classroomPractice', { unit: 'seq', action: 'quiz_correct', count: 1 });
+      }
       if(MathApp.sfx) MathApp.sfx('cheer');
       if(MathApp.utils && MathApp.utils.launchConfetti){
         MathApp.utils.launchConfetti(true);
@@ -384,6 +387,7 @@ import { PAPER_EXAMS } from '../src/domain/sequence-exams.js';
   }
 
   /* 顯示完整解答 */
+  var isRevealing = false;
   function revealAnswers(){
     if(!currentQuestion) return;
     if(currentQuestion.isMystery){
@@ -397,7 +401,12 @@ import { PAPER_EXAMS } from '../src/domain/sequence-exams.js';
       userInputs[idx] = String(currentQuestion.numbers[idx]);
     });
     renderSlots();
-    checkAnswers();
+    isRevealing = true;
+    try {
+      checkAnswers();
+    } finally {
+      isRevealing = false;
+    }
     showDetectiveHint();
   }
 

@@ -435,6 +435,7 @@ import {
 
       if(allCorrect){
         if(MathApp.sfx) MathApp.sfx('correct');
+        if(MathApp.emit) MathApp.emit('classroomPractice', { unit: 'mul', action: 'quiz_correct', count: 1 });
         mqEls.feedback.textContent = '答對了！口訣：「' + currentQ.mantra + '」';
         mqEls.feedback.className = 'feedback good';
       } else {
@@ -464,6 +465,7 @@ import {
       if(mqEls.scoreStreak)  mqEls.scoreStreak.textContent  = String(practiceStats.streak);
 
       if(MathApp.sfx) MathApp.sfx('correct');
+      if(MathApp.emit) MathApp.emit('classroomPractice', { unit: 'mul', action: 'quiz_correct', count: 1 });
       if(MathApp.utils && MathApp.utils.launchConfetti){
         MathApp.utils.launchConfetti(practiceStats.streak > 0 && practiceStats.streak % 5 === 0);
       }

@@ -198,6 +198,8 @@ import { createCalcStageRenderer } from '../src/calc/stage-renderer.js';
     }
   }
 
+  var calcRewardedSigs = {};
+
   /* 前進下一步 */
   function calcNextStep(){
     if(calcState.isAnimating) return;
@@ -205,6 +207,13 @@ import { createCalcStageRenderer } from '../src/calc/stage-renderer.js';
       calcState.step++;
       renderCalcView(true);
       if(MathApp.sfx && calcState.step < 4) MathApp.sfx('click');
+      if(calcState.step === 4){
+        var sig = calcState.op + ':' + calcState.numA + ':' + calcState.numB;
+        if(!calcRewardedSigs[sig]){
+          calcRewardedSigs[sig] = true;
+          if(MathApp.emit) MathApp.emit('classroomPractice', { unit: 'calc', action: 'explore', count: 1 });
+        }
+      }
     } else {
       stopAutoPlay();
     }

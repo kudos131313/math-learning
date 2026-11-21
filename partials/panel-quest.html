@@ -17,10 +17,16 @@
           <span class="mqst-launcher-stat-item"><span data-lucide="crown" aria-hidden="true"></span><strong id="mqst-launch-costumes">1</strong> / 8 造型</span>
         </div>
         <div class="mqst-launcher-realms" id="mqst-launcher-realms" role="group" aria-label="選擇海域快速啟航"></div>
-        <button type="button" class="mqst-play-big-btn" id="mqst-enter-arcade-btn">
-          <span data-lucide="gamepad-2" aria-hidden="true"></span>
-          <span>打開全螢幕遊戲世界</span>
-        </button>
+        <div class="mqst-launcher-actions">
+          <button type="button" class="mqst-play-big-btn" id="mqst-enter-arcade-btn">
+            <span data-lucide="gamepad-2" aria-hidden="true"></span>
+            <span>打開全螢幕遊戲世界</span>
+          </button>
+          <button type="button" class="mqst-tower-launch-btn" id="mqst-launch-tower-btn">
+            <span aria-hidden="true">🗼</span>
+            <span>挑戰無盡試煉塔</span>
+          </button>
+        </div>
       </div>
     </section>
 
@@ -76,6 +82,11 @@
         <!-- 海域航行切換列（Realm Selector Bar） -->
         <nav class="mqst-realm-bar" aria-label="冒險海域導覽">
           <div class="mqst-realm-tabs" id="mqst-realm-tabs" role="tablist" aria-label="選擇海域"></div>
+          <button type="button" class="mqst-realm-tab mqst-tower-entry-btn" id="mqst-open-tower-btn" title="挑戰無限爬塔！每 5 層守塔小魔王（打敗任一海域第 1 島魔王解鎖）">
+            <span aria-hidden="true">🗼</span>
+            <span>無盡試煉塔</span>
+            <span class="mqst-realm-badge mqst-tower-entry-tag" id="mqst-tower-entry-tag" style="display:none;">🔒 未解鎖</span>
+          </button>
         </nav>
 
         <!-- 可捲動/滿屏的 16:9 繪本奇幻世界地圖舞台 -->
@@ -120,6 +131,15 @@
             <span class="mqst-q-counter" id="mqst-q-progress-text">完成 0 / 5</span>
           </div>
 
+          <div class="mqst-tower-hud" id="mqst-tower-hud" style="display:none;">
+            <span class="mqst-tower-floor-badge" id="mqst-tower-floor-badge">🗼 第 1 層</span>
+            <span class="mqst-tower-route-tag" id="mqst-tower-route-tag">全能混合</span>
+            <div class="mqst-tower-hearts" id="mqst-tower-hearts" aria-label="剩餘愛心">❤️❤️❤️</div>
+            <span class="mqst-tower-nextboss-chip" id="mqst-tower-nextboss-chip">第 5 層小魔王</span>
+            <span class="mqst-tower-coin-chip">🪙 <strong id="mqst-tower-coins-earned">0</strong></span>
+            <button type="button" class="mqst-tower-retreat-btn" id="mqst-tower-retreat-btn" title="結束本次爬塔並領取獎勵結算">結算離開</button>
+          </div>
+
           <div class="mqst-battle-right-hud">
             <div class="mqst-combo-pill" id="mqst-combo-pill" aria-live="polite">
               🔥 連擊 <strong id="mqst-combo-count">0</strong>
@@ -160,6 +180,12 @@
             <div class="mqst-story-ribbon" id="mqst-story-banner" style="display:none;"></div>
             <div class="mq-equation-row mqst-equation-row" id="mqst-equation-row"></div>
             <div class="mqst-board-hint" id="mqst-prompt-text">選出正確答案！</div>
+            <div class="mqst-stuck-banner" id="mqst-stuck-banner" style="display:none;" role="region" aria-label="卡關教室複習建議">
+              <span class="mqst-stuck-msg" id="mqst-stuck-msg">💡 卡關了嗎？可以先去對應教室用積木慢慢看！</span>
+              <button type="button" class="mqst-stuck-btn" id="mqst-stuck-goto-classroom-btn">
+                🏫 回到積木教室複習
+              </button>
+            </div>
           </div>
 
           <!-- 角色對峙區：左側粉紅小兔與守護精靈 + 中央飛彈層 + 右側怪獸／寶箱 -->
@@ -415,6 +441,9 @@
             </button>
             <button type="button" class="mqst-tool-btn" id="mqst-res-retry-btn">
               <i data-lucide="rotate-ccw" aria-hidden="true"></i> <span>再挑戰三星</span>
+            </button>
+            <button type="button" class="mqst-tool-btn mqst-res-classroom-btn" id="mqst-res-classroom-btn" style="display:none;">
+              <span aria-hidden="true">🏫</span> <span id="mqst-res-classroom-lbl">回教室看積木練習</span>
             </button>
             <button type="button" class="mqst-tool-btn" id="mqst-res-map-btn">
               <i data-lucide="map" aria-hidden="true"></i> <span>回世界地圖</span>

@@ -52,6 +52,15 @@ const WARMUP_TEMPLATES = [
     metric: 'treehouse_interact',
     realmFilter: 'any',
     target: 2
+  },
+  {
+    id: 'w_classroom3',
+    icon: '🏫',
+    title: '教室暖身操',
+    desc: '去四大教學教室動手探索或練習答對 3 次',
+    metric: 'classroom_practice',
+    realmFilter: 'any',
+    target: 3
   }
 ];
 
@@ -154,6 +163,15 @@ const CHALLENGE_TEMPLATES = [
     metric: 'clean_correct_any',
     realmFilter: 'any',
     target: 8
+  },
+  {
+    id: 'c_tower5',
+    icon: '🗼',
+    title: '高塔守門挑戰',
+    desc: '在無盡試煉塔打敗第 5 層守塔小魔王',
+    metric: 'tower_floor_5',
+    realmFilter: 'any',
+    target: 1
   }
 ];
 
@@ -193,7 +211,7 @@ export function getUnlockedRealmsForDaily(saveData) {
   return list.length > 0 ? list : ['sunny', 'mul'];
 }
 
-export function generateDailyQuests(dateKey, unlockedRealms = ['sunny', 'mul']) {
+export function generateDailyQuests(dateKey, unlockedRealms = ['sunny', 'mul'], options = {}) {
   const safeDate = typeof dateKey === 'string' && dateKey ? dateKey : getLocalDateKey();
   const rng = createDateSeededRng(safeDate, 'daily_v1');
 
@@ -202,11 +220,16 @@ export function generateDailyQuests(dateKey, unlockedRealms = ['sunny', 'mul']) 
     : ['sunny', 'mul'];
   const realmsPool = validRealms.length > 0 ? validRealms : ['sunny', 'mul'];
 
+  const towerUnlocked = options.towerUnlocked !== false;
+  const challengePool = towerUnlocked
+    ? CHALLENGE_TEMPLATES
+    : CHALLENGE_TEMPLATES.filter((c) => c.id !== 'c_tower5');
+
   const wPick = WARMUP_TEMPLATES[Math.floor(rng() * WARMUP_TEMPLATES.length)];
   const rId = realmsPool[Math.floor(rng() * realmsPool.length)];
   const themePool = THEME_TEMPLATES_BY_REALM[rId] || THEME_TEMPLATES_BY_REALM.mul;
   const tPick = themePool[Math.floor(rng() * themePool.length)];
-  const cPick = CHALLENGE_TEMPLATES[Math.floor(rng() * CHALLENGE_TEMPLATES.length)];
+  const cPick = challengePool[Math.floor(rng() * challengePool.length)];
 
   return [
     {
@@ -254,10 +277,20 @@ export function generateDailyQuests(dateKey, unlockedRealms = ['sunny', 'mul']) 
   ];
 }
 
+function hasTowerAccessForDaily(saveData) {
+  if (!saveData) return false;
+  if (saveData.previewAll || saveData.devMode) return true;
+  const defeated = saveData.bossesDefeated && typeof saveData.bossesDefeated === 'object' ? saveData.bossesDefeated : {};
+  if (Object.keys(defeated).some((k) => Number(defeated[k] || 0) > 0)) return true;
+  const stars = saveData.stageStars && typeof saveData.stageStars === 'object' ? saveData.stageStars : {};
+  return ISLANDS.some((isl) => Number(stars[isl.bossStageId] || stars[isl.bossStageId.replace(/^mul:/, '')] || 0) >= 1);
+}
+
 export function ensureDailyQuests(saveData, dateKey = getLocalDateKey()) {
   if (!saveData || typeof saveData !== 'object') return null;
   const safeDate = typeof dateKey === 'string' && dateKey ? dateKey : getLocalDateKey();
   const unlockedRealms = getUnlockedRealmsForDaily(saveData);
+  const dailyOpts = { towerUnlocked: hasTowerAccessForDaily(saveData) };
 
   if (!saveData.stampBook || typeof saveData.stampBook !== 'object') {
     saveData.stampBook = { count: 0, round: 1 };
@@ -266,7 +299,7 @@ export function ensureDailyQuests(saveData, dateKey = getLocalDateKey()) {
   if (!saveData.daily || typeof saveData.daily !== 'object' || saveData.daily.date !== safeDate) {
     saveData.daily = {
       date: safeDate,
-      tasks: generateDailyQuests(safeDate, unlockedRealms),
+      tasks: generateDailyQuests(safeDate, unlockedRealms, dailyOpts),
       replayRewardCount: 0,
       classroomCoinEarned: 0,
       stampedToday: false,
@@ -276,7 +309,7 @@ export function ensureDailyQuests(saveData, dateKey = getLocalDateKey()) {
   }
 
   if (!Array.isArray(saveData.daily.tasks) || saveData.daily.tasks.length !== 3) {
-    saveData.daily.tasks = generateDailyQuests(safeDate, unlockedRealms);
+    saveData.daily.tasks = generateDailyQuests(safeDate, unlockedRealms, dailyOpts);
   } else {
     // 若先前生成的任務池包含尚未解鎖的海域，強制替換為安全題池
     const allowedSet = new Set(unlockedRealms);
@@ -284,7 +317,7 @@ export function ensureDailyQuests(saveData, dateKey = getLocalDateKey()) {
       (t) => t && t.realmFilter && t.realmFilter !== 'any' && !allowedSet.has(t.realmFilter)
     );
     if (hasInvalidRealm) {
-      saveData.daily.tasks = generateDailyQuests(safeDate, unlockedRealms);
+      saveData.daily.tasks = generateDailyQuests(safeDate, unlockedRealms, dailyOpts);
     }
   }
   if (typeof saveData.daily.allClearBonusClaimed !== 'boolean') {
@@ -346,6 +379,16 @@ export function recordDailyQuestProgress(saveData, event, dateKey = getLocalDate
     } else if (event.type === 'classroom_practice') {
       if (task.metric === 'classroom_practice') {
         next = Math.min(task.target, prev + (Number(event.count) || 1));
+      }
+    } else if (event.type === 'tower_floor_clear') {
+      if (task.metric === 'tower_floor_5') {
+        if ((Number(event.floor) || 0) >= 5) {
+          next = task.target;
+        }
+      } else if (task.metric === 'correct_any') {
+        next = Math.min(task.target, prev + 1);
+      } else if (task.metric === 'clean_correct_any' && event.isClean) {
+        next = Math.min(task.target, prev + 1);
       }
     }
 
@@ -841,6 +884,62 @@ export function feedPartnerSnack(saveData, partnerFullId, snackId) {
     partnerId: canonical,
     remainingCoins: saveData.starCoins,
     bondRes
+  };
+}
+
+/* ---------------- Phase 4：四大教學教室雙向連動獎勵（每日上限 15 星幣） ---------------- */
+export const CLASSROOM_COINS_PER_PRACTICE = 3;
+export const CLASSROOM_DAILY_COIN_CAP = 15;
+
+export function applyClassroomPracticeReward(saveData, payload = {}, dateKey = getLocalDateKey()) {
+  if (!saveData || typeof saveData !== 'object') {
+    return {
+      ok: false,
+      coinsAwarded: 0,
+      classroomCoinEarned: 0,
+      dailyCap: CLASSROOM_DAILY_COIN_CAP,
+      capReached: false,
+      exploredInLabUpdated: false,
+      newlyCompleted: []
+    };
+  }
+
+  const daily = ensureDailyQuests(saveData, dateKey);
+  const unit = payload && payload.unit ? String(payload.unit) : 'learn';
+  const action = payload && payload.action ? String(payload.action) : 'explore';
+  const count = clampInt(payload && payload.count != null ? payload.count : 1, 1, 10);
+
+  if (!saveData.stats || typeof saveData.stats !== 'object') {
+    saveData.stats = {};
+  }
+  const exploredInLabUpdated = unit === 'mul' && action === 'explore';
+  if (exploredInLabUpdated) {
+    saveData.stats.exploredInLab = true;
+  }
+
+  const prevEarned = clampInt(daily.classroomCoinEarned, 0, 999);
+  const remainingCap = Math.max(0, CLASSROOM_DAILY_COIN_CAP - prevEarned);
+  const coinsAwarded = Math.min(CLASSROOM_COINS_PER_PRACTICE, remainingCap);
+  daily.classroomCoinEarned = prevEarned + coinsAwarded;
+
+  saveData.starCoins = clampInt((saveData.starCoins || 0) + coinsAwarded, 0, 9999999);
+
+  const newlyCompleted = recordDailyQuestProgress(
+    saveData,
+    { type: 'classroom_practice', unit, action, count },
+    dateKey
+  );
+
+  return {
+    ok: true,
+    unit,
+    action,
+    coinsAwarded,
+    classroomCoinEarned: daily.classroomCoinEarned,
+    dailyCap: CLASSROOM_DAILY_COIN_CAP,
+    capReached: daily.classroomCoinEarned >= CLASSROOM_DAILY_COIN_CAP,
+    exploredInLabUpdated,
+    newlyCompleted
   };
 }
 

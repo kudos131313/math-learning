@@ -1,4 +1,4 @@
-Status: needs-triage
+Status: ready-for-agent
 Phase: Phase 4
 Blocked by: 02, 03, 04
 
@@ -36,3 +36,7 @@ Blocked by: 02, 03, 04
 
 ## Comments
 - 初始建立任務單（由 `/grill-with-docs` 規格拆解產出）。
+- 2026-11-21：已標記為 `ready-for-agent` 並完成 Phase 4 全部實作與驗證：
+  1. 領域層：`src/domain/quest-data.js` 補齊 15 位魔王簡介與 12 則生活故事貼紙資料；`src/domain/quest-tower.js` 完成無盡試煉塔純函式引擎（4 條路線 `all`/`sunny`/`mul`/`word`、3 顆愛心無計時生存、樓層階梯與每 5 層守塔小魔王寶箱 `+25 🪙`＋回補 `1 ❤️`）；`src/domain/quest-questions.js` 完成收集冊統計同步、題目故事匹配與教室精準回流解析；`src/domain/quest-retention.js` 實裝 `applyClassroomPracticeReward`（每日上限 `+15 🪙`、推進 `w_classroom3` / `c_tower5`）。
+  2. UI 與四教室連動：完成 `svg-art.js`（12 款繪本貼紙 SVG）、`partials/panel-quest.html` / `dialogs-quest.html` / `panel-learn.html` / `panel-seq.html` / `panel-calc.html`、`src/quest/dialogs.js`、`calc-ui.js`、`cloud-ui.js`、`js/learn.js`、`quiz.js`、`seq.js`、`seq-quiz.js`、`calc.js`、`calc-quiz.js`、`mul.js`、`mul-quiz.js`、`mul-quest.js`、`css/mul-quest.css` 與 `js/diagnostics.js`。
+  3. 驗證：`npx vitest run tests/` 全站 9 檔 70 項測試通過；`npm run build` 成功無錯；無頭 Chrome 實機 CDP（`1280×800`、`1024×768`、`768×1024`）檢查 `window.runSelfTest()` 13/13 通過、教室星幣上限鎖定 15、收集冊 15/12 正確渲染、試煉塔紫金 HUD／連錯 2 次導流帶參回教室／答對升層／主動結算／無水平溢位全數通過。

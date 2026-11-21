@@ -371,6 +371,7 @@
         MathApp.sfx('correct');
         MathApp.speak(goodMsg + '。' + explainStr);
         MathApp.utils.launchConfetti();
+        if(MathApp.emit) MathApp.emit('classroomPractice', { unit: 'learn', action: 'quiz_correct', count: 1 });
       } else {
         practiceScore.streak = 0;
         var badMsg = MathApp.utils.badMsgs[MathApp.randInt(0, MathApp.utils.badMsgs.length - 1)];
@@ -414,6 +415,7 @@
         MathApp.sfx('correct');
         MathApp.speak(goodMsg2);
         MathApp.utils.launchConfetti();
+        if(MathApp.emit) MathApp.emit('classroomPractice', { unit: 'learn', action: 'quiz_correct', count: 1 });
       } else {
         var badMsg2 = MathApp.utils.badMsgs[MathApp.randInt(0, MathApp.utils.badMsgs.length - 1)];
         quizEls.feedback.className = 'feedback bad';

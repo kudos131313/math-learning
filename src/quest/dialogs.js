@@ -17,7 +17,9 @@ import {
   getIslandById,
   getIslandsByRealm,
   getSpecialtyMeta,
-  getWardrobeItemById
+  getWardrobeItemById,
+  BOSS_ALBUM_ENTRIES,
+  STORY_ALBUM_ENTRIES
 } from '../domain/quest-data.js';
 import {
   isStageUnlocked,
@@ -28,12 +30,15 @@ import {
   countUnlockedSprites,
   getSkillCardProgress,
   countUnlockedSkillCards,
+  countDefeatedBosses,
+  countUnlockedStories,
   getLocalDateKey
 } from '../domain/quest-questions.js';
 import {
   DAILY_ALL_CLEAR_BONUS,
   STAMP_STEP_COINS,
   STAMP_ROUND_COMPLETE_COINS,
+  CLASSROOM_DAILY_COIN_CAP,
   ensureDailyQuests,
   getPartnerBondInfo,
   getPartnerSpecialtyEffects,
@@ -44,6 +49,12 @@ import {
   isPartnerUnlocked,
   getTreehousePlaymates
 } from '../domain/quest-retention.js';
+import {
+  TOWER_ROUTES,
+  isTowerUnlocked,
+  getTowerBestFloor
+} from '../domain/quest-tower.js';
+import { getStoryStickerSvg } from './svg-art.js';
 import { renderTreehouseSceneHtml } from './treehouse-svg.js';
 import { randInt } from '../domain/number-text.js';
 
@@ -85,6 +96,7 @@ export function createQuestDialogs({
 }) {
   let parentChallengeAns = 42;
   let wardrobeSlotFilter = 'all';
+  let albumSectionFilter = 'all';
   let shopSelectedPartnerId = '';
 
   function getWardrobeProgressMeta(item, saveData, stars, gems) {
@@ -618,6 +630,139 @@ export function createQuestDialogs({
 
     renderSkillCodexPane();
     renderWardrobePane();
+    renderAlbumPane();
+  }
+
+  /* ---------------- Phase 4：魔王與故事收集冊渲染（15 位魔王 ＋ 12 張生活貼紙牆） ---------------- */
+  function renderAlbumPane(filterOverride) {
+    if (!els.paneAlbum) return;
+    if (filterOverride) albumSectionFilter = filterOverride;
+
+    const saveData = getSaveData();
+    const defeatedCnt = countDefeatedBosses(saveData);
+    const storyCnt = countUnlockedStories(saveData);
+    const showBosses = albumSectionFilter === 'all' || albumSectionFilter === 'bosses';
+    const showStories = albumSectionFilter === 'all' || albumSectionFilter === 'stories';
+
+    const filters = [
+      { id: 'all', label: '📚 全部收藏' },
+      { id: 'bosses', label: `👹 魔王檔案 (${defeatedCnt}/15)` },
+      { id: 'stories', label: `📖 生活故事貼紙 (${storyCnt}/12)` }
+    ];
+
+    let html =
+      '<div class="mqst-gem-summary">' +
+      `<span>👹 魔王打敗數：<b>${defeatedCnt} / ${BOSS_ALBUM_ENTRIES.length}</b> 位 · 📖 生活故事貼紙：<b>${storyCnt} / ${STORY_ALBUM_ENTRIES.length}</b> 張</span>` +
+      '<span style="font-size:13px;color:var(--ink-soft);">打敗島嶼魔王累積討伐次數，答對或通過生活應用關卡即可貼上可愛繪本貼紙！</span>' +
+      '</div>';
+
+    html += '<div class="mqst-wardrobe-filters" role="group" aria-label="收集冊篩選">';
+    filters.forEach((f) => {
+      const act = albumSectionFilter === f.id;
+      html +=
+        `<button type="button" class="mqst-filter-pill${act ? ' is-active' : ''}" data-album-filter="${f.id}" aria-pressed="${act}">` +
+        `${f.label}</button>`;
+    });
+    html += '</div>';
+
+    if (showBosses) {
+      html += `<div class="mqst-dex-group-title">👹 呆萌玩具魔王檔案（${defeatedCnt} / ${BOSS_ALBUM_ENTRIES.length}）</div>`;
+      html += '<div class="mqst-album-boss-grid">';
+      BOSS_ALBUM_ENTRIES.forEach((entry) => {
+        const realDefeats = Number(saveData.bossesDefeated && saveData.bossesDefeated[entry.id]) || (getStageStars(saveData, entry.bossStageId) >= 1 ? 1 : 0);
+        const unlocked = realDefeats > 0 || Boolean(saveData.devMode);
+        const canChallenge = unlocked || isStageUnlocked(entry.bossStageId, saveData) || Boolean(saveData.previewAll);
+
+        html +=
+          `<article class="mqst-album-boss-card${unlocked ? ' is-unlocked' : ' is-locked'}">` +
+          (!realDefeats && saveData.devMode ? '<span class="mqst-dev-preview-tag">🧪 開發者預覽</span>' : '') +
+          `<div class="mqst-album-boss-art">${getCharacterSvg(entry.svgKey)}</div>` +
+          '<div class="mqst-album-boss-body">' +
+          '<div class="mqst-album-boss-top">' +
+          `<strong class="mqst-album-boss-name">${unlocked ? entry.name : '???（待挑戰魔王）'}</strong>` +
+          `<span class="mqst-album-count-pill${realDefeats > 0 ? ' is-hit' : ''}">${realDefeats > 0 ? `已擊敗 ${realDefeats} 次` : '尚未打敗'}</span>` +
+          '</div>' +
+          `<div class="mqst-album-boss-meta">${entry.islandTitle} · 主題：${entry.mathTopic}</div>` +
+          `<p class="mqst-album-boss-bio">${unlocked ? entry.bio : '通關這座島嶼的所有試煉關卡，就能掀開魔王小檔案！'}</p>` +
+          (unlocked && entry.tauntWin ? `<div class="mqst-album-boss-quote">💬 ${entry.tauntWin}</div>` : '') +
+          (canChallenge
+            ? `<button type="button" class="mqst-sprite-equip-btn goto" data-goto-boss="${entry.bossStageId}">⚔️ 前往挑戰魔王</button>`
+            : '') +
+          '</div></article>';
+      });
+      html += '</div>';
+    }
+
+    if (showStories) {
+      html += `<div class="mqst-dex-group-title">📖 生活應用故事貼紙牆（${storyCnt} / ${STORY_ALBUM_ENTRIES.length}）</div>`;
+      html += '<div class="mqst-album-story-grid">';
+      STORY_ALBUM_ENTRIES.forEach((story) => {
+        const realGot = Boolean(saveData.unlockedStories && saveData.unlockedStories[story.id]);
+        const unlocked = realGot || Boolean(saveData.devMode);
+        const canGo = story.sampleStageId && (isStageUnlocked(story.sampleStageId, saveData) || Boolean(saveData.previewAll || saveData.devMode));
+
+        html +=
+          `<article class="mqst-album-story-card${unlocked ? ' is-unlocked' : ' is-locked'}">` +
+          (!realGot && saveData.devMode ? '<span class="mqst-dev-preview-tag">🧪 開發者預覽</span>' : '') +
+          `<div class="mqst-album-sticker-wrap">${getStoryStickerSvg(story.id, { unlocked })}</div>` +
+          `<div class="mqst-album-story-tag">${story.sceneTag}</div>` +
+          `<h4 class="mqst-album-story-title">${story.icon} ${unlocked ? story.title : '神秘生活故事貼紙'}</h4>` +
+          `<p class="mqst-album-story-text">${unlocked ? story.storyText : `練習「${story.mathLesson}」題目即可撕下保護膜貼上收集冊！`}</p>` +
+          `<div class="mqst-album-story-lesson">🎯 核心能力：${story.mathLesson}</div>` +
+          (canGo
+            ? `<button type="button" class="mqst-sprite-equip-btn goto" data-goto-stage="${story.sampleStageId}">${realGot ? '🔁 回味故事關卡' : '🧭 前往解鎖關卡'}</button>`
+            : '') +
+          '</article>';
+      });
+      html += '</div>';
+    }
+
+    els.paneAlbum.innerHTML = html;
+  }
+
+  /* ---------------- Phase 4：無盡試煉塔路線選擇視窗渲染 ---------------- */
+  function renderTowerDialog() {
+    if (!els.towerBody) return;
+    const saveData = getSaveData();
+    const unlocked = isTowerUnlocked(saveData);
+    const overallBest = getTowerBestFloor(saveData, 'all');
+
+    let html = '<div class="mqst-tower-intro-card">';
+    html +=
+      '<div class="mqst-tower-intro-copy">' +
+      '<h4>🗼 勇者不限時生存爬塔規則</h4>' +
+      '<p>全心思考、沒有倒數計時壓力！開局擁有 <b>3 顆愛心 ❤️❤️❤️</b>，答對 1 層立刻獲得 <b>+3 🪙</b>，每爬上 <b>第 5、10、15… 層</b> 由可愛守塔小魔王守護，打敗即領 <b>+25 🪙 守塔寶箱</b>並補回 <b>1 ❤️</b>（上限 3 顆）！</p>' +
+      '</div>' +
+      `<div class="mqst-tower-best-summary"><span>最高綜合紀錄</span><strong>${overallBest > 0 ? `第 ${overallBest} 層` : '尚未挑戰'}</strong></div>` +
+      '</div>';
+
+    if (!unlocked) {
+      html +=
+        '<div class="mqst-tower-lock-banner">' +
+        '<div><strong>🔒 試煉塔大門尚未開啟</strong><p>先打敗任一海域第 1 座島嶼的魔王（或於設定開啟自由預習模式），即可啟動無限試煉！</p></div>' +
+        '<button type="button" class="mqst-sprite-equip-btn goto" data-goto-boss="mul:1-3">⚔️ 去打第 1 座森林魔王</button>' +
+        '</div>';
+    }
+
+    html += '<div class="mqst-tower-routes-grid">';
+    TOWER_ROUTES.forEach((route) => {
+      const best = getTowerBestFloor(saveData, route.id);
+      html +=
+        `<div class="mqst-tower-route-card${unlocked ? '' : ' is-locked'}">` +
+        `<div class="mqst-tower-route-head"><span class="mqst-tower-route-ico" aria-hidden="true">${route.icon}</span>` +
+        `<div class="mqst-tower-route-titles"><strong>${route.name}</strong><span class="mqst-tower-route-badge">${route.badge}</span></div>` +
+        `<span class="mqst-tower-route-best">${best > 0 ? `🏆 最佳 ${best} 層` : '✨ 新路線'}</span>` +
+        '</div>' +
+        `<p class="mqst-tower-route-desc">${route.subtitle}</p>` +
+        '<div class="mqst-tower-route-tiers">階梯：1～5 基礎 → 6～10 進階 → 11～15 複合 → 16+ 一步直解與未知數</div>' +
+        `<button type="button" class="mqst-play-big-btn mqst-tower-start-btn" data-start-tower-route="${route.id}"${unlocked ? '' : ' disabled aria-disabled="true"'}>` +
+        (unlocked ? '🚀 出發挑戰這條路線' : '🔒 打敗第 1 座魔王後解鎖') +
+        '</button>' +
+        '</div>';
+    });
+    html += '</div>';
+
+    els.towerBody.innerHTML = html;
   }
 
   /* ---------------- 每日冒險委託與不斷簽印章本渲染 ---------------- */
@@ -701,6 +846,12 @@ export function createQuestDialogs({
       } else if (t.metric === 'treehouse_interact') {
         actionHtml =
           '<button type="button" class="mqst-tool-btn mqst-daily-go-btn" data-daily-goto-treehouse="1">🏡 去樹屋互動</button>';
+      } else if (t.metric === 'classroom_practice') {
+        actionHtml =
+          '<button type="button" class="mqst-tool-btn mqst-daily-go-btn" data-daily-goto-classroom="1">🏫 去教室探索賺幣</button>';
+      } else if (t.metric === 'tower_floor_5') {
+        actionHtml =
+          '<button type="button" class="mqst-tool-btn mqst-daily-go-btn" data-daily-goto-tower="1">🗼 去挑戰試煉塔</button>';
       } else if (t.realmFilter && t.realmFilter !== 'any') {
         const realmObj = REALMS.find((r) => r.id === t.realmFilter);
         actionHtml =
@@ -743,7 +894,12 @@ export function createQuestDialogs({
         actionHtml +
         '</div></div>';
     });
-    tasksHtml += '</div>';
+    const classroomEarned = Math.max(0, Math.floor(Number(daily.classroomCoinEarned || 0)));
+    tasksHtml +=
+      '</div><div class="mqst-daily-classroom-bar">' +
+      `<span>🏫 今日教學教室探索練習獎勵：<b>${classroomEarned} / ${CLASSROOM_DAILY_COIN_CAP} 🪙</b>（在位值／跳數／直式／乘法教室動手或答對每次 +3 🪙）</span>` +
+      '<button type="button" class="mqst-tool-btn mqst-daily-go-btn" data-daily-goto-classroom="1">🏫 去教室探索賺幣</button>' +
+      '</div>';
 
     els.dailyBody.innerHTML = stampHtml + tasksHtml;
   }
@@ -1257,9 +1413,11 @@ export function createQuestDialogs({
   return {
     renderDexDialog,
     renderWardrobePane,
+    renderAlbumPane,
     renderDailyDialog,
     renderShopDialog,
     renderTreehouseView,
+    renderTowerDialog,
     setupDialogPolyfill,
     refreshParentLock,
     getParentChallengeAns: () => parentChallengeAns,

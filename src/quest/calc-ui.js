@@ -211,6 +211,16 @@ export function renderCalcHelperHtml(q, blockGlyphFn) {
       '<div class="mqst-calc-helper-tip">💡 ' +
       escapeHtml(spec.prompt) +
       '</div>' +
+      (Number.isFinite(Number(q && q.a)) && Number.isFinite(Number(q && q.b)) && Number(q.a) >= 1 && Number(q.a) <= 999 && Number(q.b) >= 1 && Number(q.b) <= 999
+        ? '<div class="mqst-calc-helper-actions">' +
+          '<button type="button" class="mqst-calc-goto-lab-btn" data-goto-calc-lab="1" data-a="' +
+          Math.floor(Number(q.a)) +
+          '" data-b="' +
+          Math.floor(Number(q.b)) +
+          '" data-op="' +
+          (q.op === '-' ? 'sub' : 'add') +
+          '">🧱 去直式教室用積木排排看</button></div>'
+        : '') +
       '</div>'
     );
   }
@@ -224,11 +234,24 @@ export function renderCalcHelperHtml(q, blockGlyphFn) {
       : q.equationModel && q.equationModel.missingSlot === 'left'
         ? `被減數是原來的全部，把拿走的 ${spec.b} 和剩下的 ${spec.c} 合起來！`
         : `原本有 ${spec.a}，最後剩下 ${spec.c}，兩數相差的就是被減去的數！`;
+    const labOp = isAdd ? 'sub' : q.equationModel && q.equationModel.missingSlot === 'left' ? 'add' : 'sub';
+    const labA = Number.isFinite(Number(spec.c)) && isAdd ? spec.c : Math.max(Number(spec.a || 0), Number(spec.b || 0), Number(spec.c || 0));
+    const labB = isAdd ? knownPart : Math.min(Number(spec.b || spec.c || 10), labA);
     return (
       '<div class="mqst-calc-helper">' +
       '<div class="mqst-calc-helper-tip">🔍 <b>偵探提示：</b>' +
       escapeHtml(tipText) +
       '</div>' +
+      (labA >= 1 && labA <= 999 && labB >= 1 && labB <= 999
+        ? '<div class="mqst-calc-helper-actions">' +
+          '<button type="button" class="mqst-calc-goto-lab-btn" data-goto-calc-lab="1" data-a="' +
+          Math.floor(labA) +
+          '" data-b="' +
+          Math.floor(labB) +
+          '" data-op="' +
+          labOp +
+          '">🧱 去直式教室試算看看</button></div>'
+        : '') +
       '</div>'
     );
   }

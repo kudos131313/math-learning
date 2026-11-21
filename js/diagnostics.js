@@ -237,6 +237,8 @@
           'step-next-btn', 'step-prev-btn', 'step-auto-btn',
           'tab-practice', 'tab-selftest', 'start-selftest-btn',
           'quiz-card', 'check-btn', 'next-btn', 'feedback',
+          'mqst-open-tower-btn', 'mqst-tower-dialog', 'mqst-tower-hud',
+          'mqst-stuck-banner', 'mqst-tab-album', 'mqst-pane-album',
           'diagnostics-modal'
         ];
         var missing = [];
@@ -246,7 +248,7 @@
         if(missing.length > 0){
           throw new Error('缺少必要 DOM 元素: ' + missing.join(', '));
         }
-        return '55 個關鍵頁面元件、五大單元導覽列、規律跳數舞台、考卷題卡與自測節點全數就緒';
+        return requiredIds.length + ' 個關鍵頁面元件、五大單元導覽列、試煉塔與故事冊節點全數就緒';
       }
     },
     {
@@ -534,8 +536,11 @@
         var badges = MathApp.mulQuest.getBadges();
         var costumes = MathApp.mulQuest.getCostumes ? MathApp.mulQuest.getCostumes() : [];
         var skillCards = MathApp.mulQuest.getSkillCards ? MathApp.mulQuest.getSkillCards() : [];
-        if(realms.length !== 3 || islands.length !== 15 || stages.length !== 45 || badges.length !== 10 || costumes.length !== 8 || skillCards.length !== 24){
-          throw new Error('海域或關卡設定數量異常：海域=' + realms.length + ' 島嶼=' + islands.length + ' 關卡=' + stages.length + ' 徽章=' + badges.length + ' 造型=' + costumes.length + ' 技能卡=' + skillCards.length);
+        var bossAlbum = MathApp.mulQuest.getBossAlbumEntries ? MathApp.mulQuest.getBossAlbumEntries() : [];
+        var storyAlbum = MathApp.mulQuest.getStoryAlbumEntries ? MathApp.mulQuest.getStoryAlbumEntries() : [];
+        var towerRoutes = MathApp.mulQuest.getTowerRoutes ? MathApp.mulQuest.getTowerRoutes() : [];
+        if(realms.length !== 3 || islands.length !== 15 || stages.length !== 45 || badges.length !== 10 || costumes.length !== 8 || skillCards.length !== 24 || bossAlbum.length !== 15 || storyAlbum.length !== 12 || towerRoutes.length !== 4){
+          throw new Error('海域或 Phase 4 擴充數量異常：海域=' + realms.length + ' 島嶼=' + islands.length + ' 關卡=' + stages.length + ' 徽章=' + badges.length + ' 造型=' + costumes.length + ' 技能卡=' + skillCards.length + ' 魔王冊=' + bossAlbum.length + ' 故事冊=' + storyAlbum.length + ' 試煉塔路線=' + towerRoutes.length);
         }
 
         // 驗證每一關題庫產生與選擇題誘答選項不重複且包含正解
@@ -588,7 +593,7 @@
           throw new Error('關卡 1-1 含 1 乘法比例過高：' + Math.round((one11 / total11) * 100) + '%');
         }
 
-        return '驗證通過 3 大海域、15 大島 45 關題庫配置、24 張技能卡與低 1 乘法比例（5-1: ' + Math.round((one51 / total51) * 100) + '%, 1-1: ' + Math.round((one11 / total11) * 100) + '%）';
+        return '驗證通過 3 大海域、15 大島 45 關、24 技能卡、15 魔王與 12 故事冊、4 條試煉塔路線（5-1 含1比例: ' + Math.round((one51 / total51) * 100) + '%, 1-1: ' + Math.round((one11 / total11) * 100) + '%）';
       }
     }
   ];

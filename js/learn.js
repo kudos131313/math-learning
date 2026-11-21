@@ -449,6 +449,7 @@
     if(extra.length === 0){
       renderMachine();
       MathApp.sfx('click');
+      trackLearnExplore('place_tap');
       return;
     }
 
@@ -461,13 +462,31 @@
       MathApp.utils.showToast(msg2);
       MathApp.sfx(dir > 0 ? 'carry' : 'borrow');
       MathApp.speak(msg2);
+      trackLearnExplore('carry_borrow');
       return;
     }
 
     animating = true;
     var path = chainFor(place).filter(function(p){ return p === place || changed.indexOf(p) !== -1; });
     var steps = buildSteps(path, dir);
-    playSteps(steps, 0, dir, changed, place, function(){ animating = false; });
+    playSteps(steps, 0, dir, changed, place, function(){
+      animating = false;
+      trackLearnExplore('carry_borrow');
+    });
+  }
+
+  var learnTapCount = 0;
+  var lastLearnEmitAt = 0;
+  function trackLearnExplore(reason){
+    if(!MathApp.emit) return;
+    learnTapCount++;
+    var now = Date.now();
+    if(reason === 'carry_borrow' || (learnTapCount >= 3 && now - lastLearnEmitAt >= 1500)){
+      if(now - lastLearnEmitAt < 1200) return;
+      learnTapCount = 0;
+      lastLearnEmitAt = now;
+      MathApp.emit('classroomPractice', { unit: 'learn', action: 'explore', count: 1 });
+    }
   }
 
   function init(){
@@ -501,6 +520,8 @@
         state.t  = Math.floor(Math.random() * 10);
         state.o  = Math.floor(Math.random() * 10);
         renderMachine();
+        learnTapCount = 3;
+        trackLearnExplore('randomize');
       });
     }
 
@@ -515,9 +536,24 @@
     renderMachine();
   }
 
+  function loadNumber(num){
+    var n = Math.max(0, Math.min(9999, Math.floor(Number(num) || 0)));
+    if(n >= 1000 && MathApp.thousand && typeof MathApp.thousand.setEnabled === 'function' && !MathApp.thousand.isEnabled()){
+      MathApp.thousand.setEnabled(true);
+    }
+    var allowTh = MathApp.thousand && MathApp.thousand.isEnabled();
+    if(!allowTh && n > 999) n = 999;
+    state.th = allowTh ? Math.floor(n / 1000) : 0;
+    state.h = Math.floor((n % 1000) / 100);
+    state.t = Math.floor((n % 100) / 10);
+    state.o = n % 10;
+    renderMachine();
+  }
+
   MathApp.learn = {
     init: init,
     renderMachine: renderMachine,
+    loadNumber: loadNumber,
     getState: function(){ return state; },
     setState: function(s){
       if(s.th !== undefined) state.th = s.th;

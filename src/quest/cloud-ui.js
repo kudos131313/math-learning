@@ -237,6 +237,7 @@ export function renderCloudHelperHtml(q, blockGlyphFn) {
     });
     trainHtml += '</div>';
 
+    const startNum = Number.isFinite(Number(nums[0])) ? Math.max(0, Math.min(900, Math.floor(Number(nums[0])))) : 189;
     return (
       '<div class="mqst-calc-helper">' +
       trainHtml +
@@ -244,7 +245,11 @@ export function renderCloudHelperHtml(q, blockGlyphFn) {
       escapeHtml(arcTxt) +
       '</b>，先看相鄰兩節已知車廂的差距！</div>' +
       '<div class="mqst-calc-helper-actions">' +
-      '<button type="button" class="mqst-calc-goto-lab-btn" data-goto-unit="seq">🚂 去跳數列車教室慢慢看</button>' +
+      '<button type="button" class="mqst-calc-goto-lab-btn" data-goto-unit="seq" data-seq-start="' +
+      startNum +
+      '" data-seq-step="' +
+      step +
+      '">🚂 去跳數列車教室慢慢看</button>' +
       '</div>' +
       '</div>'
     );
@@ -281,6 +286,11 @@ export function renderCloudHelperHtml(q, blockGlyphFn) {
         '</div>';
     }
 
+    const pvNum =
+      Number(q && (q.targetNum || q.ans)) ||
+      (spec.h || 0) * 100 + (spec.t || 0) * 10 + (spec.o || 0) ||
+      305;
+
     return (
       '<div class="mqst-calc-helper">' +
       visualHtml +
@@ -288,7 +298,9 @@ export function renderCloudHelperHtml(q, blockGlyphFn) {
       escapeHtml(spec.tip) +
       '</div>' +
       '<div class="mqst-calc-helper-actions">' +
-      '<button type="button" class="mqst-calc-goto-lab-btn" data-goto-unit="learn">🧱 去位值探索屋動手擺積木</button>' +
+      '<button type="button" class="mqst-calc-goto-lab-btn" data-goto-unit="learn" data-pv-num="' +
+      Math.max(10, Math.min(9999, Math.floor(pvNum))) +
+      '">🧱 去位值探索屋動手擺積木</button>' +
       '</div>' +
       '</div>'
     );
@@ -296,6 +308,8 @@ export function renderCloudHelperHtml(q, blockGlyphFn) {
 
   // C. 兩步驟推理框線段圖（不劇透答案）
   if (spec.type === 'bar_diagram' && spec.mode === 'two_step') {
+    const mulA = Number.isFinite(Number(q && q.a)) && Number(q.a) >= 1 && Number(q.a) <= 9 ? Math.floor(Number(q.a)) : 3;
+    const mulB = Number.isFinite(Number(q && q.b)) && Number(q.b) >= 1 && Number(q.b) <= 9 ? Math.floor(Number(q.b)) : 4;
     return (
       '<div class="mqst-twostep-diagram">' +
       '<div class="mqst-twostep-flow">' +
@@ -315,6 +329,13 @@ export function renderCloudHelperHtml(q, blockGlyphFn) {
       '</div>' +
       '<div class="mqst-calc-helper-tip">💡 ' +
       escapeHtml(spec.prompt) +
+      '</div>' +
+      '<div class="mqst-calc-helper-actions">' +
+      '<button type="button" class="mqst-calc-goto-lab-btn" data-goto-unit="mul" data-mul-a="' +
+      mulA +
+      '" data-mul-b="' +
+      mulB +
+      '">📐 去九九乘法探索台看陣列積木</button>' +
       '</div>' +
       '</div>'
     );

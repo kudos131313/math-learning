@@ -112,7 +112,9 @@
 #mqst-daily-dialog h3,
 #mqst-daily-dialog h4,
 #mqst-shop-dialog h3,
-#mqst-shop-dialog h4 {
+#mqst-shop-dialog h4,
+#mqst-tower-dialog h3,
+#mqst-tower-dialog h4 {
   font-family: var(--font-display);
   font-weight: 700;
   letter-spacing: var(--tracking-display);
@@ -4936,6 +4938,562 @@ dialog.mqst-shop-dialog {
   }
   .mqst-stamp-board {
     gap: 5px;
+  }
+}
+
+/* ---------------- Phase 4：無盡試煉塔、魔王故事冊與教室導流樣式 ---------------- */
+.mqst-launcher-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+}
+
+.mqst-tower-launch-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 50px;
+  padding: 10px 18px;
+  border-radius: 999px;
+  border: 2.5px solid #4c1d95;
+  background: linear-gradient(180deg, #f3e8ff 0%, #ddd6fe 100%);
+  color: #4c1d95;
+  font-size: 16px;
+  font-weight: 800;
+  cursor: pointer;
+  box-shadow: 0 4px 0 #5b21b6;
+  transition: transform 0.14s ease, filter 0.14s ease;
+}
+
+.mqst-tower-launch-btn:hover {
+  transform: translateY(-2px);
+  filter: brightness(1.03);
+}
+
+.mqst-tower-launch-btn:active {
+  transform: translateY(2px);
+  box-shadow: 0 2px 0 #5b21b6;
+}
+
+.mqst-realm-bar {
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.mqst-realm-bar .mqst-realm-tabs {
+  padding-inline: 0;
+}
+
+.mqst-tower-entry-tag {
+  font-variant-numeric: tabular-nums;
+}
+
+/* 試煉塔對戰頂部 HUD（紫金星穹） */
+.mqst-tower-hud {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  flex: 1 1 auto;
+  min-width: 0;
+  justify-content: center;
+  font-variant-numeric: tabular-nums;
+}
+
+.mqst-tower-floor-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 12px;
+  border-radius: 999px;
+  background: linear-gradient(180deg, #5b21b6 0%, #4c1d95 100%);
+  color: #fef08a;
+  border: 2px solid #facc15;
+  font-size: 15px;
+  font-weight: 900;
+}
+
+.mqst-tower-route-tag {
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: #f5f3ff;
+  border: 2px solid #7c3aed;
+  color: #4c1d95;
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.mqst-tower-hearts {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: #fff1f2;
+  border: 2px solid #f43f5e;
+  font-size: 16px;
+  line-height: 1;
+}
+
+.mqst-heart-pip.is-empty {
+  opacity: 0.45;
+  filter: grayscale(0.4);
+}
+
+.mqst-tower-nextboss-chip {
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: #fef3c7;
+  border: 2px solid #d97706;
+  color: #78350f;
+  font-size: 12.5px;
+  font-weight: 800;
+}
+
+.mqst-tower-nextboss-chip.is-boss {
+  background: linear-gradient(180deg, #fde047 0%, #f59e0b 100%);
+  border-color: #92400e;
+  color: #451a03;
+}
+
+.mqst-tower-coin-chip {
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: #fffbeb;
+  border: 2px solid #eab308;
+  color: #854d0e;
+  font-size: 14px;
+  font-weight: 800;
+}
+
+.mqst-tower-retreat-btn {
+  min-height: 44px;
+  padding: 6px 12px;
+  border-radius: 999px;
+  border: 2px solid var(--ink);
+  background: #fff7ed;
+  color: #9a3412;
+  font-size: 13px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.mqst-tower-retreat-btn:hover {
+  background: #ffedd5;
+}
+
+/* 連錯 2 次卡關導流回教學教室條 */
+.mqst-stuck-banner {
+  margin-top: 10px;
+  padding: 9px 14px;
+  border-radius: 14px;
+  border: 2.5px dashed #d97706;
+  background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%);
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.mqst-stuck-msg {
+  font-size: 13.5px;
+  font-weight: 800;
+  color: #78350f;
+}
+
+.mqst-stuck-btn,
+.mqst-res-classroom-btn {
+  min-height: 44px;
+  padding: 7px 14px;
+  border-radius: 999px;
+  border: 2px solid #b45309;
+  background: #ffffff;
+  color: #78350f;
+  font-size: 13.5px;
+  font-weight: 800;
+  cursor: pointer;
+  box-shadow: 0 2px 0 #b45309;
+}
+
+.mqst-stuck-btn:hover,
+.mqst-res-classroom-btn:hover {
+  background: #fef9c3;
+}
+
+/* 試煉塔路線選擇對話框 */
+.mqst-tower-dialog {
+  width: min(820px, calc(100vw - 28px));
+}
+
+.mqst-tower-intro-card {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 14px 16px;
+  border-radius: 18px;
+  border: 2.5px solid #5b21b6;
+  background: linear-gradient(135deg, #f5f3ff 0%, #fef3c7 100%);
+  margin-bottom: 14px;
+}
+
+.mqst-tower-intro-copy {
+  flex: 1 1 360px;
+}
+
+.mqst-tower-intro-copy h4 {
+  margin: 0 0 4px;
+  font-size: 17px;
+  color: #4c1d95;
+}
+
+.mqst-tower-intro-copy p {
+  margin: 0;
+  font-size: 13.5px;
+  line-height: 1.55;
+  color: var(--ink-soft);
+}
+
+.mqst-tower-best-summary {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 10px 16px;
+  border-radius: 14px;
+  background: #ffffff;
+  border: 2px solid #7c3aed;
+  font-variant-numeric: tabular-nums;
+}
+
+.mqst-tower-best-summary span {
+  font-size: 12px;
+  font-weight: 800;
+  color: #6d28d9;
+}
+
+.mqst-tower-best-summary strong {
+  font-size: 20px;
+  font-weight: 900;
+  color: #4c1d95;
+}
+
+.mqst-tower-lock-banner {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 12px 14px;
+  border-radius: 16px;
+  border: 2px dashed #b45309;
+  background: #fffbeb;
+  margin-bottom: 14px;
+}
+
+.mqst-tower-lock-banner p {
+  margin: 4px 0 0;
+  font-size: 13px;
+  color: var(--ink-soft);
+}
+
+.mqst-tower-routes-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.mqst-tower-route-card {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 14px;
+  border-radius: 18px;
+  border: 2.5px solid var(--ink);
+  background: #ffffff;
+  box-shadow: 0 4px 0 var(--shadow-ink);
+}
+
+.mqst-tower-route-card.is-locked {
+  background: #f5f5f4;
+  opacity: 0.85;
+}
+
+.mqst-tower-route-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.mqst-tower-route-ico {
+  font-size: 28px;
+}
+
+.mqst-tower-route-titles {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1 1 auto;
+}
+
+.mqst-tower-route-titles strong {
+  font-size: 16px;
+  color: var(--ink);
+}
+
+.mqst-tower-route-badge {
+  font-size: 12px;
+  font-weight: 800;
+  color: #6d28d9;
+}
+
+.mqst-tower-route-best {
+  padding: 3px 9px;
+  border-radius: 999px;
+  background: #fef9c3;
+  border: 1.5px solid #d97706;
+  color: #78350f;
+  font-size: 12px;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+
+.mqst-tower-route-desc {
+  margin: 0;
+  font-size: 13.5px;
+  color: var(--ink-soft);
+  line-height: 1.5;
+}
+
+.mqst-tower-route-tiers {
+  font-size: 12px;
+  font-weight: 700;
+  color: #5b21b6;
+  background: #f5f3ff;
+  padding: 5px 8px;
+  border-radius: 8px;
+}
+
+.mqst-tower-start-btn {
+  margin-top: auto;
+  width: 100%;
+  justify-content: center;
+  min-height: 46px;
+  font-size: 15px;
+}
+
+/* 魔王與故事收集冊 */
+.mqst-album-boss-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  margin-bottom: 18px;
+}
+
+.mqst-album-boss-card {
+  position: relative;
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  padding: 12px;
+  border-radius: 16px;
+  border: 2.5px solid var(--ink);
+  background: #ffffff;
+  box-shadow: 0 3px 0 rgba(51, 43, 34, 0.14);
+}
+
+.mqst-album-boss-card.is-locked {
+  background: #f5f0e8;
+}
+
+.mqst-album-boss-card.is-locked .mqst-album-boss-art svg {
+  filter: grayscale(0.88) opacity(0.55);
+}
+
+.mqst-album-boss-art {
+  width: 70px;
+  height: 70px;
+  flex-shrink: 0;
+  border-radius: 14px;
+  background: #fffbeb;
+  border: 2px solid rgba(51, 43, 34, 0.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.mqst-album-boss-art svg {
+  width: 60px;
+  height: 60px;
+}
+
+.mqst-album-boss-body {
+  flex: 1 1 auto;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.mqst-album-boss-top {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+}
+
+.mqst-album-boss-name {
+  font-size: 15px;
+  color: var(--ink);
+}
+
+.mqst-album-count-pill {
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: #e7e5e4;
+  color: #57534e;
+  font-size: 12px;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+
+.mqst-album-count-pill.is-hit {
+  background: #fef3c7;
+  border: 1px solid #d97706;
+  color: #92400e;
+}
+
+.mqst-album-boss-meta {
+  font-size: 12px;
+  font-weight: 800;
+  color: #0284c7;
+}
+
+.mqst-album-boss-bio {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.48;
+  color: var(--ink-soft);
+}
+
+.mqst-album-boss-quote {
+  font-size: 12px;
+  font-weight: 700;
+  color: #7c2d12;
+  background: #fff7ed;
+  padding: 4px 8px;
+  border-radius: 8px;
+  border-left: 3px solid #f97316;
+}
+
+.mqst-album-story-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.mqst-album-story-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 6px;
+  padding: 14px 12px;
+  border-radius: 18px;
+  border: 2.5px solid var(--ink);
+  background: #fffdf8;
+  box-shadow: 0 3px 0 rgba(51, 43, 34, 0.14);
+}
+
+.mqst-album-story-card.is-locked {
+  background: #f5f0e8;
+}
+
+.mqst-album-sticker-wrap {
+  width: 84px;
+  height: 84px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.mqst-album-sticker-wrap svg {
+  width: 82px;
+  height: 82px;
+}
+
+.mqst-album-story-tag {
+  padding: 2px 9px;
+  border-radius: 999px;
+  background: #e0f2fe;
+  color: #0369a1;
+  font-size: 11.5px;
+  font-weight: 800;
+}
+
+.mqst-album-story-title {
+  margin: 0;
+  font-size: 14.5px;
+  font-weight: 900;
+  color: var(--ink);
+}
+
+.mqst-album-story-text {
+  margin: 0;
+  font-size: 12.5px;
+  line-height: 1.5;
+  color: var(--ink-soft);
+}
+
+.mqst-album-story-lesson {
+  margin-top: auto;
+  width: 100%;
+  padding: 4px 6px;
+  border-radius: 8px;
+  background: #fef9c3;
+  color: #78350f;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+/* 每日委託內教室星幣上限提示條 */
+.mqst-daily-classroom-bar {
+  margin-top: 12px;
+  padding: 10px 14px;
+  border-radius: 14px;
+  border: 2px solid #0284c7;
+  background: #f0f9ff;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  font-size: 13px;
+  font-weight: 700;
+  color: #0c4a6e;
+  font-variant-numeric: tabular-nums;
+}
+
+@media (max-width: 860px) {
+  .mqst-album-boss-grid {
+    grid-template-columns: 1fr;
+  }
+  .mqst-album-story-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .mqst-tower-routes-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mqst-tower-launch-btn,
+  .mqst-tower-entry-btn {
+    transition: none;
   }
 }
 

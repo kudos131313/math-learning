@@ -21,7 +21,10 @@ import {
   getIslandById,
   getStageById,
   getStagesByRealm,
-  getSkillCardById
+  getSkillCardById,
+  BOSS_ALBUM_ENTRIES,
+  STORY_ALBUM_ENTRIES,
+  getStoryEntryById
 } from './quest-data.js';
 import { buildMulQuestion } from './multiplication.js';
 import { randInt } from './number-text.js';
@@ -589,7 +592,7 @@ export function normalizeSaveDataV2(parsed, now = new Date()) {
 
   const realmValid = REALMS.some((r) => r.id === parsed.activeRealm);
 
-  return {
+  const normalized = {
     version: 2,
     previewAll: Boolean(parsed.previewAll),
     devMode: isDevMode,
@@ -630,6 +633,8 @@ export function normalizeSaveDataV2(parsed, now = new Date()) {
     stats,
     migratedFromV1: Boolean(parsed.migratedFromV1)
   };
+  syncAlbumFromProgress(normalized);
+  return normalized;
 }
 
 /* ---------------- 跨海域星數讀寫、解鎖判定與進度查詢（相容 v1 與 v2） ---------------- */
@@ -1233,6 +1238,263 @@ export function buildGemHuntQuestions(pairs, options = {}) {
     q.rescueSnapshot = { a: q.a, b: q.b, qType: 'standard' };
     return q;
   });
+}
+
+/* ---------------- Phase 4：魔王與故事收集冊、教室精準回流解析 ---------------- */
+export function syncAlbumFromProgress(saveData) {
+  if (!isPlainObject(saveData)) return { bossesAdded: 0, storiesAdded: 0 };
+  if (!isPlainObject(saveData.bossesDefeated)) saveData.bossesDefeated = {};
+  if (!isPlainObject(saveData.unlockedStories)) saveData.unlockedStories = {};
+
+  let bossesAdded = 0;
+  let storiesAdded = 0;
+
+  ISLANDS.forEach((isl) => {
+    if (getStageStars(saveData, isl.bossStageId) >= 1 && !(Number(saveData.bossesDefeated[isl.fullId]) > 0)) {
+      saveData.bossesDefeated[isl.fullId] = 1;
+      bossesAdded++;
+    }
+  });
+
+  STORY_ALBUM_ENTRIES.forEach((entry) => {
+    if (entry.sampleStageId && getStageStars(saveData, entry.sampleStageId) >= 1 && !saveData.unlockedStories[entry.id]) {
+      saveData.unlockedStories[entry.id] = true;
+      storiesAdded++;
+    }
+  });
+
+  return { bossesAdded, storiesAdded };
+}
+
+export function resolveStoryIdForQuestion(q) {
+  if (!q || typeof q !== 'object') return null;
+  if (q.storyId && getStoryEntryById(q.storyId)) return q.storyId;
+
+  const skill = String(q.skillTag || q.skillId || '');
+  const kind = String(q.kind || '');
+  const realm = String(q.realm || '');
+  const text = String(q.storyHtml || q.spokenPrompt || q.prompt || q.word || '');
+  const a = Number(q.a) || 0;
+  const b = Number(q.b) || 0;
+  const ans = Number(q.answer ?? q.expected ?? q.ans ?? (q.slots && q.slots[0] && q.slots[0].expected)) || 0;
+
+  if (
+    realm === 'cloud' ||
+    kind === 'seq' ||
+    kind === 'place_value' ||
+    kind === 'word_two_step' ||
+    skill.startsWith('seq_') ||
+    skill.startsWith('pv_') ||
+    skill.startsWith('word_mul_')
+  ) {
+    if (kind === 'word_two_step' || skill.startsWith('word_mul_') || q.twoStepModel) {
+      if (
+        (q.twoStepModel && q.twoStepModel.step2Op === 'sub') ||
+        skill.includes('sub') ||
+        /找回|剩下|還剩|少/.test(text)
+      ) {
+        return 'patisserie_sweet_change';
+      }
+      return 'park_ferris_popcorn';
+    }
+    if (kind === 'place_value' || skill.startsWith('pv_')) return 'vault_gold_blocks';
+    if (kind === 'seq' || skill.startsWith('seq_')) return 'station_cloud_train';
+    return 'station_cloud_train';
+  }
+
+  if (
+    realm === 'sunny' ||
+    kind === 'add' ||
+    kind === 'sub' ||
+    kind === 'calc_missing' ||
+    kind === 'word_single' ||
+    skill.startsWith('add_') ||
+    skill.startsWith('sub_') ||
+    skill.startsWith('word_buy') ||
+    skill === 'word_compare' ||
+    skill === 'calc_missing'
+  ) {
+    if (skill === 'word_compare' || (q.helperSpec && q.helperSpec.type === 'bar_diagram') || /誰|比.*多|比.*少/.test(text)) {
+      return 'bay_compare_scale';
+    }
+    if (
+      skill === 'add_3d' ||
+      skill === 'sub_3d' ||
+      skill === 'sub_across_zero' ||
+      a >= 100 ||
+      b >= 100 ||
+      ans >= 100
+    ) {
+      return 'market_big_gift';
+    }
+    if (skill === 'word_buy_change' || /找回|找錢|零錢|付款|元/.test(text)) {
+      return 'bay_change_shop';
+    }
+    if (
+      skill === 'add_2d_carry' ||
+      ((q.op === 'add' || q.op === '+') && (((a % 10) + (b % 10)) >= 10)) ||
+      /糖|顆|草莓/.test(text)
+    ) {
+      return 'candy_shopping';
+    }
+    return 'bakery_morning';
+  }
+
+  if (q.qType === 'commutative' || skill === 'mul_commutative' || a === 6 || b === 6) {
+    return 'garden_flower_symmetry';
+  }
+  if ((a >= 3 && a <= 4) || (b >= 3 && b <= 4) || skill === 'mul_missing') {
+    return 'workshop_wheels_legs';
+  }
+  return 'forest_snack_groups';
+}
+
+export function unlockStoryForQuestion(saveData, q) {
+  if (!saveData || !q) return { unlocked: false, story: null };
+  if (!isPlainObject(saveData.unlockedStories)) saveData.unlockedStories = {};
+  const storyId = resolveStoryIdForQuestion(q);
+  if (!storyId) return { unlocked: false, story: null };
+  const story = getStoryEntryById(storyId);
+  if (!story) return { unlocked: false, story: null };
+  if (saveData.unlockedStories[storyId]) {
+    return { unlocked: false, story };
+  }
+  saveData.unlockedStories[storyId] = true;
+  return { unlocked: true, story };
+}
+
+export function countDefeatedBosses(saveData, { ignoreDevMode = false } = {}) {
+  if (!saveData) return 0;
+  if (saveData.devMode && !ignoreDevMode) return BOSS_ALBUM_ENTRIES.length;
+  const map = isPlainObject(saveData.bossesDefeated) ? saveData.bossesDefeated : {};
+  let cnt = 0;
+  BOSS_ALBUM_ENTRIES.forEach((entry) => {
+    if (Number(map[entry.id]) > 0 || getStageStars(saveData, entry.bossStageId) >= 1) {
+      cnt++;
+    }
+  });
+  return cnt;
+}
+
+export function countUnlockedStories(saveData, { ignoreDevMode = false } = {}) {
+  if (!saveData) return 0;
+  if (saveData.devMode && !ignoreDevMode) return STORY_ALBUM_ENTRIES.length;
+  const map = isPlainObject(saveData.unlockedStories) ? saveData.unlockedStories : {};
+  let cnt = 0;
+  STORY_ALBUM_ENTRIES.forEach((entry) => {
+    if (map[entry.id]) cnt++;
+  });
+  return cnt;
+}
+
+export function resolveClassroomTargetForQuestion(q) {
+  if (!q || typeof q !== 'object') {
+    return {
+      unit: 'mul',
+      subTab: 'learn',
+      label: '回到九九乘法探索台看陣列積木',
+      row: 3,
+      col: 4
+    };
+  }
+  const kind = String(q.kind || '');
+  const skill = String(q.skillTag || q.skillId || '');
+  const realm = String(q.realm || '');
+
+  if (kind === 'place_value' || skill.startsWith('pv_')) {
+    const pv = q.placeValueModel || q.helperSpec || {};
+    const composedFromBlocks =
+      (Number(pv.h || 0) * 100) + (Number(pv.t || 0) * 10) + Number(pv.o || 0);
+    const slotExpected = q.slots && q.slots[0] && q.slots[0].expected;
+    const rawNum = Number(
+      q.expected ?? slotExpected ?? q.targetNum ?? (composedFromBlocks > 0 ? composedFromBlocks : 305)
+    );
+    const presetNum = Number.isFinite(rawNum) && rawNum >= 10 && rawNum <= 9999 ? Math.floor(rawNum) : 305;
+    return {
+      unit: 'learn',
+      subTab: 'learn',
+      label: '回到位值探索台看積木排數字',
+      presetNum
+    };
+  }
+
+  if (kind === 'seq' || skill.startsWith('seq_')) {
+    const seqModel = q.sequenceModel || q.helperSpec || {};
+    const nums = Array.isArray(seqModel.numbers) ? seqModel.numbers : [];
+    const startNum = Number.isFinite(Number(nums[0]))
+      ? Math.max(0, Math.min(900, Math.floor(Number(nums[0]))))
+      : 185;
+    const step = Number.isFinite(Number(seqModel.step)) && Number(seqModel.step) !== 0
+      ? Math.floor(Number(seqModel.step))
+      : 10;
+    return {
+      unit: 'seq',
+      subTab: 'learn',
+      label: '回到跳數列車教室看數字節奏',
+      startNum,
+      step
+    };
+  }
+
+  if (
+    realm === 'sunny' ||
+    kind === 'add' ||
+    kind === 'sub' ||
+    kind === 'calc_missing' ||
+    kind === 'word_single' ||
+    skill.startsWith('add_') ||
+    skill.startsWith('sub_') ||
+    skill === 'calc_missing' ||
+    skill.startsWith('word_buy') ||
+    skill === 'word_compare'
+  ) {
+    const eq = q.equationModel || {};
+    const hSpec = q.helperSpec || {};
+    const rawOp = q.op || eq.op || hSpec.op || '+';
+    const op = rawOp === 'sub' || rawOp === '-' ? '-' : '+';
+
+    let rawA = q.a ?? hSpec.a ?? eq.left;
+    let rawB = q.b ?? hSpec.b ?? eq.right;
+    if (kind === 'calc_missing') {
+      if (rawA == null || rawB == null) {
+        const cVal = Number(hSpec.c ?? eq.result ?? 60);
+        const knownVal = Number(rawA ?? rawB ?? hSpec.a ?? hSpec.b ?? 24);
+        rawA = op === '-' ? Math.max(cVal, knownVal) : Math.max(knownVal, cVal - knownVal);
+        rawB = op === '-' ? Math.min(cVal, knownVal) : Math.min(knownVal, Math.abs(cVal - knownVal));
+      }
+    }
+
+    let a = Number.isFinite(Number(rawA)) ? Math.floor(Number(rawA)) : 48;
+    let b = Number.isFinite(Number(rawB)) ? Math.floor(Number(rawB)) : 25;
+    a = Math.max(10, Math.min(999, a));
+    b = Math.max(1, Math.min(999, b));
+    if (op === '-' && a < b) {
+      const tmp = a;
+      a = b;
+      b = tmp;
+    }
+    return {
+      unit: 'calc',
+      subTab: 'learn',
+      label: '回到直式加減積木教室看進退位',
+      op,
+      a,
+      b
+    };
+  }
+
+  // 乘法海域或兩步驟應用題優先帶回九九乘法探索台看「幾個幾」積木陣列
+  const rawA = Number(q.a);
+  const rawB = Number(q.b);
+  const row = Number.isFinite(rawA) && rawA >= 1 && rawA <= 9 ? Math.floor(rawA) : 3;
+  const col = Number.isFinite(rawB) && rawB >= 1 && rawB <= 9 ? Math.floor(rawB) : 4;
+  return {
+    unit: 'mul',
+    subTab: 'learn',
+    label: '回到九九乘法探索台看陣列積木',
+    row,
+    col
+  };
 }
 
 export { toLegacyPartnerId };

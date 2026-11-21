@@ -23,6 +23,8 @@ import { CN_DIGITS, getMantra, getSpokenExplanation } from '../src/domain/multip
   };
 
   var els = {};
+  var mulClickOps = 0;
+  var lastMulEmitAt = 0;
 
   /* 綁定 DOM 參考 */
   function cacheDom(){
@@ -90,7 +92,10 @@ import { CN_DIGITS, getMantra, getSpokenExplanation } from '../src/domain/multip
         state.revealedMap[targetA + 'x' + stepB] = true;
       }
       setFactors(targetA, stepB, { silentStopRow: true, speakShort: true });
-      if(stepB === 1 && MathApp.emit) MathApp.emit('mulExplore', { action: 'playRow', a: targetA });
+      if(stepB === 1 && MathApp.emit){
+        MathApp.emit('mulExplore', { action: 'playRow', a: targetA });
+        MathApp.emit('classroomPractice', { unit: 'mul', action: 'explore', count: 1 });
+      }
       stepB++;
       state.playRowTimer = setTimeout(playStep, 1950);
     }
@@ -328,6 +333,7 @@ import { CN_DIGITS, getMantra, getSpokenExplanation } from '../src/domain/multip
     }
     if(MathApp.emit){
       MathApp.emit('mulExplore', { action: 'swap', a: state.a, b: state.b });
+      MathApp.emit('classroomPractice', { unit: 'mul', action: 'explore', count: 1 });
     }
   }
 
@@ -471,6 +477,16 @@ import { CN_DIGITS, getMantra, getSpokenExplanation } from '../src/domain/multip
           }
           if(MathApp.sfx) MathApp.sfx('pop');
           setFactors(a, b, { speakShort: true });
+          mulClickOps++;
+          var nowMul = Date.now();
+          if(mulClickOps >= 2 && nowMul - lastMulEmitAt >= 1500){
+            mulClickOps = 0;
+            lastMulEmitAt = nowMul;
+            if(MathApp.emit){
+              MathApp.emit('mulExplore', { action: 'grid', a: a, b: b });
+              MathApp.emit('classroomPractice', { unit: 'mul', action: 'explore', count: 1 });
+            }
+          }
         }
       });
     }

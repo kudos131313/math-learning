@@ -60,7 +60,12 @@ import {
   buildStageQuestions as buildQuestStageQuestions,
   buildRescueQuestions as buildQuestRescueQuestions,
   getCollectableUnlitGems as findCollectableUnlitGems,
-  buildGemHuntQuestions as buildQuestGemHuntQuestions
+  buildGemHuntQuestions as buildQuestGemHuntQuestions,
+  unlockStoryForQuestion,
+  syncAlbumFromProgress,
+  countDefeatedBosses,
+  countUnlockedStories,
+  resolveClassroomTargetForQuestion
 } from '../src/domain/quest-questions.js';
 import {
   ensureDailyQuests,
@@ -82,8 +87,31 @@ import {
   purchaseTreehouseItem,
   equipTreehouseSlot,
   toggleTreehousePlaymate,
-  feedPartnerSnack
+  feedPartnerSnack,
+  applyClassroomPracticeReward,
+  CLASSROOM_DAILY_COIN_CAP
 } from '../src/domain/quest-retention.js';
+import {
+  TOWER_MAX_HEARTS,
+  TOWER_BOSS_INTERVAL,
+  TOWER_COINS_PER_FLOOR,
+  TOWER_BOSS_CHEST_COINS,
+  TOWER_ROUTES,
+  getTowerRouteById,
+  isTowerUnlocked,
+  isTowerBossFloor,
+  getTowerGuardianForFloor,
+  generateTowerFloorQuestion,
+  createTowerRunState,
+  applyTowerWrongAnswer,
+  applyTowerFloorClear,
+  recordTowerBestFloor,
+  getTowerBestFloor
+} from '../src/domain/quest-tower.js';
+import {
+  BOSS_ALBUM_ENTRIES,
+  STORY_ALBUM_ENTRIES
+} from '../src/domain/quest-data.js';
 import { generateCalcChoices } from '../src/domain/quest-calc-questions.js';
 import { generateCloudChoices } from '../src/domain/quest-cloud-questions.js';
 import { renderCalcEquationHtml, renderCalcHelperHtml } from '../src/quest/calc-ui.js';
@@ -145,6 +173,11 @@ import { createQuestDialogs } from '../src/quest/dialogs.js';
     active: false,
     isRescueMode: false,
     isGemHuntMode: false,
+    isTowerMode: false,
+    towerRun: null,
+    towerGameOver: false,
+    wrongCountOnCurrent: 0,
+    lastClassroomTarget: null,
     isMovingOnMap: false,
     stage: null,
     questions: [],
@@ -375,9 +408,11 @@ import { createQuestDialogs } from '../src/quest/dialogs.js';
 
   var renderDexDialog = dialogs.renderDexDialog;
   var renderWardrobePane = dialogs.renderWardrobePane;
+  var renderAlbumPane = dialogs.renderAlbumPane;
   var renderDailyDialog = dialogs.renderDailyDialog;
   var renderShopDialog = dialogs.renderShopDialog;
   var renderTreehouseView = dialogs.renderTreehouseView;
+  var renderTowerDialog = dialogs.renderTowerDialog;
   var setupDialogPolyfill = dialogs.setupDialogPolyfill;
   var refreshParentLock = dialogs.refreshParentLock;
   var updatePreviewToggleBtn = dialogs.updatePreviewToggleBtn;
@@ -394,6 +429,7 @@ import { createQuestDialogs } from '../src/quest/dialogs.js';
     els.launchCostumes = document.getElementById('mqst-launch-costumes');
     els.launcherRealms = document.getElementById('mqst-launcher-realms');
     els.enterArcadeBtn = document.getElementById('mqst-enter-arcade-btn');
+    els.launchTowerBtn = document.getElementById('mqst-launch-tower-btn');
     els.arcadeOverlay  = document.getElementById('mqst-arcade-overlay');
     els.exitArcadeBtn  = document.getElementById('mqst-exit-arcade-btn');
     els.battleExitBtn  = document.getElementById('mqst-battle-exit-btn');
@@ -423,6 +459,8 @@ import { createQuestDialogs } from '../src/quest/dialogs.js';
 
     els.mapView        = document.getElementById('mqst-map-view');
     els.realmTabs      = document.getElementById('mqst-realm-tabs');
+    els.openTowerBtn   = document.getElementById('mqst-open-tower-btn');
+    els.towerEntryTag  = document.getElementById('mqst-tower-entry-tag');
     els.devBadge       = document.getElementById('mqst-dev-badge');
     els.previewBadge   = document.getElementById('mqst-preview-badge');
     els.worldViewport  = document.getElementById('mqst-world-viewport');
@@ -438,7 +476,15 @@ import { createQuestDialogs } from '../src/quest/dialogs.js';
 
     els.battleView     = document.getElementById('mqst-battle-view');
     els.backMapBtn     = document.getElementById('mqst-back-map-btn');
+    els.battleProgressWrap = document.querySelector('#mqst-battle-view .mqst-battle-progress-wrap');
     els.stageChip      = document.getElementById('mqst-stage-chip');
+    els.towerHud       = document.getElementById('mqst-tower-hud');
+    els.towerFloorBadge= document.getElementById('mqst-tower-floor-badge');
+    els.towerRouteTag  = document.getElementById('mqst-tower-route-tag');
+    els.towerHearts    = document.getElementById('mqst-tower-hearts');
+    els.towerNextBossChip = document.getElementById('mqst-tower-nextboss-chip');
+    els.towerCoinsEarned  = document.getElementById('mqst-tower-coins-earned');
+    els.towerRetreatBtn   = document.getElementById('mqst-tower-retreat-btn');
     els.progressTrack  = document.querySelector('#mqst-battle-view .mqst-progress-track');
     els.qProgressText  = document.getElementById('mqst-q-progress-text');
     els.comboPill      = document.getElementById('mqst-combo-pill');
@@ -486,6 +532,9 @@ import { createQuestDialogs } from '../src/quest/dialogs.js';
     els.typeBadge      = document.getElementById('mqst-type-badge');
     els.formatToggleBtn= document.getElementById('mqst-format-toggle-btn');
     els.promptText     = document.getElementById('mqst-prompt-text');
+    els.stuckBanner    = document.getElementById('mqst-stuck-banner');
+    els.stuckMsg       = document.getElementById('mqst-stuck-msg');
+    els.stuckGotoBtn   = document.getElementById('mqst-stuck-goto-classroom-btn');
     els.speakBtn       = document.getElementById('mqst-speak-btn');
     els.questionStage  = document.getElementById('mqst-question-stage');
     els.storyBanner    = document.getElementById('mqst-story-banner');
@@ -520,6 +569,8 @@ import { createQuestDialogs } from '../src/quest/dialogs.js';
     els.resMaxCombo    = document.getElementById('mqst-res-max-combo');
     els.resNextBtn     = document.getElementById('mqst-res-next-btn');
     els.resRetryBtn    = document.getElementById('mqst-res-retry-btn');
+    els.resClassroomBtn= document.getElementById('mqst-res-classroom-btn');
+    els.resClassroomLbl= document.getElementById('mqst-res-classroom-lbl');
     els.resMapBtn      = document.getElementById('mqst-res-map-btn');
 
     els.treehouseView  = document.getElementById('mqst-treehouse-view');
@@ -539,7 +590,11 @@ import { createQuestDialogs } from '../src/quest/dialogs.js';
     els.paneSkills     = document.getElementById('mqst-pane-skills');
     els.paneWardrobe   = document.getElementById('mqst-pane-wardrobe');
     els.paneSprites    = document.getElementById('mqst-pane-sprites');
+    els.paneAlbum      = document.getElementById('mqst-pane-album');
     els.paneBadges     = document.getElementById('mqst-pane-badges');
+
+    els.towerDialog    = document.getElementById('mqst-tower-dialog');
+    els.towerBody      = document.getElementById('mqst-tower-body');
 
     els.dailyDialog    = document.getElementById('mqst-daily-dialog');
     els.dailyBody      = document.getElementById('mqst-daily-body');
@@ -703,6 +758,29 @@ import { createQuestDialogs } from '../src/quest/dialogs.js';
     }
     if(els.previewBadge){
       els.previewBadge.style.display = saveData.previewAll ? 'inline-flex' : 'none';
+    }
+    var towerOpen = isTowerUnlocked(saveData);
+    var towerBest = getTowerBestFloor(saveData);
+    if(els.openTowerBtn){
+      els.openTowerBtn.classList.toggle('is-unlocked', towerOpen);
+      els.openTowerBtn.classList.toggle('is-locked', !towerOpen);
+    }
+    if(els.launchTowerBtn){
+      els.launchTowerBtn.classList.toggle('is-unlocked', towerOpen);
+      els.launchTowerBtn.classList.toggle('is-locked', !towerOpen);
+    }
+    if(els.towerEntryTag){
+      if(!towerOpen){
+        els.towerEntryTag.style.display = 'inline-flex';
+        els.towerEntryTag.className = 'mqst-realm-badge locked mqst-tower-entry-tag';
+        els.towerEntryTag.textContent = '🔒 未解鎖';
+      } else if(towerBest > 0){
+        els.towerEntryTag.style.display = 'inline-flex';
+        els.towerEntryTag.className = 'mqst-realm-badge mqst-tower-entry-tag';
+        els.towerEntryTag.textContent = '🏆 ' + towerBest + ' 層';
+      } else {
+        els.towerEntryTag.style.display = 'none';
+      }
     }
     renderLauncherRealms();
   }
@@ -1051,6 +1129,7 @@ import { createQuestDialogs } from '../src/quest/dialogs.js';
     if(els.paneSkills)   els.paneSkills.hidden   = (target !== 'skills');
     if(els.paneWardrobe) els.paneWardrobe.hidden = (target !== 'wardrobe');
     if(els.paneSprites)  els.paneSprites.hidden  = (target !== 'sprites');
+    if(els.paneAlbum)    els.paneAlbum.hidden    = (target !== 'album');
     if(els.paneBadges)   els.paneBadges.hidden   = (target !== 'badges');
   }
 
@@ -1202,11 +1281,111 @@ import { createQuestDialogs } from '../src/quest/dialogs.js';
   }
 
   /* ---------------- 開始關卡或特訓戰鬥 ---------------- */
-  function initBattleSessionState({ stage, questions, isRescueMode, isGemHuntMode }){
+  function navigateToClassroom(target){
+    var info = target && typeof target === 'object' ? target : null;
+    if(els.dexDialog && els.dexDialog.open) els.dexDialog.close();
+    if(els.dailyDialog && els.dailyDialog.open) els.dailyDialog.close();
+    if(els.towerDialog && els.towerDialog.open) els.towerDialog.close();
+    closeArcade();
+
+    if(!info || !info.unit){
+      var fallbackUnit = saveData.activeRealm === 'sunny' ? 'calc' : (saveData.activeRealm === 'cloud' ? 'seq' : 'mul');
+      if(MathApp.tabs){
+        MathApp.tabs.switchMainTab(fallbackUnit);
+        MathApp.tabs.switchSubTab(fallbackUnit, 'learn');
+      }
+      if(MathApp.utils && MathApp.utils.showToast){
+        MathApp.utils.showToast('🏫 已來到教學積木教室！動手操作積木或答對測驗題就能賺星星幣喔！');
+      }
+      return;
+    }
+
+    var unit = info.unit;
+    if(MathApp.tabs){
+      MathApp.tabs.switchMainTab(unit);
+      var subKey = unit === 'learn' ? 'pv' : unit;
+      MathApp.tabs.switchSubTab(subKey, info.subTab || 'learn');
+    }
+
+    if(unit === 'calc' && MathApp.calc && MathApp.calc.loadProblem){
+      MathApp.calc.loadProblem(info.a || 38, info.b || 25, info.op === '-' || info.op === 'sub' ? 'sub' : 'add');
+      if(MathApp.utils && MathApp.utils.showToast){
+        var opSym = (info.op === '-' || info.op === 'sub') ? ' − ' : ' ＋ ';
+        MathApp.utils.showToast('🧱 已帶入 ' + (info.a || 38) + opSym + (info.b || 25) + ' 到直式積木教室，按「下一步」慢慢看！');
+      }
+    } else if(unit === 'learn' && MathApp.learn && MathApp.learn.loadNumber){
+      MathApp.learn.loadNumber(info.presetNum || 305);
+      if(MathApp.utils && MathApp.utils.showToast){
+        MathApp.utils.showToast('🧱 已在位值積木教室排好數字 ' + (info.presetNum || 305) + '，觀察百／十／個積木！');
+      }
+    } else if(unit === 'seq' && MathApp.seq && MathApp.seq.loadSequence){
+      MathApp.seq.loadSequence(info.startNum != null ? info.startNum : 185, info.step || 10);
+      if(MathApp.utils && MathApp.utils.showToast){
+        MathApp.utils.showToast('🚂 已帶入「' + (info.startNum != null ? info.startNum : 185) + ' 起跳（步長 ' + (info.step || 10) + '）」到跳數列車教室！');
+      }
+    } else if(unit === 'mul' && MathApp.mul && MathApp.mul.setFactors){
+      MathApp.mul.setFactors(info.row || 3, info.col || 4, { silentStopRow: true });
+      if(MathApp.utils && MathApp.utils.showToast){
+        MathApp.utils.showToast('📐 已切換至 ' + (info.row || 3) + ' × ' + (info.col || 4) + ' 乘法陣列積木！');
+      }
+    }
+  }
+
+  function renderTowerHud(){
+    if(!session.isTowerMode || !session.towerRun) return;
+    var run = session.towerRun;
+    var routeObj = getTowerRouteById(run.routeId);
+    if(els.towerFloorBadge){
+      els.towerFloorBadge.textContent = '🗼 第 ' + run.currentFloor + ' 層';
+    }
+    if(els.towerRouteTag){
+      els.towerRouteTag.textContent = routeObj.name;
+    }
+    if(els.towerHearts){
+      var hStr = '';
+      for(var i = 0; i < TOWER_MAX_HEARTS; i++){
+        hStr += i < run.hearts ? '<span class="mqst-heart-pip is-full">❤️</span>' : '<span class="mqst-heart-pip is-empty">🤍</span>';
+      }
+      els.towerHearts.innerHTML = hStr;
+      els.towerHearts.setAttribute('aria-label', '剩餘 ' + run.hearts + ' 顆愛心');
+    }
+    if(els.towerNextBossChip){
+      if(isTowerBossFloor(run.currentFloor)){
+        els.towerNextBossChip.textContent = '👑 本層守塔小魔王！';
+        els.towerNextBossChip.classList.add('is-boss');
+      } else {
+        var nextBossFloor = (Math.floor((run.currentFloor - 1) / TOWER_BOSS_INTERVAL) + 1) * TOWER_BOSS_INTERVAL;
+        els.towerNextBossChip.textContent = '第 ' + nextBossFloor + ' 層守塔魔王';
+        els.towerNextBossChip.classList.remove('is-boss');
+      }
+    }
+    if(els.towerCoinsEarned){
+      els.towerCoinsEarned.textContent = String(run.earnedCoins || 0);
+    }
+  }
+
+  function openTowerDialog(){
+    if(!els.towerDialog) return;
+    if(MathApp.sfx) MathApp.sfx('click');
+    if(!session.arcadeOpen){
+      openArcade();
+    }
+    renderTowerDialog();
+    els.towerDialog.showModal();
+  }
+
+  function initBattleSessionState({ stage, questions, isRescueMode, isGemHuntMode, isTowerMode }){
     ensureDailyQuests(saveData, getLocalDateKey());
     session.active = true;
     session.isRescueMode = Boolean(isRescueMode);
     session.isGemHuntMode = Boolean(isGemHuntMode);
+    session.isTowerMode = Boolean(isTowerMode);
+    if(!isTowerMode){
+      session.towerRun = null;
+    }
+    session.towerGameOver = false;
+    session.wrongCountOnCurrent = 0;
+    session.lastClassroomTarget = null;
     session.stage = stage || null;
     session.cloudUnlockedBefore = isRealmUnlocked('cloud', saveData);
     session.questions = questions;
@@ -1293,9 +1472,177 @@ import { createQuestDialogs } from '../src/quest/dialogs.js';
       stage: null,
       questions: buildGemHuntQuestions(unlit),
       isRescueMode: false,
-      isGemHuntMode: true
+      isGemHuntMode: true,
+      isTowerMode: false
     });
     beginBattleUI('💎 未點亮寶石補完特訓', 'assets/quest/bg-castle.jpg', 'castle', null);
+  }
+
+  function startTowerRun(routeId){
+    if(!isTowerUnlocked(saveData)){
+      if(MathApp.utils && MathApp.utils.showToast){
+        MathApp.utils.showToast('🔒 先打敗任一海域第 1 座島魔王（或開啟預習模式）即可解鎖無盡試煉塔！');
+      }
+      return;
+    }
+    if(els.towerDialog && els.towerDialog.open) els.towerDialog.close();
+    if(!session.arcadeOpen) openArcade();
+
+    var run = createTowerRunState(routeId || 'all');
+    var firstQ = generateTowerFloorQuestion(run.routeId, 1);
+    if(firstQ){
+      run.recentTemplateId = firstQ.templateId || '';
+      if(firstQ.rescueDedupeKey) run.recentDedupeKeys = [firstQ.rescueDedupeKey];
+    }
+    initBattleSessionState({
+      stage: null,
+      questions: [firstQ],
+      isRescueMode: false,
+      isGemHuntMode: false,
+      isTowerMode: true
+    });
+    session.towerRun = run;
+    session.enemyMaxHp = 1;
+    session.enemyHp = 1;
+    session.bossShieldMax = 0;
+    session.bossShield = 0;
+
+    var routeObj = getTowerRouteById(run.routeId);
+    var guardian = isTowerBossFloor(1) ? getTowerGuardianForFloor(1, run.routeId) : null;
+    beginBattleUI('🗼 無盡試煉塔 · ' + routeObj.name, routeObj.bgImg, 'skycastle', guardian);
+  }
+
+  function advanceTowerFloor(){
+    if(!session.isTowerMode || !session.towerRun) return;
+    var run = session.towerRun;
+    var nextFloor = run.currentFloor;
+    var routeObj = getTowerRouteById(run.routeId);
+    var nextQ = generateTowerFloorQuestion(run.routeId, nextFloor, {
+      avoidTemplateId: run.recentTemplateId,
+      avoidDedupeKeys: run.recentDedupeKeys
+    });
+    if(nextQ){
+      run.recentTemplateId = nextQ.templateId || '';
+      if(nextQ.rescueDedupeKey){
+        run.recentDedupeKeys = (run.recentDedupeKeys || []).concat([nextQ.rescueDedupeKey]).slice(-8);
+      }
+    }
+    var isBossF = isTowerBossFloor(nextFloor);
+    var guardian = isBossF ? getTowerGuardianForFloor(nextFloor, run.routeId) : null;
+
+    session.questions = [nextQ];
+    session.idx = 0;
+    session.enemyMaxHp = 1;
+    session.enemyHp = 1;
+    session.bossShieldMax = 0;
+    session.bossShield = 0;
+    session.battleBossObj = guardian;
+    session.battleTheme = guardian ? guardian.theme : 'skycastle';
+
+    if(els.stageBgImg) els.stageBgImg.src = guardian ? guardian.bgImg : routeObj.bgImg;
+    if(els.stageArena) els.stageArena.setAttribute('data-theme', session.battleTheme);
+    if(guardian){
+      if(els.bossName) els.bossName.textContent = guardian.name;
+      if(els.bossTaunt) els.bossTaunt.textContent = guardian.tauntStart;
+      if(MathApp.audio && MathApp.audio.startBgm) MathApp.audio.startBgm('boss');
+    } else {
+      if(els.bossName) els.bossName.textContent = '第 ' + nextFloor + ' 層試煉守護石像';
+      if(els.bossTaunt) els.bossTaunt.textContent = '「慢慢想清楚再作答，沒有計時壓力喔！」';
+    }
+
+    renderEnemyHp();
+    renderTowerHud();
+    renderCurrentQuestion();
+  }
+
+  function finishTowerRun(reason){
+    if(!session.towerRun) return;
+    var run = session.towerRun;
+    var routeObj = getTowerRouteById(run.routeId);
+    var bestRes = recordTowerBestFloor(saveData, run.routeId, run.clearedFloors);
+    syncAlbumFromProgress(saveData);
+    var newBadges = checkAndUnlockBadges();
+    var newCostumes = checkAndUnlockCostumes(false);
+    persistSave();
+    updateHubStats();
+
+    if(els.arcadeOverlay) els.arcadeOverlay.setAttribute('data-realm', 'tower');
+    showView('result');
+
+    var stars = run.clearedFloors >= 10 ? 3 : (run.clearedFloors >= 5 ? 2 : (run.clearedFloors >= 1 ? 1 : 0));
+    var partner = getActivePartnerIsland();
+    if(els.victoryBunny) els.victoryBunny.innerHTML = getPinkBunnySvg(stars >= 2 ? 'happy' : 'normal');
+    if(els.victorySprite){
+      if(partner){
+        var showBond = getPartnerBondInfo(saveData, partner.fullId);
+        els.victorySprite.style.display = 'block';
+        els.victorySprite.innerHTML = getCharacterSvg(partner.theme, false, 'happy', { bondLevel: showBond.level });
+      } else {
+        els.victorySprite.style.display = 'none';
+      }
+    }
+
+    var starNodes = els.resultStars ? els.resultStars.querySelectorAll('.mqst-star-item') : [];
+    for(var s = 0; s < starNodes.length; s++){
+      starNodes[s].classList.toggle('earned', (s + 1) <= stars);
+    }
+
+    var totalCleared = run.clearedFloors;
+    if(els.resultTitle){
+      els.resultTitle.textContent = totalCleared > 0
+        ? ('🗼 無盡試煉塔 · 挑戰成功至第 ' + totalCleared + ' 層！')
+        : '🗼 試煉塔暖身挑戰結束！';
+    }
+    if(els.resultSub){
+      els.resultSub.textContent = bestRes.isNewRecord && totalCleared > 0
+        ? ('🏆 恭喜打破【' + routeObj.name + '】最高紀錄！（個人最佳：第 ' + bestRes.newBest + ' 層）')
+        : (reason === 'hearts_depleted'
+            ? ('❤️ 愛心用完囉！已經獲得 +' + run.earnedCoins + ' 🪙，下次一定能爬得更高！（最佳：第 ' + bestRes.newBest + ' 層）')
+            : ('✨ 已安全帶著 +' + run.earnedCoins + ' 🪙 與爬塔紀錄回到休息營地！（最佳：第 ' + bestRes.newBest + ' 層）'));
+    }
+
+    if(els.resFirstAcc) els.resFirstAcc.textContent = '第 ' + totalCleared + ' 層';
+    if(els.resCoins)    els.resCoins.textContent    = '+' + run.earnedCoins + ' 🪙';
+    if(els.resCollectLbl) els.resCollectLbl.textContent = '守塔小魔王';
+    if(els.resNewGems)  els.resNewGems.textContent  = (run.bossDefeatedCount || 0) + ' 👑';
+    if(els.resMaxCombo) els.resMaxCombo.textContent = session.maxCombo + ' 🔥';
+
+    if(els.resNextBtn){
+      els.resNextBtn.style.display = 'inline-flex';
+      els.resNextBtn.innerHTML = '<i data-lucide="play" aria-hidden="true"></i> <span>再爬一次 ' + routeObj.name + '</span>';
+    }
+    if(els.resRetryBtn){
+      els.resRetryBtn.style.display = 'inline-flex';
+      els.resRetryBtn.innerHTML = '<i data-lucide="compass" aria-hidden="true"></i> <span>換別條路線</span>';
+    }
+    if(els.resClassroomBtn){
+      if(session.lastClassroomTarget){
+        els.resClassroomBtn.style.display = 'inline-flex';
+        if(els.resClassroomLbl) els.resClassroomLbl.textContent = session.lastClassroomTarget.label;
+      } else {
+        els.resClassroomBtn.style.display = 'none';
+      }
+    }
+
+    var showcaseHtml = '';
+    if(bestRes.isNewRecord && totalCleared > 0){
+      showcaseHtml += '<div class="mqst-unlock-banner" style="background:linear-gradient(135deg,#ede9fe 0%,#fef3c7 100%);border-color:#7c3aed;">' +
+        '<span style="font-size:32px;" aria-hidden="true">🏆</span>' +
+        '<div><div>刷新【' + routeObj.name + '】最高紀錄：第 ' + bestRes.newBest + ' 層！</div>' +
+        '<div style="font-size:13px;font-weight:700;color:var(--ink-soft);">共通過 ' + totalCleared + ' 層，累積獲得 +' + run.earnedCoins + ' 🪙 星星幣！</div></div></div>';
+    }
+    newCostumes.forEach(function(c){
+      showcaseHtml += '<div class="mqst-unlock-banner is-costume"><div><div>🎀 解鎖小兔新造型：【' + c.name + '】！</div></div></div>';
+    });
+    newBadges.forEach(function(b){
+      showcaseHtml += '<div class="mqst-unlock-banner" style="background:linear-gradient(135deg,#ede9fe 0%,#ddd6fe 100%);"><span style="font-size:32px;">' + b.icon + '</span><div><div>🏅 解鎖新成就徽章：【' + b.name + '】！</div></div></div>';
+    });
+    if(els.unlockShowcase) els.unlockShowcase.innerHTML = showcaseHtml;
+    if(MathApp.refreshIcons) MathApp.refreshIcons();
+    if(MathApp.sfx) MathApp.sfx(totalCleared > 0 ? 'fanfare' : 'pop');
+    if(MathApp.utils && MathApp.utils.launchConfetti && totalCleared >= 5){
+      MathApp.utils.launchConfetti(true);
+    }
   }
 
   function updateBattleMoods(heroMood, enemyMood, partnerMood){
@@ -1385,14 +1732,18 @@ import { createQuestDialogs } from '../src/quest/dialogs.js';
   function beginBattleUI(chipTitle, bgSrc, theme, bossObj){
     session.battleTheme = theme;
     session.battleBossObj = bossObj;
-    var battleRealmId = (session.stage && session.stage.realmId)
-      ? session.stage.realmId
-      : (theme === 'bakery' || theme === 'candy' || theme === 'bay' || theme === 'market' || theme === 'lighthouse')
-        ? 'sunny'
-        : (theme === 'station' || theme === 'vault' || theme === 'park' || theme === 'patisserie' || theme === 'skycastle')
-          ? 'cloud'
-          : (saveData.activeRealm || 'mul');
+    var battleRealmId = session.isTowerMode
+      ? 'tower'
+      : (session.stage && session.stage.realmId)
+        ? session.stage.realmId
+        : (theme === 'bakery' || theme === 'candy' || theme === 'bay' || theme === 'market' || theme === 'lighthouse')
+          ? 'sunny'
+          : (theme === 'station' || theme === 'vault' || theme === 'park' || theme === 'patisserie' || theme === 'skycastle')
+            ? 'cloud'
+            : (saveData.activeRealm || 'mul');
     if(els.arcadeOverlay) els.arcadeOverlay.setAttribute('data-realm', battleRealmId);
+    if(els.battleProgressWrap) els.battleProgressWrap.style.display = session.isTowerMode ? 'none' : 'flex';
+    if(els.towerHud) els.towerHud.style.display = session.isTowerMode ? 'flex' : 'none';
     showView('battle');
     if(MathApp.audio && MathApp.audio.startBgm){
       MathApp.audio.startBgm(bossObj ? 'boss' : 'battle');
@@ -1400,12 +1751,18 @@ import { createQuestDialogs } from '../src/quest/dialogs.js';
     if(els.stageChip) els.stageChip.textContent = chipTitle;
     if(els.stageBgImg) els.stageBgImg.src = bgSrc;
     if(els.stageArena) els.stageArena.setAttribute('data-theme', theme);
+    if(session.isTowerMode){
+      renderTowerHud();
+    }
 
     if(bossObj){
       if(els.bossName)  els.bossName.textContent  = bossObj.name;
       if(els.bossTaunt) els.bossTaunt.textContent = session.bossShield > 0
         ? ('「先打破我的 ' + session.bossShield + ' 層魔法護盾再說吧！」')
         : bossObj.tauntStart;
+    } else if(session.isTowerMode && session.towerRun){
+      if(els.bossName)  els.bossName.textContent  = '第 ' + session.towerRun.currentFloor + ' 層試煉守護石像';
+      if(els.bossTaunt) els.bossTaunt.textContent = '「沒有計時壓力，想清楚就能一直往上爬喔！」';
     } else {
       if(els.bossName)  els.bossName.textContent  = session.isRescueMode ? '迷路小精靈籠子' : (session.isGemHuntMode ? '閃耀寶石守護箱' : '關卡寶箱怪');
       if(els.bossTaunt) els.bossTaunt.textContent = session.isRescueMode
@@ -1554,9 +1911,11 @@ import { createQuestDialogs } from '../src/quest/dialogs.js';
     var q = session.questions[session.idx];
     session.locked = false;
     session.hadWrongOnCurrent = false;
+    session.wrongCountOnCurrent = 0;
     session.usedHelperOnCurrent = false;
     session.guidedStepIdx = 0;
     session.displayFormat = q.displayFormat || 'equation';
+    if(els.stuckBanner) els.stuckBanner.style.display = 'none';
     updateBattleMoods(session.combo >= 3 ? 'fever' : 'normal', 'normal', 'normal');
     updatePartnerSkillButton();
     updateBattleProgressUI(session.idx);
@@ -1849,6 +2208,35 @@ import { createQuestDialogs } from '../src/quest/dialogs.js';
       luckyDropNote = '（🌟 幸運掉落 +' + luckyDrop + '🪙！）';
     }
 
+    var storyRes = unlockStoryForQuestion(saveData, q);
+    var storyNote = (storyRes.unlocked && storyRes.story)
+      ? (' 📖 解鎖故事貼紙【' + storyRes.story.title + '】！')
+      : '';
+
+    var towerNote = '';
+    var clearedTowerFloor = 0;
+    var wasTowerBossFloor = false;
+    if(session.isTowerMode && session.towerRun){
+      clearedTowerFloor = session.towerRun.currentFloor;
+      wasTowerBossFloor = isTowerBossFloor(clearedTowerFloor);
+      var towerRes = applyTowerFloorClear(session.towerRun);
+      saveData.starCoins = Number(saveData.starCoins || 0) + towerRes.totalFloorCoins;
+      session.earnedCoinsThisRun = Number(session.earnedCoinsThisRun || 0) + towerRes.totalFloorCoins;
+      recordTowerBestFloor(saveData, session.towerRun.routeId, towerRes.clearedFloor);
+      recordDailyQuestProgress(
+        saveData,
+        { type: 'tower_floor_clear', floor: towerRes.clearedFloor, isClean: cleanFirstTry },
+        getLocalDateKey()
+      );
+      renderTowerHud();
+      if(towerRes.isBossFloor){
+        towerNote = '（👑 擊敗第 ' + towerRes.clearedFloor + ' 層守塔小魔王！+' + towerRes.totalFloorCoins + '🪙' +
+          (towerRes.healedHeart ? ' ＋補回 1❤️' : '') + '！）';
+      } else {
+        towerNote = '（🗼 通過第 ' + towerRes.clearedFloor + ' 層 +' + towerRes.totalFloorCoins + '🪙！）';
+      }
+    }
+
     recordDailyQuestProgress(
       saveData,
       {
@@ -1881,12 +2269,16 @@ import { createQuestDialogs } from '../src/quest/dialogs.js';
       } else {
         els.bossTaunt.textContent = session.stage.boss.tauntHit;
       }
+    } else if(session.isTowerMode && els.bossTaunt){
+      els.bossTaunt.textContent = wasTowerBossFloor
+        ? ('「太強了！第 ' + clearedTowerFloor + ' 層守塔寶箱和愛心能量送給你！」')
+        : '「漂亮的一擊！準備爬向下一層吧！」';
     } else if(els.bossTaunt){
       els.bossTaunt.textContent = (session.enemyHp === 0) ? '「寶箱喀嚓打開啦！太棒了！」' : '「漂亮的一擊！繼續加油！」';
     }
 
-    var isFinalBlow = (session.enemyHp === 0);
-    var isBoss = Boolean(session.stage && session.stage.isBoss);
+    var isFinalBlow = session.isTowerMode ? wasTowerBossFloor : (session.enemyHp === 0);
+    var isBoss = session.isTowerMode ? wasTowerBossFloor : Boolean(session.stage && session.stage.isBoss);
     var finisherId = isFinalBlow ? pickNextFinisher() : '';
     if(isFinalBlow) session.finisherCountThisRun++;
 
@@ -1918,11 +2310,12 @@ import { createQuestDialogs } from '../src/quest/dialogs.js';
     var shieldNote = shieldEvent === 'broken-all' ? ' 💥 Boss 護盾全破！' : (shieldEvent === 'crack' ? ' 🛡️ 擊碎一層護盾！' : '');
     var finisherNote = isFinalBlow ? (' 【' + FINISHER_DEFS[finisherId].badge + '】') : '';
     if(els.feedback){
-      els.feedback.textContent = '🎉 答對了！' + finisherNote + shieldNote + gemNote + luckyDropNote + skillUpgradeNote;
+      els.feedback.textContent = '🎉 答對了！' + finisherNote + shieldNote + towerNote + gemNote + luckyDropNote + skillUpgradeNote + storyNote;
       els.feedback.className = 'mqst-stage-toast good';
     }
 
     if(els.helperDrawer) els.helperDrawer.classList.remove('open');
+    if(els.stuckBanner) els.stuckBanner.style.display = 'none';
 
     // 切換控制台為超大「下一題」或「看勝利成績」橫幅
     if(els.choicesGrid) els.choicesGrid.style.display = 'none';
@@ -1936,10 +2329,17 @@ import { createQuestDialogs } from '../src/quest/dialogs.js';
     }
 
     clearNextUnlockTimer();
-    var isLast = (session.idx + 1 >= session.questions.length);
-    var readyHtml = isLast
-      ? '看勝利成績 <i data-lucide="trophy" aria-hidden="true"></i>'
-      : '下一題 <i data-lucide="arrow-right" aria-hidden="true"></i>';
+    var isLast = !session.isTowerMode && (session.idx + 1 >= session.questions.length);
+    var readyHtml = session.isTowerMode
+      ? ('前往第 ' + session.towerRun.currentFloor + ' 層 <i data-lucide="arrow-right" aria-hidden="true"></i>')
+      : (isLast
+          ? '看勝利成績 <i data-lucide="trophy" aria-hidden="true"></i>'
+          : '下一題 <i data-lucide="arrow-right" aria-hidden="true"></i>');
+
+    if(els.nextBtn){
+      els.nextBtn.disabled = false;
+      els.nextBtn.classList.remove('ult-waiting');
+    }
 
     if(isFinalBlow && els.nextBtn){
       session.nextLocked = true;
@@ -2007,8 +2407,11 @@ import { createQuestDialogs } from '../src/quest/dialogs.js';
     }
 
     session.hadWrongOnCurrent = true;
+    session.wrongCountOnCurrent = (session.wrongCountOnCurrent || 0) + 1;
     session.combo = 0;
     updateComboUI();
+
+    session.lastClassroomTarget = resolveClassroomTargetForQuestion(q);
 
     if(!session.isRescueMode){
       var newRescueCase = createRescueCaseFromQuestion(q);
@@ -2028,11 +2431,57 @@ import { createQuestDialogs } from '../src/quest/dialogs.js';
       setPartnerSpeech('沒關係！看看積木再試一次！');
     }
 
-    if(els.feedback){
+    if(session.isTowerMode && session.towerRun){
+      var towerWrongRes = applyTowerWrongAnswer(session.towerRun);
+      renderTowerHud();
+      if(towerWrongRes.isGameOver){
+        session.towerGameOver = true;
+        session.locked = true;
+        if(els.feedback){
+          els.feedback.textContent = '💔 愛心用完囉！你已經勇敢挑戰通過 ' + session.towerRun.clearedFloors + ' 層！（題目也已放進救救求救袋囉）';
+          els.feedback.className = 'mqst-stage-toast bad';
+        }
+        if(els.choicesGrid) els.choicesGrid.style.display = 'none';
+        if(els.keypadWrap)  els.keypadWrap.style.display  = 'none';
+        if(els.nextDock)    els.nextDock.style.display    = 'flex';
+        if(els.explanationBox){
+          els.explanationBox.innerHTML = q.explanationHtml
+            ? q.explanationHtml
+            : ('✨ 正確答案：<b>' + (q.a != null && q.b != null && q.product != null ? (q.a + ' × ' + q.b + ' ＝ ' + q.product) : (q.ans != null ? q.ans : '')) + '</b>');
+        }
+        clearNextUnlockTimer();
+        session.nextLocked = false;
+        if(els.nextBtn){
+          els.nextBtn.disabled = false;
+          els.nextBtn.classList.remove('ult-waiting');
+          els.nextBtn.innerHTML = '查看試煉塔成績 <i data-lucide="trophy" aria-hidden="true"></i>';
+          if(MathApp.refreshIcons) MathApp.refreshIcons();
+        }
+        if(els.stuckBanner && session.lastClassroomTarget){
+          if(els.stuckMsg) els.stuckMsg.textContent = '🏫 不著急！先點這裡回教學教室看積木動畫暖身再挑戰！';
+          if(els.stuckGotoBtn) els.stuckGotoBtn.textContent = session.lastClassroomTarget.label;
+          els.stuckBanner.style.display = 'flex';
+        }
+        runAnim(function(gsap){
+          gsap.fromTo(els.questionStage, { x: -7 }, { x: 0, duration: 0.3, ease: 'elastic.out(1.2, 0.35)', clearProps: 'transform' });
+        });
+        return;
+      }
+      if(els.feedback){
+        els.feedback.textContent = '❤️ 少 1 顆愛心（剩 ' + towerWrongRes.hearts + ' 顆），先看看積木提示再試一次！';
+        els.feedback.className = 'mqst-stage-toast bad';
+      }
+    } else if(els.feedback){
       els.feedback.textContent = '💡 沒關係！看看魔法積木提示泡泡，再試一次吧！';
       els.feedback.className = 'mqst-stage-toast bad';
     }
     openHelperDrawer('💡 積木提示（答錯輔助）');
+
+    if(session.wrongCountOnCurrent >= 2 && els.stuckBanner && session.lastClassroomTarget){
+      if(els.stuckMsg) els.stuckMsg.textContent = '💡 這題卡關了嗎？可以先去對應教室用積木慢慢看！';
+      if(els.stuckGotoBtn) els.stuckGotoBtn.textContent = session.lastClassroomTarget.label;
+      els.stuckBanner.style.display = 'flex';
+    }
 
     runAnim(function(gsap){
       gsap.fromTo(els.questionStage, { x: -7 }, { x: 0, duration: 0.3, ease: 'elastic.out(1.2, 0.35)', clearProps: 'transform' });
@@ -2200,6 +2649,14 @@ import { createQuestDialogs } from '../src/quest/dialogs.js';
     clearSpeakTimer();
     if(MathApp.stopSpeak) MathApp.stopSpeak();
     if(MathApp.sfx) MathApp.sfx('click');
+    if(session.isTowerMode){
+      if(session.towerGameOver){
+        finishTowerRun('hearts_depleted');
+      } else {
+        advanceTowerFloor();
+      }
+      return;
+    }
     session.idx++;
     if(session.idx >= session.questions.length){
       finishStage();
@@ -2298,6 +2755,7 @@ import { createQuestDialogs } from '../src/quest/dialogs.js';
 
     var newBadges = checkAndUnlockBadges();
     var newCostumes = checkAndUnlockCostumes(false);
+    syncAlbumFromProgress(saveData);
     persistSave();
     updateHubStats();
 
@@ -2338,6 +2796,7 @@ import { createQuestDialogs } from '../src/quest/dialogs.js';
       }
       els.resNextBtn.style.display = 'none';
       els.resRetryBtn.style.display = 'none';
+      if(els.resClassroomBtn) els.resClassroomBtn.style.display = 'none';
     } else if(session.isGemHuntMode){
       els.resultTitle.textContent = '💎 寶石補完特訓完成！';
       els.resultSub.textContent = session.newGemsThisRun.length > 0
@@ -2345,13 +2804,26 @@ import { createQuestDialogs } from '../src/quest/dialogs.js';
         : '完成特訓！再多試一次，就能把沒亮的寶石一次點亮喔！';
       els.resNextBtn.style.display = 'none';
       els.resRetryBtn.style.display = 'none';
+      if(els.resClassroomBtn) els.resClassroomBtn.style.display = 'none';
     } else {
       els.resultTitle.textContent = stars === 3 ? '滿分三星！閃耀大勝利！' : (stars === 2 ? '表現超棒！冒險成功！' : '完成冒險！繼續加油！');
       els.resultSub.textContent = stars === 3 ? '粉紅小兔為你拍拍手，全靠自己破關太強了！' : '再挑戰一次就能收集三顆閃亮大星星！';
       var realmStages = getStagesByRealm((session.stage && session.stage.realmId) || 'mul');
       var curIdx = realmStages.indexOf(session.stage);
+      els.resNextBtn.innerHTML = '<i data-lucide="play" aria-hidden="true"></i> <span>跳往下一關</span>';
       els.resNextBtn.style.display = (curIdx >= 0 && curIdx + 1 < realmStages.length) ? 'inline-flex' : 'none';
+      els.resRetryBtn.innerHTML = '<i data-lucide="rotate-ccw" aria-hidden="true"></i> <span>再挑戰三星</span>';
       els.resRetryBtn.style.display = 'inline-flex';
+      if(els.resClassroomBtn){
+        if(stars < 3){
+          session.lastClassroomTarget = session.lastClassroomTarget || resolveClassroomTargetForQuestion(session.questions[0]);
+          els.resClassroomBtn.style.display = 'inline-flex';
+          if(els.resClassroomLbl) els.resClassroomLbl.textContent = session.lastClassroomTarget.label;
+        } else {
+          els.resClassroomBtn.style.display = 'none';
+        }
+      }
+      if(MathApp.refreshIcons) MathApp.refreshIcons();
     }
 
     var starNodes = els.resultStars.querySelectorAll('.mqst-star-item');
@@ -2622,31 +3094,26 @@ import { createQuestDialogs } from '../src/quest/dialogs.js';
           var bVal = Number(labBtn.getAttribute('data-b')) || 15;
           var opVal = labBtn.getAttribute('data-op') === 'sub' ? 'sub' : 'add';
           if(MathApp.sfx) MathApp.sfx('click');
-          closeArcade();
-          if(MathApp.tabs){
-            MathApp.tabs.switchMainTab('calc');
-            MathApp.tabs.switchSubTab('calc', 'learn');
-          }
-          if(MathApp.calc && MathApp.calc.loadProblem){
-            MathApp.calc.loadProblem(aVal, bVal, opVal);
-          }
-          if(MathApp.utils && MathApp.utils.showToast){
-            MathApp.utils.showToast('🧱 已帶入 ' + aVal + (opVal === 'add' ? ' ＋ ' : ' − ') + bVal + ' 到直式教室，按「下一步」看積木動畫！');
-          }
+          navigateToClassroom({ unit: 'calc', subTab: 'learn', a: aVal, b: bVal, op: opVal });
           return;
         }
         var unitBtn = e.target.closest('[data-goto-unit]');
         if(!unitBtn) return;
         var targetUnit = unitBtn.getAttribute('data-goto-unit');
         if(MathApp.sfx) MathApp.sfx('click');
-        closeArcade();
-        if(MathApp.tabs){
-          MathApp.tabs.switchMainTab(targetUnit);
-          var subKey = targetUnit === 'learn' ? 'pv' : targetUnit;
-          MathApp.tabs.switchSubTab(subKey, 'learn');
-        }
-        if(MathApp.utils && MathApp.utils.showToast){
-          MathApp.utils.showToast(targetUnit === 'seq' ? '🚂 已前往「規律與跳數列車」教室，快按播放看看規律吧！' : '🧱 已前往「位值探索屋」，親手擺百／十／個積木試試看！');
+        if(targetUnit === 'learn'){
+          var pvNum = Number(unitBtn.getAttribute('data-pv-num')) || 305;
+          navigateToClassroom({ unit: 'learn', subTab: 'learn', presetNum: pvNum });
+        } else if(targetUnit === 'seq'){
+          var seqStart = unitBtn.hasAttribute('data-seq-start') ? Number(unitBtn.getAttribute('data-seq-start')) : 185;
+          var seqStep = Number(unitBtn.getAttribute('data-seq-step')) || 10;
+          navigateToClassroom({ unit: 'seq', subTab: 'learn', startNum: seqStart, step: seqStep });
+        } else if(targetUnit === 'mul'){
+          var mRow = Number(unitBtn.getAttribute('data-mul-a')) || 3;
+          var mCol = Number(unitBtn.getAttribute('data-mul-b')) || 4;
+          navigateToClassroom({ unit: 'mul', subTab: 'learn', row: mRow, col: mCol });
+        } else {
+          navigateToClassroom({ unit: targetUnit, subTab: 'learn' });
         }
       });
     }
@@ -2677,6 +3144,12 @@ import { createQuestDialogs } from '../src/quest/dialogs.js';
         if(MathApp.sfx) MathApp.sfx('click');
         if(els.helperDrawer.classList.contains('open')){
           els.helperDrawer.classList.remove('open');
+          return;
+        }
+        // 無盡試煉塔無星數壓力，免二次確認直接展開積木輔助
+        if(session.isTowerMode){
+          session.usedHelperOnCurrent = true;
+          openHelperDrawer('🧱 試煉塔積木輔助（不扣愛心）');
           return;
         }
         // 本題已經使用過小幫手（已計算提示扣星），直接再次開啟不重複詢問
@@ -2743,9 +3216,56 @@ import { createQuestDialogs } from '../src/quest/dialogs.js';
       });
     }
 
+    if(els.launchTowerBtn){
+      els.launchTowerBtn.addEventListener('click', openTowerDialog);
+    }
+    if(els.openTowerBtn){
+      els.openTowerBtn.addEventListener('click', openTowerDialog);
+    }
+    if(els.towerRetreatBtn){
+      els.towerRetreatBtn.addEventListener('click', function(){
+        if(MathApp.sfx) MathApp.sfx('click');
+        finishTowerRun('retreat');
+      });
+    }
+    setupDialogPolyfill(els.towerDialog);
+    if(els.towerDialog){
+      els.towerDialog.addEventListener('click', function(e){
+        var routeBtn = e.target.closest('[data-start-tower-route]');
+        if(routeBtn && !routeBtn.disabled){
+          if(MathApp.sfx) MathApp.sfx('click');
+          startTowerRun(routeBtn.getAttribute('data-start-tower-route'));
+          return;
+        }
+        var bossBtn = e.target.closest('[data-goto-boss]');
+        if(bossBtn){
+          var bSid = bossBtn.getAttribute('data-goto-boss');
+          if(MathApp.sfx) MathApp.sfx('click');
+          if(els.towerDialog && els.towerDialog.open) els.towerDialog.close();
+          jumpToStageFromDex(bSid);
+        }
+      });
+    }
+    if(els.stuckGotoBtn){
+      els.stuckGotoBtn.addEventListener('click', function(){
+        if(MathApp.sfx) MathApp.sfx('click');
+        navigateToClassroom(session.lastClassroomTarget);
+      });
+    }
+    if(els.resClassroomBtn){
+      els.resClassroomBtn.addEventListener('click', function(){
+        if(MathApp.sfx) MathApp.sfx('click');
+        navigateToClassroom(session.lastClassroomTarget);
+      });
+    }
+
     if(els.resNextBtn){
       els.resNextBtn.addEventListener('click', function(){
         if(MathApp.sfx) MathApp.sfx('click');
+        if(session.isTowerMode && session.towerRun){
+          startTowerRun(session.towerRun.routeId);
+          return;
+        }
         var realmStages = getStagesByRealm((session.stage && session.stage.realmId) || 'mul');
         var curIdx = realmStages.indexOf(session.stage);
         if(curIdx >= 0 && curIdx + 1 < realmStages.length){
@@ -2758,6 +3278,10 @@ import { createQuestDialogs } from '../src/quest/dialogs.js';
     if(els.resRetryBtn){
       els.resRetryBtn.addEventListener('click', function(){
         if(MathApp.sfx) MathApp.sfx('click');
+        if(session.isTowerMode){
+          openTowerDialog();
+          return;
+        }
         if(session.stage) startStage(session.stage.stageKey || session.stage.id);
       });
     }
@@ -3105,6 +3629,30 @@ import { createQuestDialogs } from '../src/quest/dialogs.js';
         });
       }
 
+      if(els.paneAlbum){
+        els.paneAlbum.addEventListener('click', function(e){
+          var filterBtn = e.target.closest('[data-album-filter]');
+          if(filterBtn){
+            if(MathApp.sfx) MathApp.sfx('click');
+            renderAlbumPane(filterBtn.getAttribute('data-album-filter'));
+            return;
+          }
+          var bossBtn = e.target.closest('[data-goto-boss]');
+          if(bossBtn){
+            var bSid = bossBtn.getAttribute('data-goto-boss');
+            if(MathApp.sfx) MathApp.sfx('click');
+            jumpToStageFromDex(bSid);
+            return;
+          }
+          var stageBtn = e.target.closest('[data-goto-stage]');
+          if(stageBtn){
+            var sid = stageBtn.getAttribute('data-goto-stage');
+            if(MathApp.sfx) MathApp.sfx('click');
+            jumpToStageFromDex(sid);
+          }
+        });
+      }
+
       bindTabGroup(dexTabs, 'data-dex', switchDexTab);
     }
 
@@ -3160,6 +3708,19 @@ import { createQuestDialogs } from '../src/quest/dialogs.js';
           if(MathApp.sfx) MathApp.sfx('click');
           if(els.dailyDialog && els.dailyDialog.open) els.dailyDialog.close();
           openTreehouse('decor');
+          return;
+        }
+        var goClassBtn = e.target.closest('[data-daily-goto-classroom]');
+        if(goClassBtn){
+          if(MathApp.sfx) MathApp.sfx('click');
+          navigateToClassroom(null);
+          return;
+        }
+        var goTowerBtn = e.target.closest('[data-daily-goto-tower]');
+        if(goTowerBtn){
+          if(MathApp.sfx) MathApp.sfx('click');
+          if(els.dailyDialog && els.dailyDialog.open) els.dailyDialog.close();
+          openTowerDialog();
           return;
         }
         var goRealmBtn = e.target.closest('[data-daily-goto-realm]');
@@ -3691,16 +4252,21 @@ import { createQuestDialogs } from '../src/quest/dialogs.js';
           (els.dexDialog && els.dexDialog.open) ||
           (els.dailyDialog && els.dailyDialog.open) ||
           (els.shopDialog && els.shopDialog.open) ||
+          (els.towerDialog && els.towerDialog.open) ||
           (els.helperConfirmDialog && els.helperConfirmDialog.open) ||
           (els.parentDialog && els.parentDialog.open) ||
           (els.audioDialog && els.audioDialog.open)
         ) return;
-        // 戰鬥中或秘密樹屋內誤按 Esc 僅返回世界地圖，避免直接關閉全螢幕而失去進度
+        // 戰鬥中或秘密樹屋內誤按 Esc 僅安全返回（若試煉塔已有過層則進行結算避免遺失戰績）
         if(
           (session.active && els.battleView && els.battleView.style.display !== 'none') ||
           (els.treehouseView && els.treehouseView.style.display !== 'none')
         ){
-          showView('map');
+          if(session.isTowerMode && session.towerRun && session.towerRun.clearedFloors > 0){
+            finishTowerRun('retreat');
+          } else {
+            showView('map');
+          }
         } else {
           closeArcade();
         }
@@ -3727,6 +4293,34 @@ import { createQuestDialogs } from '../src/quest/dialogs.js';
           saveData.stats.exploredInLab = true;
           checkAndUnlockBadges();
           persistSave();
+        }
+      });
+      var capNotifiedDate = '';
+      MathApp.on('classroomPractice', function(payload){
+        var todayKey = getLocalDateKey();
+        var res = applyClassroomPracticeReward(saveData, payload, todayKey);
+        if(!res.ok) return;
+        var unlockedBadges = checkAndUnlockBadges();
+        persistSave();
+        updateHubStats();
+
+        if(MathApp.utils && MathApp.utils.showToast){
+          if(res.coinsAwarded > 0){
+            var note = '🪙 教室探索練習很棒！+' + res.coinsAwarded + ' 星星幣（今日 ' + res.classroomCoinEarned + '/' + CLASSROOM_DAILY_COIN_CAP + '）';
+            if(res.newlyCompleted.length > 0){
+              note += '・📅 委託【' + res.newlyCompleted[0].title + '】達成！';
+            }
+            if(unlockedBadges.length > 0){
+              note += '・🏅 解鎖【' + unlockedBadges[0].name + '】！';
+            }
+            MathApp.utils.showToast(note);
+            if(res.capReached) capNotifiedDate = todayKey;
+          } else if(res.newlyCompleted.length > 0){
+            MathApp.utils.showToast('📅 每日委託【' + res.newlyCompleted[0].title + '】達成！回冒險島即可領獎＋蓋印章！');
+          } else if(res.capReached && capNotifiedDate !== todayKey){
+            capNotifiedDate = todayKey;
+            MathApp.utils.showToast('✨ 今日教室練習星幣已集滿 ' + CLASSROOM_DAILY_COIN_CAP + ' 🪙，快去冒險島實戰挑戰吧！');
+          }
         }
       });
       MathApp.on('tabChange', function(tab){
@@ -3758,6 +4352,7 @@ import { createQuestDialogs } from '../src/quest/dialogs.js';
     if(!els.islandsGrid) return;
 
     ensureDailyQuests(saveData, getLocalDateKey());
+    syncAlbumFromProgress(saveData);
     // 升級舊存檔時自動補齊已達標的小兔造型
     if(checkAndUnlockCostumes(true).length > 0){
       persistSave();
@@ -3783,6 +4378,9 @@ import { createQuestDialogs } from '../src/quest/dialogs.js';
     getTreehouseItems: function(){ return TREEHOUSE_ITEMS.slice(); },
     getPartnerSnacks: function(){ return PARTNER_SNACKS.slice(); },
     getSkillCards: function(){ return SKILL_CARDS.slice(); },
+    getBossAlbumEntries: function(){ return BOSS_ALBUM_ENTRIES.slice(); },
+    getStoryAlbumEntries: function(){ return STORY_ALBUM_ENTRIES.slice(); },
+    getTowerRoutes: function(){ return TOWER_ROUTES.slice(); },
     getDailyState: function(){
       ensureDailyQuests(saveData, getLocalDateKey());
       return {
@@ -3793,6 +4391,17 @@ import { createQuestDialogs } from '../src/quest/dialogs.js';
     openDailyDialog: openDailyDialog,
     openShopDialog: openShopDialog,
     openTreehouse: openTreehouse,
+    openTowerDialog: openTowerDialog,
+    startTowerRun: startTowerRun,
+    getTowerStats: function(){
+      return Object.assign({}, saveData.tower || { bestFloors: { all: 0, sunny: 0, mul: 0, word: 0 } });
+    },
+    getAlbumStats: function(){
+      return {
+        bossesDefeated: countDefeatedBosses(saveData, { ignoreDevMode: true }),
+        unlockedStories: countUnlockedStories(saveData, { ignoreDevMode: true })
+      };
+    },
     buildStageQuestions: buildStageQuestions,
     generateChoicesForQuestion: function(q, count){
       if(!q) return [];

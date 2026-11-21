@@ -750,6 +750,7 @@
         MathApp.utils.launchConfetti();
       }
       if(MathApp.speak) MathApp.speak('答對了！' + currentQ.a + (op === 'add' ? '加' : '減') + currentQ.b + ' 等於 ' + correctTotal);
+      if(MathApp.emit) MathApp.emit('classroomPractice', { unit: 'calc', action: 'quiz_correct', count: 1 });
 
       // 計分更新
       if(currentMode === 'practice'){
