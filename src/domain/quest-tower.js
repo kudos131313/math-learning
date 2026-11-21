@@ -4,7 +4,7 @@
  * 每 5 層守塔小魔王回心（上限 3 顆）＋ 寶箱獎勵、個人最高樓層紀錄
  */
 import { ISLANDS, getStageById, getIslandById } from './quest-data.js';
-import { countUnlockedSprites } from './quest-questions.js';
+import { isTowerUnlocked } from './quest-questions.js';
 import { randInt } from './number-text.js';
 import { buildMulQuestion } from './multiplication.js';
 import { buildSunnyStageQuestions } from './quest-calc-questions.js';
@@ -57,11 +57,7 @@ export function getTowerRouteById(routeId) {
   return TOWER_ROUTES[0];
 }
 
-export function isTowerUnlocked(saveData) {
-  if (!saveData) return false;
-  if (saveData.previewAll || saveData.devMode) return true;
-  return countUnlockedSprites(saveData, null, { ignoreDevMode: true }) >= 1;
-}
+export { isTowerUnlocked };
 
 export function isTowerBossFloor(floor) {
   const f = Math.floor(Number(floor) || 0);

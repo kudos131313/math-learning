@@ -293,6 +293,26 @@ describe('Phase 4：四大教學教室雙向連動、上限鎖定與精準回流
     expect(daily.tasks[2].progress).toBe(1);
   });
 
+  it('試煉塔解鎖單一真相來源與每日委託完全同步（不受殘留 bossesDefeated 誤導）', () => {
+    const phantomSave = createDefaultSaveV2(new Date(2026, 10, 22));
+    phantomSave.bossesDefeated = { 'mul:forest': 1 };
+    expect(isTowerUnlocked(phantomSave)).toBe(false);
+    const phantomDaily = ensureDailyQuests(phantomSave, '2026-11-22');
+    expect(phantomDaily.tasks.some((t) => t.metric === 'tower_floor_5')).toBe(false);
+
+    const mulCleared = createDefaultSaveV2(new Date(2026, 10, 22));
+    setStageStars(mulCleared, 'mul:1-3', 1);
+    expect(isTowerUnlocked(mulCleared)).toBe(true);
+    const mulDaily = ensureDailyQuests(mulCleared, '2026-11-22');
+    expect(mulDaily.tasks.some((t) => t.metric === 'tower_floor_5')).toBe(true);
+
+    const sunnyCleared = createDefaultSaveV2(new Date(2026, 10, 22));
+    setStageStars(sunnyCleared, 'sunny:1-3', 2);
+    expect(isTowerUnlocked(sunnyCleared)).toBe(true);
+    const sunnyDaily = ensureDailyQuests(sunnyCleared, '2026-11-22');
+    expect(sunnyDaily.tasks.some((t) => t.metric === 'tower_floor_5')).toBe(true);
+  });
+
   it('卡關回流解析應對各海域真實題目精準回傳對應教學教室與預載參數', () => {
     const qCalc = buildSunnyStageQuestions({
       id: 'sunny:2-1',

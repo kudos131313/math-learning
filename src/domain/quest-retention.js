@@ -19,7 +19,7 @@ import {
   getIslandById,
   toCanonicalPartnerId
 } from './quest-data.js';
-import { getLocalDateKey, isRealmUnlocked, getStageStars } from './quest-questions.js';
+import { getLocalDateKey, isRealmUnlocked, isTowerUnlocked, getStageStars } from './quest-questions.js';
 
 export const DAILY_ALL_CLEAR_BONUS = 25;
 export const STAMP_STEP_COINS = 15;
@@ -173,6 +173,7 @@ const CHALLENGE_TEMPLATES = [
     desc: '在無盡試煉塔打敗第 5 層守塔小魔王',
     metric: 'tower_floor_5',
     realmFilter: 'any',
+    requires: 'tower',
     target: 1
   }
 ];
@@ -213,6 +214,36 @@ export function getUnlockedRealmsForDaily(saveData) {
   return list.length > 0 ? list : ['sunny', 'mul'];
 }
 
+export function getDailyQuestContext(saveData) {
+  return {
+    unlockedRealms: getUnlockedRealmsForDaily(saveData),
+    towerUnlocked: isTowerUnlocked(saveData)
+  };
+}
+
+export function isDailyTaskEligible(task, saveDataOrContext) {
+  if (!task || typeof task !== 'object' || !task.metric) return false;
+  const ctx =
+    saveDataOrContext &&
+    Array.isArray(saveDataOrContext.unlockedRealms) &&
+    typeof saveDataOrContext.towerUnlocked === 'boolean'
+      ? saveDataOrContext
+      : getDailyQuestContext(saveDataOrContext);
+
+  if (task.realmFilter && task.realmFilter !== 'any') {
+    if (!ctx.unlockedRealms.includes(task.realmFilter)) return false;
+  }
+  if (
+    task.requires === 'tower' ||
+    task.metric === 'tower_floor_5' ||
+    task.id === 'c_tower5' ||
+    (typeof task.id === 'string' && task.id.endsWith('_c_tower5'))
+  ) {
+    if (!ctx.towerUnlocked) return false;
+  }
+  return true;
+}
+
 export function generateDailyQuests(dateKey, unlockedRealms = ['sunny', 'mul'], options = {}) {
   const safeDate = typeof dateKey === 'string' && dateKey ? dateKey : getLocalDateKey();
   const rng = createDateSeededRng(safeDate, 'daily_v1');
@@ -222,16 +253,40 @@ export function generateDailyQuests(dateKey, unlockedRealms = ['sunny', 'mul'], 
     : ['sunny', 'mul'];
   const realmsPool = validRealms.length > 0 ? validRealms : ['sunny', 'mul'];
 
-  const towerUnlocked = options.towerUnlocked !== false;
-  const challengePool = towerUnlocked
-    ? CHALLENGE_TEMPLATES
+  const towerUnlocked = Boolean(options && options.towerUnlocked);
+  const ctx = { unlockedRealms: realmsPool, towerUnlocked };
+
+  const eligibleWarmups = WARMUP_TEMPLATES.filter((w) => isDailyTaskEligible(w, ctx));
+  const warmupPool = eligibleWarmups.length > 0 ? eligibleWarmups : [WARMUP_TEMPLATES[0]];
+
+  const eligibleChallenges = CHALLENGE_TEMPLATES.filter((c) => isDailyTaskEligible(c, ctx));
+  const challengePool = eligibleChallenges.length > 0
+    ? eligibleChallenges
     : CHALLENGE_TEMPLATES.filter((c) => c.id !== 'c_tower5');
 
-  const wPick = WARMUP_TEMPLATES[Math.floor(rng() * WARMUP_TEMPLATES.length)];
+  const wPick = warmupPool[Math.floor(rng() * warmupPool.length)];
   const rId = realmsPool[Math.floor(rng() * realmsPool.length)];
   const themePool = THEME_TEMPLATES_BY_REALM[rId] || THEME_TEMPLATES_BY_REALM.mul;
   const tPick = themePool[Math.floor(rng() * themePool.length)];
   const cPick = challengePool[Math.floor(rng() * challengePool.length)];
+
+  const challengeTask = {
+    id: 'dq_' + safeDate + '_challenge_' + cPick.id,
+    slot: 'challenge',
+    slotLabel: '挑戰委託',
+    icon: cPick.icon,
+    title: cPick.title,
+    desc: cPick.desc,
+    metric: cPick.metric,
+    realmFilter: cPick.realmFilter,
+    target: cPick.target,
+    progress: 0,
+    rewardCoins: 45,
+    claimed: false
+  };
+  if (cPick.requires) {
+    challengeTask.requires = cPick.requires;
+  }
 
   return [
     {
@@ -262,70 +317,74 @@ export function generateDailyQuests(dateKey, unlockedRealms = ['sunny', 'mul'], 
       rewardCoins: 30,
       claimed: false
     },
-    {
-      id: 'dq_' + safeDate + '_challenge_' + cPick.id,
-      slot: 'challenge',
-      slotLabel: '挑戰委託',
-      icon: cPick.icon,
-      title: cPick.title,
-      desc: cPick.desc,
-      metric: cPick.metric,
-      realmFilter: cPick.realmFilter,
-      target: cPick.target,
-      progress: 0,
-      rewardCoins: 45,
-      claimed: false
-    }
+    challengeTask
   ];
 }
 
-function hasTowerAccessForDaily(saveData) {
-  if (!saveData) return false;
-  if (saveData.previewAll || saveData.devMode) return true;
-  const defeated = saveData.bossesDefeated && typeof saveData.bossesDefeated === 'object' ? saveData.bossesDefeated : {};
-  if (Object.keys(defeated).some((k) => Number(defeated[k] || 0) > 0)) return true;
-  const stars = saveData.stageStars && typeof saveData.stageStars === 'object' ? saveData.stageStars : {};
-  return ISLANDS.some((isl) => Number(stars[isl.bossStageId] || stars[isl.bossStageId.replace(/^mul:/, '')] || 0) >= 1);
-}
-
-export function ensureDailyQuests(saveData, dateKey = getLocalDateKey()) {
-  if (!saveData || typeof saveData !== 'object') return null;
+export function sanitizeDailyQuests(saveData, dateKey = getLocalDateKey()) {
+  if (!saveData || typeof saveData !== 'object') {
+    return { daily: null, changed: false };
+  }
   const safeDate = typeof dateKey === 'string' && dateKey ? dateKey : getLocalDateKey();
-  const unlockedRealms = getUnlockedRealmsForDaily(saveData);
-  const dailyOpts = { towerUnlocked: hasTowerAccessForDaily(saveData) };
+  const ctx = getDailyQuestContext(saveData);
+  const dailyOpts = { towerUnlocked: ctx.towerUnlocked };
+  let changed = false;
 
   if (!saveData.stampBook || typeof saveData.stampBook !== 'object') {
     saveData.stampBook = { count: 0, round: 1 };
+    changed = true;
   }
 
   if (!saveData.daily || typeof saveData.daily !== 'object' || saveData.daily.date !== safeDate) {
     saveData.daily = {
       date: safeDate,
-      tasks: generateDailyQuests(safeDate, unlockedRealms, dailyOpts),
+      tasks: generateDailyQuests(safeDate, ctx.unlockedRealms, dailyOpts),
       replayRewardCount: 0,
       classroomCoinEarned: 0,
       stampedToday: false,
       allClearBonusClaimed: false
     };
-    return saveData.daily;
+    return { daily: saveData.daily, changed: true };
   }
 
   if (!Array.isArray(saveData.daily.tasks) || saveData.daily.tasks.length !== 3) {
-    saveData.daily.tasks = generateDailyQuests(safeDate, unlockedRealms, dailyOpts);
+    saveData.daily.tasks = generateDailyQuests(safeDate, ctx.unlockedRealms, dailyOpts);
+    changed = true;
   } else {
-    // 若先前生成的任務池包含尚未解鎖的海域，強制替換為安全題池
-    const allowedSet = new Set(unlockedRealms);
-    const hasInvalidRealm = saveData.daily.tasks.some(
-      (t) => t && t.realmFilter && t.realmFilter !== 'any' && !allowedSet.has(t.realmFilter)
-    );
-    if (hasInvalidRealm) {
-      saveData.daily.tasks = generateDailyQuests(safeDate, unlockedRealms, dailyOpts);
+    // 逐槽位檢查資格，只替換未完成且不符合目前解鎖進度的任務，避免洗掉其餘合法進度
+    const expectedSlots = ['warmup', 'theme', 'challenge'];
+    let freshTasks = null;
+    const getFresh = () => {
+      if (!freshTasks) {
+        freshTasks = generateDailyQuests(safeDate, ctx.unlockedRealms, dailyOpts);
+      }
+      return freshTasks;
+    };
+
+    for (let i = 0; i < 3; i++) {
+      const task = saveData.daily.tasks[i];
+      if (!task || typeof task !== 'object' || !task.metric || (task.slot && task.slot !== expectedSlots[i])) {
+        saveData.daily.tasks[i] = getFresh()[i];
+        changed = true;
+        continue;
+      }
+      const doneOrClaimed = Boolean(task.claimed) || Number(task.progress || 0) >= Number(task.target || 1);
+      if (!doneOrClaimed && !isDailyTaskEligible(task, ctx)) {
+        saveData.daily.tasks[i] = getFresh()[i];
+        changed = true;
+      }
     }
   }
+
   if (typeof saveData.daily.allClearBonusClaimed !== 'boolean') {
     saveData.daily.allClearBonusClaimed = false;
+    changed = true;
   }
-  return saveData.daily;
+  return { daily: saveData.daily, changed };
+}
+
+export function ensureDailyQuests(saveData, dateKey = getLocalDateKey()) {
+  return sanitizeDailyQuests(saveData, dateKey).daily;
 }
 
 export function recordDailyQuestProgress(saveData, event, dateKey = getLocalDateKey()) {

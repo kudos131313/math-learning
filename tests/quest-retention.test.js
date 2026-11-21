@@ -15,14 +15,18 @@ import {
   migrateV1ToV2,
   normalizeSaveDataV2,
   setStageStars,
-  getLocalDateKey
+  getLocalDateKey,
+  isTowerUnlocked
 } from '../src/domain/quest-questions.js';
 import {
   DAILY_ALL_CLEAR_BONUS,
   STAMP_STEP_COINS,
   STAMP_ROUND_COMPLETE_COINS,
   STAMP_OVERFLOW_BONUS_COINS,
+  getDailyQuestContext,
+  isDailyTaskEligible,
   generateDailyQuests,
+  sanitizeDailyQuests,
   ensureDailyQuests,
   recordDailyQuestProgress,
   countClaimableDailyQuests,
@@ -80,6 +84,110 @@ describe('Phase 3：每日冒險委託確定性、海域過濾與不斷簽印章
       if (tasks.some((t) => t.realmFilter === 'cloud')) sawCloud = true;
     }
     expect(sawCloud).toBe(true);
+  });
+
+  it('未傳 options 預設不開放高塔委託，0 進度存檔 120 天內所有委託皆須符合解鎖資格', () => {
+    const nov22 = generateDailyQuests('2026-11-22', ['sunny', 'mul']);
+    expect(nov22.some((t) => t.metric === 'tower_floor_5' || t.id.includes('c_tower5'))).toBe(false);
+
+    for (let i = 0; i < 120; i++) {
+      const d = getLocalDateKey(new Date(2026, 0, 1 + i));
+      const tasks = generateDailyQuests(d, ['sunny', 'mul']);
+      expect(tasks.some((t) => t.metric === 'tower_floor_5')).toBe(false);
+
+      const freshSave = createDefaultSaveV2(new Date(2026, 0, 1 + i));
+      const daily = ensureDailyQuests(freshSave, d);
+      expect(daily.tasks).toHaveLength(3);
+      daily.tasks.forEach((task) => {
+        expect(isDailyTaskEligible(task, freshSave)).toBe(true);
+        expect(task.realmFilter).not.toBe('cloud');
+        expect(task.metric).not.toBe('tower_floor_5');
+      });
+    }
+  });
+
+  it('關閉預習或開發者模式時，僅替換未完成且不再符合資格的槽位並保留其餘合法進度與已領獎狀態', () => {
+    const day = '2026-11-22';
+    const save = createDefaultSaveV2(new Date(2026, 10, 22));
+
+    // 模擬曾開啟自由預習模式而在 2026-11-22 抽出高塔挑戰委託
+    save.previewAll = true;
+    const previewDaily = ensureDailyQuests(save, day);
+    expect(previewDaily.tasks.some((t) => t.metric === 'tower_floor_5')).toBe(true);
+
+    // 累積暖身委託部分進度
+    previewDaily.tasks[0].progress = 2;
+
+    // 關閉自由預習模式後，高塔回到未解鎖狀態
+    save.previewAll = false;
+    expect(isTowerUnlocked(save)).toBe(false);
+    const res = sanitizeDailyQuests(save, day);
+    expect(res.changed).toBe(true);
+    expect(res.daily.tasks[2].metric).not.toBe('tower_floor_5');
+    expect(isDailyTaskEligible(res.daily.tasks[2], save)).toBe(true);
+    // 槽位 0 原先累積的進度必須完整保留
+    expect(res.daily.tasks[0].id).toBe(previewDaily.tasks[0].id);
+    expect(res.daily.tasks[0].progress).toBe(2);
+
+    // 模擬關閉預習使 cloud 回到未解鎖，應只替換未完成的 cloud 主題槽位；已領獎／已完成待領獎者不可洗掉
+    const cloudSave = createDefaultSaveV2(new Date(2026, 10, 22));
+    cloudSave.previewAll = true;
+    const cloudDaily = ensureDailyQuests(cloudSave, day);
+    cloudDaily.tasks[0].progress = cloudDaily.tasks[0].target;
+    cloudDaily.tasks[0].claimed = true;
+    cloudDaily.tasks[1] = {
+      id: 'dq_2026-11-22_theme_t_cloud_clear1',
+      slot: 'theme',
+      slotLabel: '主題委託',
+      icon: '🚂',
+      title: '雲端王國啟航',
+      desc: '在雲端應用王國完成 1 個關卡',
+      metric: 'clear_realm',
+      realmFilter: 'cloud',
+      target: 1,
+      progress: 0,
+      rewardCoins: 30,
+      claimed: false
+    };
+    cloudDaily.tasks[2] = {
+      id: 'dq_2026-11-22_challenge_c_tower5',
+      slot: 'challenge',
+      slotLabel: '挑戰委託',
+      icon: '🗼',
+      title: '高塔守門挑戰',
+      desc: '在無盡試煉塔打敗第 5 層守塔小魔王',
+      metric: 'tower_floor_5',
+      realmFilter: 'any',
+      requires: 'tower',
+      target: 1,
+      progress: 1,
+      rewardCoins: 45,
+      claimed: false
+    };
+
+    cloudSave.previewAll = false;
+    const cloudSanitized = sanitizeDailyQuests(cloudSave, day);
+    expect(cloudSanitized.changed).toBe(true);
+    // 已領取的槽位 0 保留原任務與 claimed: true
+    expect(cloudSanitized.daily.tasks[0].claimed).toBe(true);
+    // 未完成的 cloud 主題槽位 1 被替換成已解鎖海域
+    expect(cloudSanitized.daily.tasks[1].realmFilter).not.toBe('cloud');
+    expect(isDailyTaskEligible(cloudSanitized.daily.tasks[1], cloudSave)).toBe(true);
+    // 已完成待領取的槽位 2 保留原樣不洗掉獎勵
+    expect(cloudSanitized.daily.tasks[2].metric).toBe('tower_floor_5');
+    expect(cloudSanitized.daily.tasks[2].progress).toBe(1);
+
+    // 關閉 devMode 後經 normalizeSaveDataV2 正規化，0 進度殘留的不合法任務應自動清空待重生
+    const devSave = createDefaultSaveV2(new Date(2026, 10, 22));
+    devSave.devMode = true;
+    ensureDailyQuests(devSave, day);
+    expect(devSave.daily.tasks[2].metric).toBe('tower_floor_5');
+    devSave.devMode = false;
+    const normalized = normalizeSaveDataV2(devSave, new Date(2026, 10, 22));
+    expect(normalized.daily.tasks).toEqual([]);
+    const rebuilt = ensureDailyQuests(normalized, day);
+    expect(rebuilt.tasks.some((t) => t.metric === 'tower_floor_5')).toBe(false);
+    expect(getDailyQuestContext(normalized).towerUnlocked).toBe(false);
   });
 
   it('委託進度推進、防重複領取與全勤 +25 獎勵正確運作', () => {

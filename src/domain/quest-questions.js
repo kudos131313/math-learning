@@ -640,6 +640,32 @@ export function normalizeSaveDataV2(parsed, now = new Date()) {
     migratedFromV1: Boolean(parsed.migratedFromV1)
   };
   syncAlbumFromProgress(normalized);
+  if (Array.isArray(normalized.daily.tasks) && normalized.daily.tasks.length > 0) {
+    const hasIneligibleUnfinished = normalized.daily.tasks.some((t) => {
+      if (!t || typeof t !== 'object') return false;
+      const doneOrClaimed = Boolean(t.claimed) || Number(t.progress || 0) >= Number(t.target || 1);
+      if (doneOrClaimed) return false;
+      if (t.realmFilter && t.realmFilter !== 'any' && !isRealmUnlocked(t.realmFilter, normalized)) {
+        return true;
+      }
+      if (
+        (t.requires === 'tower' ||
+          t.metric === 'tower_floor_5' ||
+          t.id === 'c_tower5' ||
+          (typeof t.id === 'string' && t.id.endsWith('_c_tower5'))) &&
+        !isTowerUnlocked(normalized)
+      ) {
+        return true;
+      }
+      return false;
+    });
+    const allUntouched = normalized.daily.tasks.every(
+      (t) => !t || (!t.claimed && Number(t.progress || 0) <= 0)
+    );
+    if (hasIneligibleUnfinished && allUntouched) {
+      normalized.daily.tasks = [];
+    }
+  }
   return normalized;
 }
 
@@ -681,6 +707,13 @@ export function countUnlockedSprites(saveData, realmId, { ignoreDevMode = false 
     if ((!ignoreDevMode && saveData && saveData.devMode) || getStageStars(saveData, isl.bossStageId) >= 1) cnt++;
   });
   return cnt;
+}
+
+export function isTowerUnlocked(saveData, { ignoreDevMode = false } = {}) {
+  if (!saveData) return false;
+  if (saveData.previewAll) return true;
+  if (!ignoreDevMode && saveData.devMode) return true;
+  return countUnlockedSprites(saveData, null, { ignoreDevMode: true }) >= 1;
 }
 
 export function isRealmUnlocked(realmId, saveData) {

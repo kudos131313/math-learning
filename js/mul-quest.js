@@ -70,6 +70,7 @@ import {
 } from '../src/domain/quest-questions.js';
 import {
   ensureDailyQuests,
+  sanitizeDailyQuests,
   recordDailyQuestProgress,
   countClaimableDailyQuests,
   claimDailyQuestReward,
@@ -187,9 +188,14 @@ import { createQuestDialogs } from '../src/quest/dialogs.js';
   }
 
   var saveData = loadSave();
+  var saveDirtyOnInit = false;
   if(!isDevEntryEnabled() && saveData.devMode){
     saveData.devMode = false;
     saveData = normalizeSaveDataV2(saveData);
+    saveDirtyOnInit = true;
+  }
+  var initDailyCheck = sanitizeDailyQuests(saveData, getLocalDateKey());
+  if(saveDirtyOnInit || initDailyCheck.changed){
     persistSave();
   }
 
@@ -1284,7 +1290,11 @@ import { createQuestDialogs } from '../src/quest/dialogs.js';
   function openDailyDialog(){
     if(!els.dailyDialog) return;
     if(MathApp.sfx) MathApp.sfx('click');
-    ensureDailyQuests(saveData, getLocalDateKey());
+    var dailyCheck = sanitizeDailyQuests(saveData, getLocalDateKey());
+    if(dailyCheck.changed){
+      persistSave();
+      updateHubStats();
+    }
     renderDailyDialog();
     els.dailyDialog.showModal();
   }
@@ -3945,6 +3955,16 @@ import { createQuestDialogs } from '../src/quest/dialogs.js';
         var goTowerBtn = e.target.closest('[data-daily-goto-tower]');
         if(goTowerBtn){
           if(MathApp.sfx) MathApp.sfx('click');
+          if(!isTowerUnlocked(saveData)){
+            sanitizeDailyQuests(saveData, getLocalDateKey());
+            persistSave();
+            updateHubStats();
+            renderDailyDialog();
+            if(MathApp.utils && MathApp.utils.showToast){
+              MathApp.utils.showToast('📅 每日委託已依目前闖關進度更新囉！');
+            }
+            return;
+          }
           if(els.dailyDialog && els.dailyDialog.open) els.dailyDialog.close();
           openTowerDialog();
           return;
@@ -3959,6 +3979,11 @@ import { createQuestDialogs } from '../src/quest/dialogs.js';
               showView('map');
             }
             switchRealm(realmId, true);
+          } else if(realmId){
+            sanitizeDailyQuests(saveData, getLocalDateKey());
+            persistSave();
+            updateHubStats();
+            renderDailyDialog();
           }
         }
       });
@@ -4299,6 +4324,7 @@ import { createQuestDialogs } from '../src/quest/dialogs.js';
         if(!saveData.devMode){
           saveData = normalizeSaveDataV2(saveData);
         }
+        ensureDailyQuests(saveData, getLocalDateKey());
         persistSave();
         updatePreviewToggleBtn();
         syncAllBunnyVisuals();
@@ -4421,6 +4447,7 @@ import { createQuestDialogs } from '../src/quest/dialogs.js';
             return;
           }
           saveData = res.save;
+          ensureDailyQuests(saveData, getLocalDateKey());
           persistSave();
           updatePreviewToggleBtn();
           syncAllBunnyVisuals();
@@ -4461,8 +4488,10 @@ import { createQuestDialogs } from '../src/quest/dialogs.js';
       els.previewToggle.addEventListener('click', function(){
         if(MathApp.sfx) MathApp.sfx('click');
         saveData.previewAll = !saveData.previewAll;
+        ensureDailyQuests(saveData, getLocalDateKey());
         persistSave();
         updatePreviewToggleBtn();
+        updateHubStats();
         renderMap();
         if(MathApp.utils && MathApp.utils.showToast){
           MathApp.utils.showToast(saveData.previewAll ? '已開啟自由挑選／預習模式' : '已恢復依序闖關模式');
